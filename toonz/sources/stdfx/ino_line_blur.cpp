@@ -647,10 +647,6 @@ typedef unsigned short uint16_t;
 class brush_smudge_circle {
 public:
   brush_smudge_circle() {
-    this->_i_mv_sw = false;
-    this->_i_pv_sw = false;
-    this->_i_cv_sw = false;
-
     this->_i32_size_by_pixel   = 7; /* 画像上の線の最大幅 */
     this->_i32_subpixel_divide = 4;
     this->_d_ratio             = 0.85;
@@ -659,12 +655,6 @@ public:
     this->_dp_subpixel_image = NULL;
     this->_dp_pixel_image    = NULL;
   }
-  ~brush_smudge_circle() { this->mem_free(); }
-
-  /* パラメータ設定 */
-  void set_i_mv_sw(bool ii) { this->_i_mv_sw = ii; }
-  void set_i_pv_sw(bool ii) { this->_i_pv_sw = ii; }
-  void set_i_cv_sw(bool ii) { this->_i_cv_sw = ii; }
 
   void set_i32_size_by_pixel(int32_t ii) { this->_i32_size_by_pixel = ii; }
   void set_i32_subpixel_divide(int32_t ii) { this->_i32_subpixel_divide = ii; }
@@ -682,9 +672,9 @@ public:
   int mem_alloc(void);
 
   /* メモリへのポインターを得る */
-  double *get_dp_brush(void) { return this->_dp_brush; }
-  double *get_dp_subpixel_image(void) { return this->_dp_subpixel_image; }
-  double *get_dp_pixel_image(void) { return this->_dp_pixel_image; }
+  double *get_dp_brush() { return this->_dp_brush.get(); }
+  double *get_dp_subpixel_image() { return this->_dp_subpixel_image.get(); }
+  double *get_dp_pixel_image() { return this->_dp_pixel_image.get(); }
 
   /* 実行 */
   void set_brush_circle(void);
@@ -695,18 +685,14 @@ public:
   void to_pixel_from_subpixel(double d_x1, double d_y1, double d_x2,
                               double d_y2);
 
-  /* メモリ開放 */
-  void mem_free(void);
-
 private:
-  int _i_mv_sw, /* Method    Verbose */
-      _i_pv_sw, /* Parameter Verbose */
-      _i_cv_sw; /* Counter   Verbose */
-
   int32_t _i32_size_by_pixel, _i32_subpixel_divide;
   double _d_ratio;
 
-  double *_dp_brush, *_dp_subpixel_image, *_dp_pixel_image;
+  //double *_dp_brush, *_dp_subpixel_image, *_dp_pixel_image;
+  std::unique_ptr<double[]> _dp_brush;
+  std::unique_ptr<double[]> _dp_subpixel_image;
+  std::unique_ptr<double[]> _dp_pixel_image;
 };
 
 #endif              /* !__brush_smudge_circle_h__ */
@@ -717,52 +703,13 @@ private:
 
 #include "igs_line_blur.h"  // "pri.h" "brush_smudge_circle.h"
 
-/* メモリ開放 */
-void brush_smudge_circle::mem_free(void) {
-  if (NULL != this->_dp_brush) {
-    if (this->_i_mv_sw) {
-      pri_funct_msg_ttvr("brush_smudge_circle::mem_free()");
-    }
-    free(this->_dp_brush);
-    this->_dp_brush          = NULL;
-    this->_dp_pixel_image    = NULL;
-    this->_dp_subpixel_image = NULL;
-  }
-}
-
-/* データ設定とメモリ確保 */
 int brush_smudge_circle::mem_alloc(void) {
-  int32_t i32_sz;
-
-  /* もし以前のメモリがあるなら開放する */
-  this->mem_free();
-
   /* メモリ確保のためのサイズの1単位 */
-  i32_sz = this->_i32_size_by_pixel * this->_i32_subpixel_divide;
+  int32_t i32_sz = this->_i32_size_by_pixel * this->_i32_subpixel_divide;
 
-  /* 処理ごとのメッセージ */
-  if (this->_i_mv_sw) {
-    pri_funct_msg_ttvr("brush_smudge_circle::mem_alloc()");
-  }
-
-  if (this->_i_pv_sw) {
-    pri_funct_msg_ttvr("calloc((%d x %d + %d x %d + %d x %d) x (%d x %d))",
-                       i32_sz, i32_sz, i32_sz, i32_sz,
-                       (this->_i32_size_by_pixel + 1),
-                       (this->_i32_size_by_pixel + 1), sizeof(double), 5);
-  }
-
-  this->_dp_brush = (double *)calloc(
-      i32_sz * i32_sz + i32_sz * i32_sz +
-          (this->_i32_size_by_pixel + 1) * (this->_i32_size_by_pixel + 1),
-      sizeof(double) * 5);
-  if (NULL == this->_dp_brush) {
-    pri_funct_err_bttvr("Error : calloc(-) returns NULL.");
-    return NG;
-  }
-
-  this->_dp_subpixel_image = this->_dp_brush + i32_sz * i32_sz * 5;
-  this->_dp_pixel_image    = this->_dp_subpixel_image + i32_sz * i32_sz * 5;
+  this->_dp_brush.reset(new double[i32_sz * i32_sz * 5]);
+  this->_dp_subpixel_image.reset(new double[i32_sz * i32_sz * 5]);
+  this->_dp_pixel_image.reset(new double[(this->_i32_size_by_pixel + 1) * (this->_i32_size_by_pixel + 1) * 5]);
 
   return OK;
 }
@@ -827,7 +774,7 @@ void brush_smudge_circle::set_brush_circle(void) {
   double *dp_brush, d_radius, d_tmp;
   int32_t xx, yy, i32_size;
 
-  dp_brush = this->_dp_brush;
+  dp_brush = this->_dp_brush.get();
   i32_size = this->_i32_size_by_pixel * this->_i32_subpixel_divide;
 
   d_radius = i32_size / 2.0;
@@ -850,8 +797,8 @@ void brush_smudge_circle::copy_to_brush_from_image(void) {
   double *dp_brush, *dp_image;
   int32_t xx, yy, zz, i32_size;
 
-  dp_brush = this->_dp_brush;
-  dp_image = this->_dp_subpixel_image;
+  dp_brush = this->_dp_brush.get();
+  dp_image = this->_dp_subpixel_image.get();
   i32_size = this->_i32_size_by_pixel * this->_i32_subpixel_divide;
 
   for (yy = 0; yy < i32_size; ++yy) {
@@ -873,8 +820,8 @@ void brush_smudge_circle::exec(void) {
   double *dp_brush, *dp_image;
   int32_t xx, yy, zz, i32_size;
 
-  dp_brush = this->_dp_brush;
-  dp_image = this->_dp_subpixel_image;
+  dp_brush = this->_dp_brush.get();
+  dp_image = this->_dp_subpixel_image.get();
   i32_size = this->_i32_size_by_pixel * this->_i32_subpixel_divide;
 
   for (yy = 0; yy < i32_size; ++yy) {
@@ -907,8 +854,8 @@ void brush_smudge_circle::to_subpixel_from_pixel(double d_x1, double d_y1,
   d_y1floor = floor(d_y1 + d_subsize / 2.0);
   i32_xsize = (int32_t)floor(d_x2 - d_subsize / 2.0) - (int32_t)d_x1floor + 1;
 
-  dp_image = this->_dp_subpixel_image;
-  dp_save  = this->_dp_pixel_image;
+  dp_image = this->_dp_subpixel_image.get();
+  dp_save  = this->_dp_pixel_image.get();
 
   /* d_x,d_yでループ、d_xsave,d_ysaveで位置 */
   for (d_y = d_y1 + d_subsize / 2.0; d_y < d_y2; d_y += d_subsize) {
@@ -959,7 +906,7 @@ void brush_smudge_circle::to_pixel_from_subpixel(double d_x1, double d_y1,
   d_subsize = 1.0 / this->_i32_subpixel_divide;
 
   /* 初期化 */
-  dp_save = this->_dp_pixel_image;
+  dp_save = this->_dp_pixel_image.get();
   for (ii = 0; ii < this->_i32_size_by_pixel + 1; ++ii) {
     for (jj = 0; jj < this->_i32_size_by_pixel + 1; ++jj, dp_save += 5) {
       for (zz = 0; zz < 5; ++zz) {
@@ -973,8 +920,8 @@ void brush_smudge_circle::to_pixel_from_subpixel(double d_x1, double d_y1,
   d_y1floor = floor(d_y1 + d_subsize / 2.0);
   i32_xsize = (int32_t)floor(d_x2 - d_subsize / 2.0) - (int32_t)d_x1floor + 1;
 
-  dp_image = this->_dp_subpixel_image;
-  dp_save  = this->_dp_pixel_image;
+  dp_image = this->_dp_subpixel_image.get();
+  dp_save  = this->_dp_pixel_image.get();
 
   /* d_x,d_yでループ、d_xsave,d_ysaveで位置 */
   for (d_y = d_y1 + d_subsize / 2.0; d_y < d_y2; d_y += d_subsize) {
@@ -996,7 +943,7 @@ void brush_smudge_circle::to_pixel_from_subpixel(double d_x1, double d_y1,
   }
 
   /* ピクセル値に */
-  dp_save = this->_dp_pixel_image;
+  dp_save = this->_dp_pixel_image.get();
   for (ii = 0; ii < this->_i32_size_by_pixel + 1; ++ii) {
     for (jj = 0; jj < this->_i32_size_by_pixel + 1; ++jj, dp_save += 5) {
       for (zz = 0; zz < 5; ++zz) {
@@ -6156,17 +6103,14 @@ void igs::line_blur::convert(
   cl_thinnest_ui16_image.set_i_mv_sw(mv_sw);
   cl_pixel_point_root.set_i_mv_sw(mv_sw);
   cl_pixel_line_root.set_i_mv_sw(mv_sw);
-  cl_brush_smudge_circle.set_i_mv_sw(mv_sw);
 
   cl_thinnest_ui16_image.set_i_pv_sw(pv_sw);
   cl_pixel_point_root.set_i_pv_sw(pv_sw);
   cl_pixel_line_root.set_i_pv_sw(pv_sw);
-  cl_brush_smudge_circle.set_i_pv_sw(pv_sw);
 
   cl_thinnest_ui16_image.set_i_cv_sw(cv_sw);
   cl_pixel_point_root.set_i_cv_sw(cv_sw);
   cl_pixel_line_root.set_i_cv_sw(cv_sw);
-  cl_brush_smudge_circle.set_i_cv_sw(cv_sw);
 
   /* --- 処理ごとのメッセージ --- */
   if (mv_sw) {
@@ -6368,9 +6312,6 @@ void igs::line_blur::convert(
                                     cl_pixel_line_root, in, height, width,
                                     channels, bits, out);
   }
-
-  /* 指先ツール用メモリ開放 */
-  cl_brush_smudge_circle.mem_free();
 
   /* 線ぼかし方向参照リスト開放 */
   cl_pixel_select_curve_blur_root.mem_free();
