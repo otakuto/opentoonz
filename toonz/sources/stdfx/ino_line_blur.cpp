@@ -403,24 +403,17 @@ typedef int int32_t;
 
 class brush_curve_blur {
 public:
-  /* constructer */
-  brush_curve_blur(void) {
-    int32_t ii;
-
-    this->_i32_count            = 51;
-    this->_i32_subpixel_divide  = 2;
-    this->_d_effect_area_radius = 25.0;
-    this->_d_power              = 1.0;
-
-    this->_dp_ratio      = NULL;
-    this->_dp_linepixels = NULL;
-    this->_dp_xp         = NULL;
-    this->_dp_yp         = NULL;
-    this->_dp_subpixel   = NULL;
-    for (ii = 0; ii < CHANNEL_COUNT; ++ii) {
-      this->_da_pixel[ii] = 0.0;
-    }
-  }
+  brush_curve_blur()
+    : _i32_count(51)
+    , _i32_subpixel_divide(2)
+    , _d_effect_area_radius(25.0)
+    , _d_power(1.0)
+    , _dp_ratio(nullptr)
+    , _dp_linepixels(nullptr)
+    , _dp_xp(nullptr)
+    , _dp_yp(nullptr)
+    , _dp_subpixel(nullptr)
+    , _da_pixel() { }
 
   /* ぼかし線のポイント数 */
   void set_i32_count(int32_t ii) { this->_i32_count = ii; }
