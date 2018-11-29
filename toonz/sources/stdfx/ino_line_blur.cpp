@@ -407,10 +407,6 @@ public:
   brush_curve_blur(void) {
     int32_t ii;
 
-    this->_i_mv_sw = false;
-    this->_i_pv_sw = false;
-    this->_i_cv_sw = false;
-
     this->_i32_count            = 51;
     this->_i32_subpixel_divide  = 2;
     this->_d_effect_area_radius = 25.0;
@@ -425,13 +421,6 @@ public:
       this->_da_pixel[ii] = 0.0;
     }
   }
-  /* constructer */
-  ~brush_curve_blur(void) { this->mem_free(); }
-
-  /* パラメータ設定 */
-  void set_i_mv_sw(bool ii) { this->_i_mv_sw = ii; }
-  void set_i_pv_sw(bool ii) { this->_i_pv_sw = ii; }
-  void set_i_cv_sw(bool ii) { this->_i_cv_sw = ii; }
 
   /* ぼかし線のポイント数 */
   void set_i32_count(int32_t ii) { this->_i32_count = ii; }
@@ -446,32 +435,29 @@ public:
   void set_d_power(double dd) { this->_d_power = dd; }
   double get_d_power(void) { return this->_d_power; }
 
-  /* get for using */
-  double *get_dp_linepixels(void) { return this->_dp_linepixels; }
-  double *get_dp_xp(void) { return this->_dp_xp; }
-  double *get_dp_yp(void) { return this->_dp_yp; }
+  double *get_dp_linepixels() { return this->_dp_linepixels.get(); }
+  double *get_dp_xp() { return this->_dp_xp.get(); }
+  double *get_dp_yp() { return this->_dp_yp.get(); }
   double *get_dp_pixel(void) { return this->_da_pixel; }
 
-  void mem_free(void);
   int mem_alloc(void);
   void init_ratio_array(void);
   void set_subpixel_value(int32_t i32_x_sub, int32_t i32_y_sub);
   void set_pixel_value(void);
 
   int save(double d_xp, double d_yp, const char *cp_fname);
-  void debug_print(void);
 
 private:
-  bool _i_mv_sw; /* Method    Verbose */
-  bool _i_pv_sw; /* Parameter Verbose */
-  bool _i_cv_sw; /* Counter   Verbose */
-
   int32_t _i32_count;
   int32_t _i32_subpixel_divide;
   double _d_effect_area_radius;
   double _d_power;
-  double *_dp_ratio, *_dp_linepixels, *_dp_xp, *_dp_yp, *_dp_subpixel,
-      _da_pixel[CHANNEL_COUNT];
+  std::unique_ptr<double[]> _dp_ratio;
+  std::unique_ptr<double[]> _dp_linepixels;
+  std::unique_ptr<double[]> _dp_xp;
+  std::unique_ptr<double[]> _dp_yp;
+  std::unique_ptr<double[]> _dp_subpixel;
+  double _da_pixel[CHANNEL_COUNT];
 };
 
 #endif              /* !_brush_curve_blur_h_ */
@@ -481,60 +467,19 @@ private:
 
 #include "igs_line_blur.h"  // "pri.h" "brush_curve_blur.h"
 
-/* メモリ開放 */
-void brush_curve_blur::mem_free(void) {
-  if (NULL != this->_dp_ratio) {
-    if (this->_i_mv_sw) {
-      pri_funct_msg_ttvr("brush_curve_blur::mem_free()");
-    }
-    free(this->_dp_ratio);
-    this->_dp_ratio      = NULL;
-    this->_dp_linepixels = NULL;
-    this->_dp_xp         = NULL;
-    this->_dp_yp         = NULL;
-    this->_dp_subpixel   = NULL;
-  }
-}
-
 /* メモリ確保 */
 int brush_curve_blur::mem_alloc(void) {
-  /* 以前のメモリが残っていたら開放する */
-  this->mem_free();
 
   /* ユーザー指定がゼロなら動作キャンセル */
   if (this->_i32_count <= 0) {
     return OK;
   }
 
-  /* 処理ごとのメッセージ */
-  if (this->_i_mv_sw) {
-    pri_funct_msg_ttvr("brush_curve_blur::mem_alloc()");
-  }
-  if (this->_i_pv_sw) {
-    pri_funct_msg_ttvr(
-        "alloc brush_curve_blur memory ((%d * %d) + %d) x %d bytes",
-        this->_i32_count, (1 + CHANNEL_COUNT + 2), /* ratio,accum,xp,yp */
-        this->_i32_subpixel_divide * this->_i32_subpixel_divide *
-            CHANNEL_COUNT, /* pixel(rgba) */
-        sizeof(double));
-  }
-
-  this->_dp_ratio = (double *)calloc(
-      /* ratio,linepixels,xp,yp */
-      this->_i32_count * (1 + CHANNEL_COUNT + 2) +
-          this->_i32_subpixel_divide * this->_i32_subpixel_divide *
-              CHANNEL_COUNT, /* pixel(rgba) */
-      sizeof(double));
-
-  if (NULL == this->_dp_ratio) {
-    pri_funct_err_bttvr("Error : calloc(-) returns NULL.");
-    return NG;
-  }
-
-  this->_dp_linepixels = this->_dp_ratio + this->_i32_count;
-  this->_dp_xp       = this->_dp_linepixels + this->_i32_count * CHANNEL_COUNT;
-  this->_dp_yp       = this->_dp_xp + this->_i32_count;
-  this->_dp_subpixel = this->_dp_yp + this->_i32_count;
+  this->_dp_ratio.reset(new double[this->_i32_count]());
+  this->_dp_linepixels.reset(new double[this->_i32_count * CHANNEL_COUNT]());
+  this->_dp_xp.reset(new double[this->_i32_count]());
+  this->_dp_yp.reset(new double[this->_i32_count]());
+  this->_dp_subpixel.reset(new double[this->_i32_subpixel_divide * this->_i32_subpixel_divide * CHANNEL_COUNT]());
 
   return OK;
 }
@@ -5764,9 +5709,6 @@ int igs_line_blur_brush_curve_blur_all_(
     pri_funct_cv_end();
   }
 
-  /* ブラシメモリの開放 */
-  cl_brush_curve_blur.mem_free();
-
   return OK;
 }
 
@@ -6222,19 +6164,16 @@ void igs::line_blur::convert(
   cl_pixel_point_root.set_i_mv_sw(mv_sw);
   cl_pixel_line_root.set_i_mv_sw(mv_sw);
   cl_brush_smudge_circle.set_i_mv_sw(mv_sw);
-  cl_brush_curve_blur.set_i_mv_sw(mv_sw);
 
   cl_thinnest_ui16_image.set_i_pv_sw(pv_sw);
   cl_pixel_point_root.set_i_pv_sw(pv_sw);
   cl_pixel_line_root.set_i_pv_sw(pv_sw);
   cl_brush_smudge_circle.set_i_pv_sw(pv_sw);
-  cl_brush_curve_blur.set_i_pv_sw(pv_sw);
 
   cl_thinnest_ui16_image.set_i_cv_sw(cv_sw);
   cl_pixel_point_root.set_i_cv_sw(cv_sw);
   cl_pixel_line_root.set_i_cv_sw(cv_sw);
   cl_brush_smudge_circle.set_i_cv_sw(cv_sw);
-  cl_brush_curve_blur.set_i_cv_sw(cv_sw);
 
   /* --- 処理ごとのメッセージ --- */
   if (mv_sw) {
@@ -6439,9 +6378,6 @@ void igs::line_blur::convert(
 
   /* 指先ツール用メモリ開放 */
   cl_brush_smudge_circle.mem_free();
-
-  /* 線ぼかしツール用メモリ開放 */
-  cl_brush_curve_blur.mem_free();
 
   /* 線ぼかし方向参照リスト開放 */
   cl_pixel_select_curve_blur_root.mem_free();
