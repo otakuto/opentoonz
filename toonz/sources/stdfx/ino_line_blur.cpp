@@ -646,15 +646,14 @@ typedef unsigned short uint16_t;
 
 class brush_smudge_circle {
 public:
-  brush_smudge_circle() {
-    this->_i32_size_by_pixel   = 7; /* 画像上の線の最大幅 */
-    this->_i32_subpixel_divide = 4;
-    this->_d_ratio             = 0.85;
-
-    this->_dp_brush          = NULL;
-    this->_dp_subpixel_image = NULL;
-    this->_dp_pixel_image    = NULL;
-  }
+  brush_smudge_circle()
+    // 画像上の線の最大幅
+    : _i32_size_by_pixel(7)
+    , _i32_subpixel_divide(4)
+    , _d_ratio(0.85)
+    , _dp_brush(nullptr)
+    , _dp_subpixel_image(nullptr)
+    , _dp_pixel_image(nullptr) { }
 
   void set_i32_size_by_pixel(int32_t ii) { this->_i32_size_by_pixel = ii; }
   void set_i32_subpixel_divide(int32_t ii) { this->_i32_subpixel_divide = ii; }
