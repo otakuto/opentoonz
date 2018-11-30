@@ -4393,9 +4393,7 @@ public:
 
     this->_ui16p_channel[0] = NULL;
     this->_ui16p_channel[1] = NULL;
-    this->memory_free_this_ = NULL;
   }
-  ~thinnest_ui16_image() { this->mem_free(); }
 
   /* パラメータ設定 */
   void set_i_mv_sw(bool ii) { this->_i_mv_sw = ii; }
@@ -4428,11 +4426,8 @@ public:
   int exec05_thin(void);
 
   /* メモリへのポインターを得る */
-  uint16_t *get_ui16p_src_channel(void) { return this->_ui16p_channel[0]; }
-  uint16_t *get_ui16p_tgt_channel(void) { return this->_ui16p_channel[1]; }
-
-  /* メモリ開放 */
-  void mem_free(void);
+  uint16_t *get_ui16p_src_channel() { return this->_ui16p_channel[0].get(); }
+  uint16_t *get_ui16p_tgt_channel() { return this->_ui16p_channel[1].get(); }
 
 private:
   bool _i_mv_sw; /* Method    Verbose */
@@ -4444,15 +4439,10 @@ private:
   uint16_t _ui16_threshold;     /* bw_by_threshold */
   int32_t _i32_exec_loop_count; /* thinnest root */
 
-  uint16_t *memory_free_this_;
-  uint16_t *_ui16p_channel[2];
+  std::unique_ptr<uint16_t[]> _ui16p_channel[2];
 
-  void _swap_channel(void) {
-    uint16_t *_ui16p_tmp;
-
-    _ui16p_tmp              = this->_ui16p_channel[0];
-    this->_ui16p_channel[0] = this->_ui16p_channel[1];
-    this->_ui16p_channel[1] = _ui16p_tmp;
+  void _swap_channel() {
+    std::swap(_ui16p_channel[0], _ui16p_channel[1]);
   }
 
   int32_t _exec01_fill_noise_pixel_scanline(uint16_t *ui16p_y1,
@@ -5089,64 +5079,10 @@ int thinnest_ui16_image::exec05_thin(void) {
 
 #include "igs_line_blur.h"  // "pri.h" "thinnest_ui16_image.h"
 
-/* メモリ開放 */
-void thinnest_ui16_image::mem_free(void) {
-#if 0
-  if (NULL !=	this->_ui16p_channel[0]) {
-    if (this->_i_mv_sw) {
-      pri_funct_msg_ttvr( "thinnest_ui16_image::mem_free()" );
-    }
-
-    free(	this->_ui16p_channel[0]);/* ここで落ちる2014-5-16 */
-      this->_ui16p_channel[0] = NULL;
-      this->_ui16p_channel[1] = NULL;
-  }
-#endif
-  if (NULL != this->memory_free_this_) {
-    if (this->_i_mv_sw) {
-      pri_funct_msg_ttvr("thinnest_ui16_image::mem_free() <%x>",
-                         this->memory_free_this_);
-    }
-
-    free(this->memory_free_this_); /* これだと落ちない2014-5-16 */
-    this->memory_free_this_ = NULL;
-    this->_ui16p_channel[0] = NULL;
-    this->_ui16p_channel[1] = NULL;
-  }
-}
-
 /* データ設定とメモリ確保 */
-int thinnest_ui16_image::mem_alloc(void) {
-  /* 以前のメモリが残っていたら開放する */
-  this->mem_free();
-
-  /* 処理ごとのメッセージ */
-  if (this->_i_mv_sw) {
-    pri_funct_msg_ttvr("thinnest_ui16_image::mem_alloc()");
-  }
-  if (this->_i_pv_sw) {
-    pri_funct_msg_ttvr(
-        "alloc ui16_image memory (%d+%d) x (%d+%d) x %d x %d bytes",
-        this->_i32_xs * this->_i32_xd, 2, this->_i32_ys * this->_i32_yd, 2, 2,
-        sizeof(uint16_t));
-  }
-
-  this->memory_free_this_ = this->_ui16p_channel[0] =
-      (uint16_t *)calloc((this->_i32_xs * this->_i32_xd + 2) *
-                             (this->_i32_ys * this->_i32_yd + 2) * 2,
-                         sizeof(uint16_t));
-  if (this->_i_pv_sw) {
-    pri_funct_msg_ttvr("thinnest_ui16_image::mem_alloc() memory <%x>",
-                       this->memory_free_this_);
-  }
-  if (NULL == this->_ui16p_channel[0]) {
-    pri_funct_err_bttvr("Error : calloc(-) returns NULL.");
-    return NG;
-  }
-
-  this->_ui16p_channel[1] =
-      this->_ui16p_channel[0] +
-      (this->_i32_xs * this->_i32_xd + 2) * (this->_i32_ys * this->_i32_yd + 2);
+int thinnest_ui16_image::mem_alloc() {
+  this->_ui16p_channel[0].reset(new uint16_t[(this->_i32_xs * this->_i32_xd + 2) * (this->_i32_ys * this->_i32_yd + 2)]());
+  this->_ui16p_channel[1].reset(new uint16_t[(this->_i32_xs * this->_i32_xd + 2) * (this->_i32_ys * this->_i32_yd + 2)]());
 
   return OK;
 }
@@ -6323,9 +6259,6 @@ void igs::line_blur::convert(
 
   /* ポイントリストメモリ開放 */
   cl_pixel_point_root.mem_free();
-
-  /* 細線化用メモリ開放 */
-  cl_thinnest_ui16_image.mem_free();
 }
 
 //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
