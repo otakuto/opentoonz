@@ -1,13 +1,77 @@
 #ifdef NDEBUG
 
-#ifndef igs_line_blur_h
-#define igs_line_blur_h
-
 #ifndef IGS_LINE_BLUR_EXPORT
 #define IGS_LINE_BLUR_EXPORT
 #endif
 
+#include <cstdio>
+#include <cmath>
+#include <cstdint>
+#include <cstring>
+#include <cstdarg>
+#include <ctime>
+#include <cstdlib>
+#include <cassert>
+#include <iostream>
+#include <sstream>
 #include <list>
+#include <stdexcept>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+#include <stdio.h>
+
+#include <string.h>
+#include <stdarg.h>
+#include <time.h>
+
+#include "igs_line_blur.h"
+#include "tfxparam.h"
+#include "stdfx.h"
+#include "tfxattributes.h"
+#include "ino_common.h"
+
+/* Windowsではvsnprintf()の頭にアンダーバーが付く!!! */
+#if defined _WIN32
+#define vsnprintf(buf, len, fmt, ap) _vsnprintf(buf, len, fmt, ap)
+#endif
+
+/* Windowsではstdint.hが見つからない */
+#if defined _MSC_VER
+typedef int int32_t;
+typedef unsigned short uint16_t;
+#else
+#include <stdint.h> /* for int32_t, uint16_t */
+#endif
+
+/* WindowsではM_PIが見つからない */
+#if defined _MSC_VER
+#define M_PI 3.14159265358979323846
+#endif
+
+#ifndef OK
+#define OK (0)
+#endif
+#ifndef NG
+#define NG (-1)
+#endif
+
+#ifndef LINK_NEAR_COUNT
+#define LINK_NEAR_COUNT (4)
+#endif
+
+#ifndef CHANNEL_COUNT
+#define CHANNEL_COUNT (4)
+#endif
+
+#ifndef UINT16_MAX
+#define UINT16_MAX (65535)
+#endif
+
+#define NOT_USE_PARAMETER_VAL (-10000.0)
+
 
 namespace igs {
 namespace line_blur {
@@ -57,30 +121,7 @@ IGS_LINE_BLUR_EXPORT void convert(
 }
 }
 
-#endif /* !igs_line_blur_h */
-
-//＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-
-#include <cstdio>
-#include <cmath>
-#include <cstdint>
-#include <cstring>
-#include <cstdarg>
-#include <ctime>
-#include <assert.h>
-#include <cstdlib>
-
-#include <iostream>
-#include <stdexcept>
-
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 namespace {
-
-#ifndef _pri_h_
-#define _pri_h_
 
 #ifdef __cplusplus
 extern "C" {
@@ -100,11 +141,6 @@ extern void pri_funct_err_bttvr( const char* fmt, ...);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* !_pri_h_ */
-#include <stdio.h>
-
-#include "igs_line_blur.h"  // "pri.h"
 
 static int32_t pri_param_i32_ysize, pri_param_i32_pos_before;
 
@@ -159,18 +195,6 @@ void pri_funct_cv_end(void) {
   /* 改行 */
   (void)fprintf(stdout, "\n");
 }
-
-#include <stdio.h>
-#include <string.h>
-#include <stdarg.h>
-#include <time.h>
-
-#include "igs_line_blur.h"  // "pri.h"
-
-/* Windowsではvsnprintf()の頭にアンダーバーが付く!!! */
-#if defined _WIN32
-#define vsnprintf(buf, len, fmt, ap) _vsnprintf(buf, len, fmt, ap)
-#endif
 
 static const char *pri_param_cp_com_name = "#";
 
@@ -245,29 +269,6 @@ void pri_funct_err_bttvr(const char *fmt, ...) {
   (void)fflush(stderr);
 }
 
-#ifndef _brush_curve_blur_h_
-#define _brush_curve_blur_h_
-
-#include <stdio.h>
-
-/* Windowsではstdint.hが見つからない */
-#if defined _MSC_VER
-typedef int int32_t;
-#else
-#include <stdint.h> /* for int32_t */
-#endif
-
-#ifndef OK
-#define OK (0)
-#endif
-#ifndef NG
-#define NG (-1)
-#endif
-
-#ifndef CHANNEL_COUNT
-#define CHANNEL_COUNT (4)
-#endif
-
 class brush_curve_blur {
 public:
   brush_curve_blur()
@@ -319,13 +320,6 @@ private:
   std::unique_ptr<double[]> _dp_subpixel;
   double _da_pixel[CHANNEL_COUNT];
 };
-
-#endif              /* !_brush_curve_blur_h_ */
-#include <math.h>   /* pow() */
-#include <stdlib.h> /* free(), calloc() */
-#include <assert.h> /* assert() */
-
-#include "igs_line_blur.h"  // "pri.h" "brush_curve_blur.h"
 
 /* メモリ確保 */
 int brush_curve_blur::mem_alloc(void) {
@@ -453,10 +447,6 @@ void brush_curve_blur::set_pixel_value(void) {
   }
 }
 
-#include <assert.h> /* assert() */
-
-#include "igs_line_blur.h"  // "pri.h" "brush_curve_blur.h"
-
 int brush_curve_blur::save(double d_xp, double d_yp, const char *cp_fname) {
   FILE *fp;
   int32_t ii;
@@ -490,26 +480,6 @@ int brush_curve_blur::save(double d_xp, double d_yp, const char *cp_fname) {
 
   return OK;
 }
-
-#ifndef __brush_smudge_circle_h__
-#define __brush_smudge_circle_h__
-
-#include <stdio.h>
-
-/* Windowsではstdint.hが見つからない */
-#if defined _MSC_VER
-typedef int int32_t;
-typedef unsigned short uint16_t;
-#else
-#include <stdint.h> /* for int32_t, uint16_t */
-#endif
-
-#ifndef OK
-#define OK (0)
-#endif
-#ifndef NG
-#define NG (-1)
-#endif
 
 class brush_smudge_circle {
 public:
@@ -560,14 +530,6 @@ private:
   std::unique_ptr<double[]> _dp_subpixel_image;
   std::unique_ptr<double[]> _dp_pixel_image;
 };
-
-#endif              /* !__brush_smudge_circle_h__ */
-#include <stdlib.h> /* free(), calloc() */
-#include <math.h>   /* sqrt() */
-#include <string.h> /* memset() */
-#include <assert.h> /* assert() */
-
-#include "igs_line_blur.h"  // "pri.h" "brush_smudge_circle.h"
 
 int brush_smudge_circle::mem_alloc(void) {
   /* メモリ確保のためのサイズの1単位 */
@@ -819,9 +781,6 @@ void brush_smudge_circle::to_pixel_from_subpixel(double d_x1, double d_y1,
   }
 }
 
-#ifndef __calculator_geometry_h__
-#define __calculator_geometry_h__
-
 class calculator_geometry {
 public:
   double get_d_radian(double d_xv, double d_yv);
@@ -838,16 +797,6 @@ public:
 
 private:
 };
-
-#endif            /* !__calculator_geometry_h__ */
-#include <math.h> /* sin(),cos(),atan(), M_PI */
-
-#include "igs_line_blur.h"  // "pri.h" "calculator_geometry.h"
-
-/* WindowsではM_PIが見つからない */
-#if defined _MSC_VER
-#define M_PI 3.14159265358979323846
-#endif
 
 /* ベクトルの角度を"0"から"2*PI"で返す */
 double calculator_geometry::get_d_radian(double d_xv, double d_yv) {
@@ -937,32 +886,6 @@ void calculator_geometry::get_dd_rotate_by_pos(double d_xp1, double d_yp1,
   *dp_yp2 = d_yp1 + d_ypos;
 }
 
-#ifndef _pixel_point_node_h_
-#define _pixel_point_node_h_
-
-#include <stdio.h>
-
-/* Windowsではstdint.hが見つからない */
-#if defined _MSC_VER
-typedef int int32_t;
-typedef unsigned short uint16_t;
-#else
-#include <stdint.h> /* for int32_t, uint16_t */
-#endif
-
-#include "igs_line_blur.h"  // "list_node.h"
-
-#ifndef OK
-#define OK (0)
-#endif
-#ifndef NG
-#define NG (-1)
-#endif
-
-#ifndef LINK_NEAR_COUNT
-#define LINK_NEAR_COUNT 4
-#endif
-
 /* x,yポイント座標のリストノード、画素連結、及び、線分連結、機能付き */
 class pixel_point_node {
 public:
@@ -1025,11 +948,6 @@ private:
   pixel_point_node *_clp_previous_point, *_clp_next_point;
 };
 
-#endif              /* !_pixel_point_node_h_ */
-#include <assert.h> /* assert() */
-
-#include "igs_line_blur.h"  // "pri.h" "pixel_point_node.h"
-
 int pixel_point_node::link_near(pixel_point_node *clp_) {
   int32_t ii;
 
@@ -1077,18 +995,6 @@ void pixel_point_node::print_xy_around(void) {
     }
   }
 }
-
-#ifndef _pixel_line_node_h_
-#define _pixel_line_node_h_
-
-#include "igs_line_blur.h"  // "calculator_geometry.h" "list_node.h" "pixel_point_root.h"
-
-#ifndef OK
-#define OK (0)
-#endif
-#ifndef NG
-#define NG (-1)
-#endif
 
 class pixel_line_node {
 public:
@@ -1199,11 +1105,6 @@ private:
                                             pixel_point_node *clp_crnt,
                                             int32_t i32_count);
 };
-
-#endif /* !_pixel_line_node_h_ */
-#include <assert.h>
-
-#include "igs_line_blur.h"  // "pri.h" "pixel_line_node.h"
 
 void pixel_line_node::_expand_line_from_one(std::list<pixel_point_node> &pixel_point_list,
                                            int32_t i32_body_point_count,
@@ -1370,11 +1271,6 @@ void pixel_line_node::expand_line(std::list<pixel_point_node> &pixel_point_list)
   }
 }
 
-#include <math.h>   /* sqrt() */
-#include <assert.h> /* assert() */
-
-#include "igs_line_blur.h"  // "pixel_line_node.h"
-
 void pixel_line_node::get_near_point(double d_xp, double d_yp,
                                      int32_t *i32p_pos,
                                      pixel_point_node **clpp_point,
@@ -1406,10 +1302,6 @@ void pixel_line_node::get_near_point(double d_xp, double d_yp,
   }
 }
 
-#include <assert.h> /* assert() */
-
-#include "igs_line_blur.h"  // "pixel_line_node.h"
-
 void pixel_line_node::int2double_body(void) {
   pixel_point_node *clp_1;
   int32_t ii;
@@ -1425,16 +1317,6 @@ void pixel_line_node::int2double_body(void) {
     clp_1->set_d_yp_tgt((double)clp_1->get_i32_yp());
   }
 }
-
-#include <math.h>   /* M_PI */
-#include <assert.h> /* assert() */
-
-#include "igs_line_blur.h"  // "pri.h" "pixel_line_node.h"
-
-/* WindowsではM_PIが見つからない */
-#if defined _MSC_VER
-#define M_PI 3.14159265358979323846
-#endif
 
 void pixel_line_node::_get_link_line_selecter_vector(pixel_point_node *clp_crnt,
                                                      pixel_point_node *clp_next,
@@ -1622,8 +1504,6 @@ void pixel_line_node::link_line(pixel_point_node *clp_crnt,
   return;
 }
 
-#include "igs_line_blur.h"  // "pixel_line_node.h"
-
 /*
 pixel_select_curve_blur.cxx
 の、
@@ -1647,9 +1527,6 @@ pixel_point_node *pixel_line_node::get_prev_point_by_count(
   };
   return clp_point;
 }
-
-#include <assert.h>         /* assert() */
-#include "igs_line_blur.h"  // "pri.h" "pixel_line_node.h"
 
 int pixel_line_node::save_line(FILE *fp) {
   pixel_point_node *clp_crnt;
@@ -1727,10 +1604,6 @@ int pixel_line_node::save_another_point(FILE *fp) {
   return OK;
 }
 
-#include <assert.h> /* assert() */
-
-#include "igs_line_blur.h"  // "pri.h" "pixel_line_node.h"
-
 int pixel_line_node::save_expand_line(FILE *fp) {
   pixel_point_node *clp_crnt;
   int32_t ii;
@@ -1790,10 +1663,6 @@ int pixel_line_node::save_another_expand_point(FILE *fp) {
   return OK;
 }
 
-#include <assert.h> /* assert() */
-
-#include "igs_line_blur.h"  // "pri.h" "pixel_line_node.h"
-
 int pixel_line_node::save_expand_vector(FILE *fp) {
   pixel_point_node *clp_term, *clp_expa;
 
@@ -1829,10 +1698,6 @@ int pixel_line_node::save_expand_vector(FILE *fp) {
   return OK;
 }
 
-#include <assert.h> /* assert() */
-
-#include "igs_line_blur.h"  // "pixel_line_node.h"
-
 void pixel_line_node::set_bbox(void) {
   pixel_point_node *clp_point;
   int32_t ii;
@@ -1867,10 +1732,6 @@ void pixel_line_node::set_bbox(void) {
   }
 }
 
-#include <assert.h> /* assert() */
-
-#include "igs_line_blur.h"  // "pixel_line_node.h"
-
 void pixel_line_node::set_middle(void) {
   int32_t ii;
   pixel_point_node *clp_middle;
@@ -1892,10 +1753,6 @@ void pixel_line_node::set_middle(void) {
   /* 中間点を登録 */
   this->link_middle(clp_middle);
 }
-
-#include <assert.h> /* assert() */
-
-#include "igs_line_blur.h"  // "pixel_line_node.h"
 
 /* 3点から線分がスムースになるような中点を計算する
         * p1
@@ -2000,13 +1857,6 @@ void pixel_line_node::smooth_expand(int32_t i32_smooth_retry) {
   }
 }
 
-#ifndef _pixel_select_same_way_h_
-#define _pixel_select_same_way_h_
-
-#include <stdio.h>
-
-#include "igs_line_blur.h"  // "list_root.h" "calculator_geometry.h" "pixel_point_root.h" "pixel_line_root.h"
-
 struct pixel_select_same_way_node {
   pixel_select_same_way_node()
     : clp_point_middle(nullptr)
@@ -2054,20 +1904,6 @@ private:
                       pixel_point_node *clp_middle2,
                       pixel_point_node *clp_term2);
 };
-
-#endif              /* !_pixel_select_same_way_h_ */
-#include <math.h>   /* sqrt() */
-#include <stdlib.h> /* free(), calloc() */
-#include <assert.h> /* assert() */
-
-#include "igs_line_blur.h"  // "pri.h" "pixel_line_root.h" "pixel_select_same_way.h"
-
-/* WindowsではM_PIが見つからない */
-#if defined _MSC_VER
-#define M_PI 3.14159265358979323846
-#endif
-
-/********************************************************************/
 
 /* lengthの値を見て、小さい値順になるように追加する
         他の選択より小さいなら先頭
@@ -2211,13 +2047,6 @@ void pixel_select_same_way_root::get_vector(double *dp_xv, double *dp_yv) {
   }
 }
 
-#ifndef _pixel_line_root_h_
-#define _pixel_line_root_h_
-
-#include <stdio.h>
-
-#include "igs_line_blur.h"  // "list_root.h" "calculator_geometry.h" "pixel_point_root.h" "pixel_line_node.h" "pixel_select_same_way.h"
-
 class pixel_line_root {
 public:
   pixel_line_root(void) {
@@ -2270,9 +2099,6 @@ private:
                                       pixel_point_node *clp_point_term_expand,
                                       pixel_select_same_way_root &clp_select);
 };
-
-#endif                      /* !_pixel_line_root_h_ */
-#include "igs_line_blur.h"  // "pri.h" "pixel_line_root.h"
 
 int pixel_line_root::exec01020304(std::list<pixel_point_node> &pixel_point_list) {
   /* ピクセルノードの左右リンク */
@@ -2661,13 +2487,6 @@ void pixel_line_root::exec11_set_bbox() {
   }
 }
 
-#ifndef _pixel_select_curve_blur_h_
-#define _pixel_select_curve_blur_h_
-
-#include <stdio.h>
-
-#include "igs_line_blur.h"  // "list_root.h" "calculator_geometry.h" "pixel_point_root.h" "pixel_line_root.h"
-
 struct pixel_select_curve_blur_node {
   pixel_select_curve_blur_node()
    : clp_line(nullptr)
@@ -2721,15 +2540,6 @@ private:
                                int32_t i32_blur_count);
 };
 
-#endif              /* !_pixel_select_curve_blur_h_ */
-#include <stdlib.h> /* exit() */
-#include <math.h>   /* M_PI */
-
-/* WindowsではM_PIが見つからない */
-#if defined _MSC_VER
-#define M_PI 3.14159265358979323846
-#endif
-
 /* lengthの値を見て、距離の近い(小さい値)順になるように追加する
         すべての選択リストより小さいなら先頭
         すべての選択リストより大きいなら最後に追加
@@ -2749,9 +2559,6 @@ void pixel_select_curve_blur_root::_sort_append(
 
   m_nodes.insert(p, *clp_src);
 }
-
-/********************************************************************/
-#define NOT_USE_PARAMETER_VAL (-10000.0)
 
 /* 同方向で、一定の距離の範囲にある線とその位置を選択する */
 void pixel_select_curve_blur_root::exec(double d_xp, double d_yp,
@@ -2957,30 +2764,6 @@ int pixel_select_curve_blur_root::get_line(int32_t i32_blur_count,
   return OK;
 }
 
-#ifndef __thinnest_ui16_image_h__
-#define __thinnest_ui16_image_h__
-
-#include <stdio.h>
-
-/* Windowsではstdint.hが見つからない */
-#if defined _MSC_VER
-typedef int int32_t;
-typedef unsigned short uint16_t;
-#else
-#include <stdint.h> /* for int32_t, uint16_t */
-#endif
-
-#ifndef UINT16_MAX
-#define UINT16_MAX (65535)
-#endif
-
-#ifndef OK
-#define OK (0)
-#endif
-#ifndef NG
-#define NG (-1)
-#endif
-
 class thinnest_ui16_image {
 public:
   thinnest_ui16_image() {
@@ -3058,12 +2841,6 @@ private:
 
   void _rot90_by_clockwork(void);
 };
-
-#endif /* !__thinnest_ui16_image_h__ */
-
-#include <assert.h> /* assert() */
-
-#include "igs_line_blur.h"  // "pri.h" "thinnest_ui16_image.h"
 
 /* 閾値より大きい白線上の独立点を潰す */
 int32_t thinnest_ui16_image::exec01_fill_noise_pixel(void) {
@@ -3228,8 +3005,6 @@ int32_t thinnest_ui16_image::_exec01_fill_noise_pixel_pixel(
   /* 終了 */
   return i32_fill_count;
 }
-#include "igs_line_blur.h"  // "pri.h" "thinnest_ui16_image.h"
-
 void thinnest_ui16_image::exec02_scale_add_edge_pixel(void) {
   int32_t xx, yy, i32_tmp1, i32_tmp2;
   uint16_t *ui16p_src, *ui16p_src1, *ui16p_src2, *ui16p_tgt, *ui16p_tgt1,
@@ -3350,10 +3125,6 @@ void thinnest_ui16_image::exec02_scale_add_edge_pixel(void) {
   /* 処理終了したらsrc,tgt画像交換 */
   this->_swap_channel();
 }
-
-#include <math.h> /* floor(), ceil() */
-
-#include "igs_line_blur.h"  // "pri.h" "thinnest_ui16_image.h"
 
 void thinnest_ui16_image::exec03_scale_liner(void) {
   int32_t xx, yy, i32_tgt_xs, i32_tgt_ys;
@@ -3487,8 +3258,6 @@ void thinnest_ui16_image::exec03_scale_liner(void) {
   this->_swap_channel();
 }
 
-#include "igs_line_blur.h"  // "pri.h" "thinnest_ui16_image.h"
-
 /* データB/W化 */
 void thinnest_ui16_image::exec04_bw(void) {
   int32_t xx, yy;
@@ -3510,8 +3279,6 @@ void thinnest_ui16_image::exec04_bw(void) {
   /* 処理終了したらsrc,tgt画像交換 */
   this->_swap_channel();
 }
-
-#include "igs_line_blur.h"  // "pri.h" "thinnest_ui16_image.h"
 
 int thinnest_ui16_image::exec05_thin(void) {
   int32_t ii, jj, i32_pixel_count_total, i32_pixel_count_one_round,
@@ -3550,9 +3317,6 @@ int thinnest_ui16_image::exec05_thin(void) {
 
   return OK;
 }
-#include <stdlib.h> /* free(), calloc() */
-
-#include "igs_line_blur.h"  // "pri.h" "thinnest_ui16_image.h"
 
 /* データ設定とメモリ確保 */
 int thinnest_ui16_image::mem_alloc() {
@@ -3561,10 +3325,6 @@ int thinnest_ui16_image::mem_alloc() {
 
   return OK;
 }
-
-#include <assert.h> /* assert() */
-
-#include "igs_line_blur.h"  // "pri.h" "thinnest_ui16_image.h"
 
 int32_t thinnest_ui16_image::_one_side_thinner(void) {
   uint16_t *ui16p_src_y1, *ui16p_src_y2, *ui16p_src_y3, *ui16p_tgt;
@@ -3778,8 +3538,6 @@ int32_t thinnest_ui16_image::_one_side_thinner_pixel(
   return i32_delete_count;
 }
 
-#include "igs_line_blur.h"  // "pri.h" "thinnest_ui16_image.h"
-
 /* 時計回りに90度回転 */
 void thinnest_ui16_image::_rot90_by_clockwork(void) {
   int32_t i32_tmp;
@@ -3830,10 +3588,6 @@ std::list<pixel_point_node> thinnest_ui16_image_to_pixel_point_list(thinnest_ui1
   return nodes;
 }
 
-#include <stdexcept>
-
-#include "igs_line_blur.h"  // "brush_curve_blur.h" "igs_line_blur.h"
-
 template <class T>
 void igs_line_blur_brush_curve_point_put_image_template_(
     double *dp_pixel, int xp, int yp, const int height  // no_margin
@@ -3875,8 +3629,6 @@ void igs_line_blur_brush_curve_point_put_image_(
         static_cast<unsigned char *>(out));
   }
 }
-#include "igs_line_blur.h"  // "brush_curve_blur.h"
-
 template <class T>
 void igs_line_blur_brush_curve_line_get_image_template_(
     const T *image_top, int height, int width, int channels, int i32_blur_count,
@@ -3927,10 +3679,6 @@ void igs_line_blur_brush_curve_line_get_image_(
         cl_brush_curve_blur.get_dp_linepixels(), xp, yp);
   }
 }
-#include <iostream>
-#include <string.h> /* memcpy() */
-
-#include "igs_line_blur.h"  // "pri.h" "brush_curve_blur.h" "pixel_select_curve_blur.h" "pixel_line_root.h" "igs_line_blur.h"
 
 int igs_line_blur_brush_curve_blur_subpixel_(
     brush_curve_blur &cl_brush_curve_blur,
@@ -4026,10 +3774,6 @@ int igs_line_blur_brush_curve_blur_all_(
   return OK;
 }
 
-#include <math.h> /* floor() */
-
-#include "igs_line_blur.h"  // "brush_smudge_circle.h"
-
 template <class T>
 void igs_line_blur_brush_smudge_get_image_template_(
     T *in, int height, int width, int channels, double x1, double y1, double x2,
@@ -4085,9 +3829,6 @@ void igs_line_blur_brush_smudge_get_image_(
         cl_brush_smudge_circle.get_dp_pixel_image());
   }
 }
-#include <math.h> /* floor() */
-
-#include "igs_line_blur.h"  // "brush_smudge_circle.h"
 
 template <class T>
 void igs_line_blur_brush_smudge_put_image_template_(
@@ -4138,9 +3879,6 @@ void igs_line_blur_brush_smudge_put_image_(
         static_cast<unsigned char *>(out));
   }
 }
-#include <stdexcept>
-
-#include "igs_line_blur.h"  // "brush_smudge_circle.h"
 
 void igs_line_blur_brush_smudge_line_(
     brush_smudge_circle &cl_brush_smudge_circle, const void *in  // no_margin
@@ -4262,11 +4000,6 @@ void igs_line_blur_brush_smudge_line_(
   }
 }
 
-#include <iostream>
-#include <string.h> /* memcpy() */
-
-#include "igs_line_blur.h"  // "pri.h"
-
 void igs_line_blur_brush_smudge_all_(
     brush_smudge_circle &cl_brush_smudge_circle,
     pixel_line_root &cl_pixel_line_root, const void *in  // no_margin
@@ -4299,11 +4032,6 @@ void igs_line_blur_brush_smudge_all_(
     ++i;
   }
 }
-
-#include <iostream>
-#include <stdexcept>
-
-#include "igs_line_blur.h"  // "pri.h"
 
 void igs_line_blur_image_get_(const long reference_channel,
                               thinnest_ui16_image &cl_thinnest_ui16_image
@@ -4351,11 +4079,6 @@ void igs_line_blur_image_get_(const long reference_channel,
 
 }
 }
-
-#include <iostream>
-#include <stdexcept>
-
-#include "igs_line_blur.h"  // "thinnest_ui16_image.h" "pixel_point_root.h" "pixel_line_root.h" "brush_curve_blur.h" "brush_smudge_circle.h" "pixel_select_same_way.h" "pixel_select_curve_blur.h" "igs_line_blur.h"
 
 void igs::line_blur::convert(
     /* 入出力画像 */
@@ -4535,16 +4258,6 @@ void igs::line_blur::convert(
   }
 }
 
-//＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-
-#include <sstream> /* std::ostringstream */
-#include "tfxparam.h"
-#include "stdfx.h"
-#include "tfxattributes.h"
-
-#include "ino_common.h"
-#include "igs_line_blur.h"
-//------------------------------------------------------------
 class ino_line_blur final : public TStandardRasterFx {
   FX_PLUGIN_DECLARATION(ino_line_blur)
   TRasterFxPort m_input;
