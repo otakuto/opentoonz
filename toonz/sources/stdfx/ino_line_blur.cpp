@@ -50,12 +50,6 @@ IGS_LINE_BLUR_EXPORT void convert(
     const int v_near_len /* min=2   def=160  incr=1   max=1000 */
 
     ,
-    const bool mv_sw /* false=OFF */
-    ,
-    const bool pv_sw /* false=OFF */
-    ,
-    const bool cv_sw /* false=OFF */
-    ,
     const long reference_channel /* 3 =Alpha:RGBA orBGRA */
     ,
     const int brush_action /* 0 =Curve Blur ,1=Smudge Brush */
@@ -2990,10 +2984,6 @@ typedef unsigned short uint16_t;
 class thinnest_ui16_image {
 public:
   thinnest_ui16_image() {
-    this->_i_mv_sw = false;
-    this->_i_pv_sw = false;
-    this->_i_cv_sw = false;
-
     this->_i32_xs              = 0;
     this->_i32_ys              = 0;
     this->_i32_xd              = 1;
@@ -3006,10 +2996,6 @@ public:
   }
 
   /* パラメータ設定 */
-  void set_i_mv_sw(bool ii) { this->_i_mv_sw = ii; }
-  void set_i_pv_sw(bool ii) { this->_i_pv_sw = ii; }
-  void set_i_cv_sw(bool ii) { this->_i_cv_sw = ii; }
-
   void set_i32_xs(int32_t ii) { this->_i32_xs = ii; }
   void set_i32_ys(int32_t ii) { this->_i32_ys = ii; }
   void set_i32_xd(int32_t ii) { this->_i32_xd = ii; }
@@ -3040,10 +3026,6 @@ public:
   uint16_t *get_ui16p_tgt_channel() { return this->_ui16p_channel[1].get(); }
 
 private:
-  bool _i_mv_sw; /* Method    Verbose */
-  bool _i_pv_sw; /* Parameter Verbose */
-  bool _i_cv_sw; /* Counter   Verbose */
-
   int32_t _i32_xs, _i32_ys,     /* Size */
       _i32_xd, _i32_yd;         /* sub Divide */
   uint16_t _ui16_threshold;     /* bw_by_threshold */
@@ -3088,15 +3070,6 @@ int32_t thinnest_ui16_image::exec01_fill_noise_pixel(void) {
   uint16_t *ui16p_y1, *ui16p_y2, *ui16p_y3;
   int32_t yy, i32_fill_count;
 
-  /* 処理ごとのメッセージ */
-  if (this->_i_mv_sw) {
-    pri_funct_msg_ttvr("thinnest_ui16_image::exec01_fill_noise_pixel()");
-  }
-  /* カウントダウン表示始め */
-  if (this->_i_cv_sw) {
-    pri_funct_cv_start(this->_i32_ys);
-  }
-
   /* 始めのスキャンライン位置(画像から外れているものはNULLをいれる) */
   ui16p_y1 = this->get_ui16p_src_channel() + this->_i32_xs;
   ui16p_y2 = this->get_ui16p_src_channel();
@@ -3105,11 +3078,6 @@ int32_t thinnest_ui16_image::exec01_fill_noise_pixel(void) {
   /* 画像を縦にループ */
   i32_fill_count = 0;
   for (yy = 0; yy < this->_i32_ys; ++yy) {
-    /* カウントダウン表示中 */
-    if (this->_i_cv_sw) {
-      pri_funct_cv_run(yy);
-    }
-
     /* スキャンライン(とその前後のスキャンライン)毎の処理 */
     i32_fill_count +=
         this->_exec01_fill_noise_pixel_scanline(ui16p_y1, ui16p_y2, ui16p_y3);
@@ -3123,12 +3091,6 @@ int32_t thinnest_ui16_image::exec01_fill_noise_pixel(void) {
       ui16p_y1 = NULL;
   }
 
-  /* カウントダウン表示終了 */
-  if (this->_i_cv_sw) {
-    pri_funct_cv_end();
-  }
-
-  /* 終了 */
   return i32_fill_count;
 }
 
@@ -3279,25 +3241,11 @@ void thinnest_ui16_image::exec02_scale_add_edge_pixel(void) {
     return;
   }
 
-  /* 処理ごとのメッセージ */
-  if (this->_i_mv_sw) {
-    pri_funct_msg_ttvr("thinnest_ui16_image::exec02_scale_add_edge_pixel()");
-  }
-  /* カウントダウン表示始め */
-  if (this->_i_cv_sw) {
-    pri_funct_cv_start(this->_i32_ys);
-  }
-
   ui16p_src  = this->get_ui16p_src_channel();
   ui16p_tgt1 = this->get_ui16p_tgt_channel() + (this->_i32_xs + 2) + 1;
 
   /* 縁以外の部分のコピー */
   for (yy = 0; yy < this->_i32_ys; ++yy) {
-    /* カウントダウン表示中 */
-    if (this->_i_cv_sw) {
-      pri_funct_cv_run(yy);
-    }
-
     ui16p_tgt2 = ui16p_tgt1;
     for (xx = 0; xx < this->_i32_xs; ++xx) {
       *ui16p_tgt2 = *ui16p_src;
@@ -3305,10 +3253,6 @@ void thinnest_ui16_image::exec02_scale_add_edge_pixel(void) {
       ++ui16p_tgt2;
     }
     ui16p_tgt1 += (this->_i32_xs + 2);
-  }
-  /* カウントダウン表示終了 */
-  if (this->_i_cv_sw) {
-    pri_funct_cv_end();
   }
 
   /* 縁の上部分 */
@@ -3425,18 +3369,6 @@ void thinnest_ui16_image::exec03_scale_liner(void) {
     return;
   }
 
-  /* 処理ごとのメッセージ */
-  if (this->_i_mv_sw) {
-    pri_funct_msg_ttvr("thinnest_ui16_image::exec03_scale_liner()");
-  }
-  if (this->_i_mv_sw) {
-    pri_funct_msg_ttvr("thi : Scale %d x %d", this->_i32_xd, this->_i32_yd);
-  }
-  /* カウントダウン表示始め */
-  if (this->_i_cv_sw) {
-    pri_funct_cv_start((this->_i32_ys - 2) * this->_i32_yd);
-  }
-
   ui16p_src = this->get_ui16p_src_channel();
   ui16p_tgt = this->get_ui16p_tgt_channel();
 
@@ -3446,11 +3378,6 @@ void thinnest_ui16_image::exec03_scale_liner(void) {
   /* ターゲットの大きさでループ */
   for (yy = 0; yy < i32_tgt_ys; ++yy) {
     for (xx = 0; xx < i32_tgt_xs; ++xx, ++ui16p_tgt) {
-      /* カウントダウン表示中 */
-      if (this->_i_cv_sw) {
-        pri_funct_cv_run(yy);
-      }
-
       /*
 画像scaleのピクセルの対応図
 (3倍拡大の場合)
@@ -3551,10 +3478,6 @@ void thinnest_ui16_image::exec03_scale_liner(void) {
       }
     }
   }
-  /* カウントダウン表示終了 */
-  if (this->_i_cv_sw) {
-    pri_funct_cv_end();
-  }
 
   /* 画像サイズの設定 */
   this->_i32_xs = (this->_i32_xs - 2) * this->_i32_xd;
@@ -3571,28 +3494,10 @@ void thinnest_ui16_image::exec04_bw(void) {
   int32_t xx, yy;
   uint16_t *ui16p_src, *ui16p_tgt;
 
-  /* 処理実行表示 */
-  if (this->_i_mv_sw) {
-    pri_funct_msg_ttvr("thinnest_ui16_image::exec04_bw()");
-  }
-  /* パラメータ表示 */
-  if (this->_i_pv_sw) {
-    pri_funct_msg_ttvr("thi : threshold %u", this->_ui16_threshold);
-  }
-  /* カウントダウン表示始め */
-  if (this->_i_cv_sw) {
-    pri_funct_cv_start(this->_i32_ys);
-  }
-
   ui16p_src = this->get_ui16p_src_channel();
   ui16p_tgt = this->get_ui16p_tgt_channel();
 
   for (yy = 0L; yy < this->_i32_ys; ++yy) {
-    /* カウントダウン表示中 */
-    if (this->_i_cv_sw) {
-      pri_funct_cv_run(yy);
-    }
-
     for (xx = 0L; xx < this->_i32_xs; ++xx, ++ui16p_src, ++ui16p_tgt) {
       if (this->_ui16_threshold <= *ui16p_src) {
         *ui16p_tgt = UINT16_MAX;
@@ -3600,10 +3505,6 @@ void thinnest_ui16_image::exec04_bw(void) {
         *ui16p_tgt = 0;
       }
     }
-  }
-  /* カウントダウン表示終了 */
-  if (this->_i_cv_sw) {
-    pri_funct_cv_end();
   }
 
   /* 処理終了したらsrc,tgt画像交換 */
@@ -3615,11 +3516,6 @@ void thinnest_ui16_image::exec04_bw(void) {
 int thinnest_ui16_image::exec05_thin(void) {
   int32_t ii, jj, i32_pixel_count_total, i32_pixel_count_one_round,
       i32_pixel_count_one_side_tmp, i32_pixel_count_one_side[4];
-
-  /* 処理ごとのメッセージ */
-  if (this->_i_mv_sw) {
-    pri_funct_msg_ttvr("thinnest_ui16_image::exec05_thin()");
-  }
 
   /* 削るところがなくなるまでループする */
   i32_pixel_count_total       = 0;
@@ -3647,42 +3543,11 @@ int thinnest_ui16_image::exec05_thin(void) {
 
       /* 時計方向(右)へ画像を90度回転する */
       this->_rot90_by_clockwork();
-
-      /* カウントダウン表示(上下左右ひとつずつピリオド表示) */
-      if (this->_i_cv_sw) {
-        (void)fprintf(stdout, ".");
-        (void)fflush(stdout);
-      }
-    }
-    /* カウントダウン表示(上下左右やって"....|"となる) */
-    if (this->_i_cv_sw) {
-      (void)fprintf(stdout, "|");
-      (void)fflush(stdout);
-      /* 5 x 10カラムで改行 */
-      if (9 == (ii % 10)) {
-        (void)fprintf(stdout, "\n");
-        (void)fflush(stdout);
-      }
     }
 
     if (i32_pixel_count_one_round <= 0) break;
   }
-  /* カウントダウン表示終了 */
-  if (this->_i_cv_sw) {
-    (void)fprintf(stdout, "\nthin line ... end.\n");
-    (void)fflush(stdout);
-  }
 
-  if (this->_i_pv_sw) {
-    pri_funct_msg_ttvr("thi : total %d loop, and %ld pixel deleted", ii,
-                       i32_pixel_count_total);
-    pri_funct_msg_ttvr(
-        "thi : and each r<%ld>+ t<%ld>+ l<%ld>+ b<%ld> pixel deleted",
-        i32_pixel_count_one_side[0], i32_pixel_count_one_side[1],
-        i32_pixel_count_one_side[2], i32_pixel_count_one_side[3]);
-  }
-
-  /* 正常終了 */
   return OK;
 }
 #include <stdlib.h> /* free(), calloc() */
@@ -3705,13 +3570,6 @@ int32_t thinnest_ui16_image::_one_side_thinner(void) {
   uint16_t *ui16p_src_y1, *ui16p_src_y2, *ui16p_src_y3, *ui16p_tgt;
   int32_t yy, i32_delete_count;
 
-  /* 処理ごとのメッセージ */
-  /******if (this->_i_mv_sw) {
-          pri_funct_msg_ttvr( "thinnest_ui16_image::_one_side_thinner()" );
-  }******/
-  /* カウントダウン表示始め */
-  // if (this->_i_cv_sw) { pri_funct_cv_start( this->_i32_ys ); }
-
   /* 始めのスキャンライン位置(画像から外れているものはNULLをいれる) */
   ui16p_src_y1 = this->get_ui16p_src_channel() + this->_i32_xs;
   ui16p_src_y2 = this->get_ui16p_src_channel();
@@ -3721,9 +3579,6 @@ int32_t thinnest_ui16_image::_one_side_thinner(void) {
   /* 画像を縦にループ */
   i32_delete_count = 0;
   for (yy = 0; yy < this->_i32_ys; ++yy) {
-    /* カウントダウン表示中 */
-    // if (this->_i_cv_sw) { pri_funct_cv_run(yy); }
-
     /* スキャンライン(とその前後のスキャンライン)毎の処理 */
     i32_delete_count += this->_one_side_thinner_scanline(
         ui16p_src_y1, ui16p_src_y2, ui16p_src_y3, ui16p_tgt);
@@ -3737,9 +3592,6 @@ int32_t thinnest_ui16_image::_one_side_thinner(void) {
       ui16p_src_y1 = NULL;
     ui16p_tgt += this->_i32_xs;
   }
-
-  /* カウントダウン表示終了 */
-  // if (this->_i_cv_sw) { pri_funct_cv_end(); }
 
   /* 処理終了したらsrc,tgt画像交換 */
   this->_swap_channel();
@@ -3934,20 +3786,10 @@ void thinnest_ui16_image::_rot90_by_clockwork(void) {
   int32_t xx, yy;
   uint16_t *ui16p_src, *ui16p_tgt_y, *ui16p_tgt_x;
 
-  /* 処理ごとのメッセージ */
-  /******if (this->_i_mv_sw) {
-          pri_funct_msg_ttvr( "thinnest_ui16_image::_rot90_by_clockwork()" );
-  }******/
-  /* カウントダウン表示始め */
-  // if (this->_i_cv_sw) { pri_funct_cv_start( this->_i32_ys ); }
-
   ui16p_src   = this->get_ui16p_src_channel();
   ui16p_tgt_y = this->get_ui16p_tgt_channel() + (this->_i32_ys - 1);
 
   for (yy = 0L; yy < this->_i32_ys; ++yy) {
-    /* カウントダウン表示中 */
-    // if (this->_i_cv_sw) { pri_funct_cv_run(yy); }
-
     ui16p_tgt_x = ui16p_tgt_y;
     for (xx = 0L; xx < this->_i32_xs; ++xx) {
       *ui16p_tgt_x = *ui16p_src;
@@ -3956,9 +3798,6 @@ void thinnest_ui16_image::_rot90_by_clockwork(void) {
     }
     --ui16p_tgt_y;
   }
-  /* カウントダウン表示終了 */
-  // if (this->_i_cv_sw) { pri_funct_cv_end(); }
-
   /* 横と縦のサイズを交換 */
   i32_tmp       = this->_i32_xs;
   this->_i32_xs = this->_i32_ys;
@@ -4142,7 +3981,6 @@ int igs_line_blur_brush_curve_blur_subpixel_(
 }
 
 int igs_line_blur_brush_curve_blur_all_(
-    bool mv_sw, bool pv_sw, bool cv_sw,
     brush_curve_blur &cl_brush_curve_blur,
     pixel_select_curve_blur_root &cl_pixel_select_curve_blur_root,
     pixel_line_root &cl_pixel_line_root
@@ -4156,21 +3994,6 @@ int igs_line_blur_brush_curve_blur_all_(
     ,
     const int channels, const int bits, void *out  // no_margin
     ) {
-  /* 処理ごとのメッセージ */
-  if (mv_sw) {
-    std::cout << "igs::line_blur::_brush_curve_blur_all()" << std::endl;
-  }
-  if (pv_sw) {
-    std::cout << " curve blur points count is " << std::endl
-              << cl_brush_curve_blur.get_i32_count() << std::endl
-              << " power is " << std::endl
-              << cl_brush_curve_blur.get_d_power() << std::endl
-              << " subpixel divide is " << std::endl
-              << cl_brush_curve_blur.get_i32_subpixel_divide() << std::endl
-              << " clip area for speedup is " << std::endl
-              << cl_brush_curve_blur.get_d_effect_area_radius() << std::endl;
-  }
-
   /* ブラシメモリの確保 */
   if (OK != cl_brush_curve_blur.mem_alloc()) {
     throw std::domain_error(
@@ -4182,17 +4005,8 @@ int igs_line_blur_brush_curve_blur_all_(
 
   /* 画像をinからoutへコピーしておく */
   (void)memcpy(out, in, height * width * channels * ((16 == bits) ? 2 : 1));
-  /* カウントダウン表示始め */
-  if (cv_sw) {
-    pri_funct_cv_start(height);
-  }
 
   for (int yy = 0; yy < height; ++yy) {
-    /* カウントダウン表示中 */
-    if (cv_sw) {
-      pri_funct_cv_run(yy);
-    }
-
     for (int xx = 0; xx < width; ++xx) {
       if (OK == igs_line_blur_brush_curve_blur_subpixel_(
                     cl_brush_curve_blur, cl_pixel_select_curve_blur_root,
@@ -4207,11 +4021,6 @@ int igs_line_blur_brush_curve_blur_all_(
             cl_brush_curve_blur, xx, yy, height, width, channels, bits, out);
       }
     }
-  }
-
-  /* カウントダウン表示終了 */
-  if (cv_sw) {
-    pri_funct_cv_end();
   }
 
   return OK;
@@ -4459,7 +4268,6 @@ void igs_line_blur_brush_smudge_line_(
 #include "igs_line_blur.h"  // "pri.h"
 
 void igs_line_blur_brush_smudge_all_(
-    bool mv_sw, bool pv_sw, bool cv_sw,
     brush_smudge_circle &cl_brush_smudge_circle,
     pixel_line_root &cl_pixel_line_root, const void *in  // no_margin
     ,
@@ -4497,8 +4305,7 @@ void igs_line_blur_brush_smudge_all_(
 
 #include "igs_line_blur.h"  // "pri.h"
 
-void igs_line_blur_image_get_(const bool mv_sw, const bool cv_sw,
-                              const long reference_channel,
+void igs_line_blur_image_get_(const long reference_channel,
                               thinnest_ui16_image &cl_thinnest_ui16_image
 
                               ,
@@ -4509,30 +4316,14 @@ void igs_line_blur_image_get_(const bool mv_sw, const bool cv_sw,
                               const int width  // no_margin
                               ,
                               const int channels, const int bits) {
-  /* 処理ごとのメッセージ */
-  if (mv_sw) {
-    std::cout << "igs_line_blur_image_get_()" << std::endl
-              << "com : reference channel " << reference_channel << std::endl;
-  }
-
   int i32_xs               = cl_thinnest_ui16_image.get_i32_xs();
   int i32_ys               = cl_thinnest_ui16_image.get_i32_ys();
   unsigned short *out_incr = cl_thinnest_ui16_image.get_ui16p_src_channel();
-
-  /* カウントダウン表示始め */
-  if (cv_sw) {
-    pri_funct_cv_start(i32_ys);
-  }
 
   if (8 == bits) {
     const unsigned char *in_incr = static_cast<const unsigned char *>(in);
     in_incr += reference_channel;
     for (int yy = 0; yy < i32_ys; ++yy) {
-      /* カウントダウン表示中 */
-      if (cv_sw) {
-        pri_funct_cv_run(yy);
-      }
-
       for (int xx = 0; xx < i32_xs; ++xx) {
         /* 8bits -> 16bits変換して格納 */
         *out_incr =
@@ -4547,11 +4338,6 @@ void igs_line_blur_image_get_(const bool mv_sw, const bool cv_sw,
     in_incr += reference_channel;
 
     for (int yy = 0; yy < i32_ys; ++yy) {
-      /* カウントダウン表示中 */
-      if (cv_sw) {
-        pri_funct_cv_run(yy);
-      }
-
       for (int xx = 0; xx < i32_xs; ++xx) {
         *out_incr = *in_incr;
         /* 参照位置移動 */
@@ -4563,10 +4349,6 @@ void igs_line_blur_image_get_(const bool mv_sw, const bool cv_sw,
     throw std::domain_error("Error : bits is not 8 or 16");
   }
 
-  /* カウントダウン表示終了 */
-  if (cv_sw) {
-    pri_funct_cv_end();
-  }
 }
 }
 
@@ -4614,12 +4396,6 @@ void igs::line_blur::convert(
     const int v_near_len /* min=2   def=160  incr=1   max=1000 */
 
     ,
-    const bool mv_sw /* false=OFF */
-    ,
-    const bool pv_sw /* false=OFF */
-    ,
-    const bool cv_sw /* false=OFF */
-    ,
     const long reference_channel /* 3	=Alpha:RGBA orBGRA */
     ,
     const int brush_action /* 0 =Curve Blur ,1=Smudge Brush */
@@ -4631,18 +4407,6 @@ void igs::line_blur::convert(
   pixel_select_curve_blur_root cl_pixel_select_curve_blur_root;
   brush_smudge_circle cl_brush_smudge_circle;
   brush_curve_blur cl_brush_curve_blur;
-
-  /* --- 標準出力への動作表示スイッチ --- */
-  cl_thinnest_ui16_image.set_i_mv_sw(mv_sw);
-
-  cl_thinnest_ui16_image.set_i_pv_sw(pv_sw);
-
-  cl_thinnest_ui16_image.set_i_cv_sw(cv_sw);
-
-  /* --- 処理ごとのメッセージ --- */
-  if (mv_sw) {
-    std::cout << "igs::line_blur::convert()" << std::endl;
-  }
 
   /* --- 引数値をセット --- */
 
@@ -4696,7 +4460,7 @@ void igs::line_blur::convert(
   }
 
   /* 画像情報を細線化用メモリに移す */
-  igs_line_blur_image_get_(mv_sw, cv_sw, reference_channel,
+  igs_line_blur_image_get_(reference_channel,
                            cl_thinnest_ui16_image, in, height, width, channels,
                            bits);
 
@@ -4760,12 +4524,12 @@ void igs::line_blur::convert(
   if (0 == brush_action) {
     /* 線分情報からだいたいその方向にぼかす */
     igs_line_blur_brush_curve_blur_all_(
-        mv_sw, pv_sw, cv_sw, cl_brush_curve_blur,
+        cl_brush_curve_blur,
         cl_pixel_select_curve_blur_root, cl_pixel_line_root, in, height, width,
         channels, bits, out);
   } else if (1 == brush_action) {
     /* 画像をコピーしてから、指先ツールのようにこする */
-    igs_line_blur_brush_smudge_all_(mv_sw, pv_sw, cv_sw, cl_brush_smudge_circle,
+    igs_line_blur_brush_smudge_all_(cl_brush_smudge_circle,
                                     cl_pixel_line_root, in, height, width,
                                     channels, bits, out);
   }
@@ -4927,12 +4691,6 @@ void fx_(const TRasterP in_ras  // with margin
       ,
       vector_smooth_retry, vector_near_ref, vector_near_len
 
-      ,
-      false /* bool mv_sw false=OFF */
-      ,
-      false /* bool pv_sw false=OFF */
-      ,
-      false /* bool cv_sw false=OFF */
       ,
       3 /* long reference_channel 3=Red:RGBA or Blue:BGRA */
       ,
