@@ -2856,9 +2856,6 @@ public:
    * );******/
   int get_line(int32_t i32_blur_count, double *dp_xv, double *dp_yv);
 
-  int save(double d_xp, double d_yp, int32_t i32_blur_count,
-           const char *cp_fname);
-
   void mem_free(void);
 
 private:
@@ -3187,108 +3184,6 @@ int pixel_select_curve_blur_root::get_line(int32_t i32_blur_count,
     dp_xv[ii] /= d_accum;
     dp_yv[ii] /= d_accum;
   }
-
-  return OK;
-}
-
-#include <assert.h> /* assert() */
-
-#include "igs_line_blur.h"  // "pri.h" "pixel_select_curve_blur.h"
-
-int pixel_select_curve_blur_root::save(double d_xp, double d_yp,
-                                       int32_t i32_blur_count,
-                                       const char *cp_fname) {
-  FILE *fp;
-  int32_t ii, jj;
-  pixel_select_curve_blur_node *clp_loop;
-  pixel_point_node *clp_point;
-
-  /* ファイル開く */
-  fp = fopen(cp_fname, "w");
-  if (NULL == fp) {
-    pri_funct_err_bttvr("Error : fopen(%s,w) returns NULL", cp_fname);
-    return NG;
-  }
-
-  /* ライン長さ(ポイント数)保存 */
-  if (fprintf(fp, "# blur point count %d\n", i32_blur_count) < 0) {
-    pri_funct_err_bttvr("Error : fprintf(# blur point count) returns minus");
-    fclose(fp);
-    return NG;
-  }
-  /* 選択数保存 */
-  if (fprintf(fp, "# select count %d in %d\n", this->_i32_count_max,
-              this->get_i32_count()) < 0) {
-    pri_funct_err_bttvr("Error : fprintf(# select count) returns minus");
-    fclose(fp);
-    return NG;
-  }
-
-  clp_loop = (pixel_select_curve_blur_node *)this->get_clp_first();
-  for (ii      = 0; (NULL != clp_loop) && (ii < this->_i32_count_max); ++ii,
-      clp_loop = (pixel_select_curve_blur_node *)clp_loop->get_clp_next()) {
-    assert(ii < this->get_i32_count());
-    assert(NULL != clp_loop);
-    assert(NULL != clp_loop->clp_line);
-    assert(NULL != clp_loop->clp_start_point);
-    assert(NULL != clp_loop->clp_near_point);
-
-    /* グループ(ライン)番号保存 */
-    if (fprintf(fp, "# selct number %d : reverse sw is %s\n", ii,
-                (!clp_loop->i_reverse_sw ? "off" : "on")) < 0) {
-      pri_funct_err_bttvr("Error : fprintf(# line number %d) returns minus",
-                          ii);
-      fclose(fp);
-      return NG;
-    }
-
-    clp_point = clp_loop->clp_near_point;
-    /* ピクセル位置から近点位置保存 */
-    if (fprintf(fp, "%g %g\n", clp_point->get_d_xp_tgt(),
-                clp_point->get_d_yp_tgt()) < 0) {
-      pri_funct_err_bttvr("Error : fprintf(near point) returns minus");
-      fclose(fp);
-      return NG;
-    }
-    if (fprintf(fp, "%g %g\n\n\n", d_xp, d_yp) < 0) {
-      pri_funct_err_bttvr("Error : fprintf(pixel point) returns minus");
-      fclose(fp);
-      return NG;
-    }
-
-    clp_point = clp_loop->clp_start_point;
-    if (!clp_loop->i_reverse_sw) {
-      for (jj = 0; jj < i32_blur_count; ++jj) {
-        /* グループ(ライン)番号保存 */
-        if (fprintf(fp, "%g %g\n", clp_point->get_d_xp_tgt(),
-                    clp_point->get_d_yp_tgt()) < 0) {
-          pri_funct_err_bttvr("Error : fprintf(x,y) returns minus");
-          fclose(fp);
-          return NG;
-        }
-        clp_point = clp_point->get_clp_next_point();
-      }
-    } else {
-      for (jj = 0; jj < i32_blur_count; ++jj) {
-        /* グループ(ライン)番号保存 */
-        if (fprintf(fp, "%g %g\n", clp_point->get_d_xp_tgt(),
-                    clp_point->get_d_yp_tgt()) < 0) {
-          pri_funct_err_bttvr("Error : fprintf(x,y) returns minus");
-          fclose(fp);
-          return NG;
-        }
-        clp_point = clp_point->get_clp_previous_point();
-      }
-    }
-    if (fprintf(fp, "\n\n") < 0) {
-      pri_funct_err_bttvr("Error : fprintf(EnterEnter) returns minus");
-      fclose(fp);
-      return NG;
-    }
-  }
-
-  /* ファイル閉じる */
-  fclose(fp);
 
   return OK;
 }
