@@ -2801,75 +2801,49 @@ void pixel_line_root::exec11_set_bbox() {
 
 #include "igs_line_blur.h"  // "list_root.h" "calculator_geometry.h" "pixel_point_root.h" "pixel_line_root.h"
 
-class pixel_select_curve_blur_node final : public list_node {
-public:
-  pixel_select_curve_blur_node(void) {
-    this->clp_line           = NULL;
-    this->clp_start_point    = NULL;
-    this->clp_near_point     = NULL;
-    this->i32_near_point_pos = 0;
-    this->d_length           = -1.0;
-    this->i_reverse_sw       = false;
-  }
-  void copy(pixel_select_curve_blur_node *clp) {
-    this->clp_line           = clp->clp_line;
-    this->clp_start_point    = clp->clp_start_point;
-    this->clp_near_point     = clp->clp_near_point;
-    this->i32_near_point_pos = clp->i32_near_point_pos;
-    this->d_length           = clp->d_length;
-    this->i_reverse_sw       = clp->i_reverse_sw;
-  }
+struct pixel_select_curve_blur_node {
+  pixel_select_curve_blur_node()
+   : clp_line(nullptr)
+   , clp_start_point(nullptr)
+   , clp_near_point(nullptr)
+   , i32_near_point_pos(0)
+   , d_length(-1.0)
+   , i_reverse_sw(false) { }
   pixel_line_node *clp_line;
   pixel_point_node *clp_start_point;
   pixel_point_node *clp_near_point;
   int32_t i32_near_point_pos;
   double d_length;
   bool i_reverse_sw;
-
-private:
 };
 
-class pixel_select_curve_blur_root final : public list_root {
+class pixel_select_curve_blur_root {
 public:
-  pixel_select_curve_blur_root(void) {
-    this->_i_mv_sw = false;
-    this->_i_cv_sw = false;
-    this->_i_pv_sw = false;
-
+  pixel_select_curve_blur_root() {
     this->_i32_count_max = 4;
     this->_d_length_max  = 160;
   }
-  ~pixel_select_curve_blur_root(void) { this->mem_free(); }
-  void set_i_mv_sw(bool sw) { this->_i_mv_sw = sw; }
-  void set_i_cv_sw(bool sw) { this->_i_cv_sw = sw; }
-  void set_i_pv_sw(bool sw) { this->_i_pv_sw = sw; }
 
   int32_t get_i32_count_max(void) { return this->_i32_count_max; }
   void set_i32_count_max(int32_t ii) { this->_i32_count_max = ii; }
   double get_d_length_max(void) { return this->_d_length_max; }
   void set_d_length_max(double dd) { this->_d_length_max = dd; }
 
+  std::list<pixel_select_curve_blur_node> &getNodes() { return m_nodes; }
+
   void exec(double d_xp, double d_yp, pixel_line_root *clp_pixel_line_root,
             int32_t i32_blur_count, double d_effect_length_radius);
-  /******void exec( double d_xp, double d_yp, pixel_line_node *clp_line_first,
-   * int32_t i32_count, int32_t i32_blur_count, double d_effect_length_radius
-   * );******/
   int get_line(int32_t i32_blur_count, double *dp_xv, double *dp_yv);
 
-  void mem_free(void);
-
 private:
-  bool _i_mv_sw, _i_cv_sw, _i_pv_sw;
+  std::list<pixel_select_curve_blur_node> m_nodes;
 
   int32_t _i32_count_max;
   double _d_length_max;
 
   calculator_geometry _cl_cal_geom;
 
-  pixel_select_curve_blur_node *_append(
-      pixel_select_curve_blur_node *clp_previous);
-  void _remove(pixel_select_curve_blur_node *clp_old);
-  int _sort_append(pixel_select_curve_blur_node *clp_src);
+  void _sort_append(pixel_select_curve_blur_node *clp_src);
 
   pixel_point_node *_get_next_points(pixel_point_node *clp_point,
                                      int32_t i32_count);
@@ -2889,85 +2863,24 @@ private:
 #define M_PI 3.14159265358979323846
 #endif
 
-#include <assert.h>         /* assert() */
-#include "igs_line_blur.h"  // "pri.h" "pixel_line_root.h" "pixel_select_curve_blur.h"
-
-pixel_select_curve_blur_node *pixel_select_curve_blur_root::_append(
-    pixel_select_curve_blur_node *clp_previous) {
-  pixel_select_curve_blur_node *clp_new;
-
-  clp_new = new pixel_select_curve_blur_node;
-  if (NULL == clp_new) {
-    pri_funct_err_bttvr(
-        "Error : 'new pixel_select_curve_blur_node' returns NULL.");
-    return NULL;
-  }
-  clp_new = (pixel_select_curve_blur_node *)this->push(clp_previous, clp_new);
-
-  return clp_new;
-}
-
-void pixel_select_curve_blur_root::_remove(
-    pixel_select_curve_blur_node *clp_old) {
-  assert(NULL != clp_old); /* あってはならないプログラムバグのチェック */
-  this->pop(clp_old);
-  delete clp_old;
-}
-
-void pixel_select_curve_blur_root::mem_free(void) {
-  int32_t ii;
-
-  if (NULL != this->get_clp_last()) {
-    if (this->_i_mv_sw) {
-      pri_funct_msg_ttvr("pixel_select_curve_blur_root::mem_free()");
-    }
-
-    ii = 0;
-    while (NULL != this->get_clp_last()) {
-      this->_remove((pixel_select_curve_blur_node *)this->get_clp_last());
-      ++ii;
-    }
-    if (this->_i_pv_sw) {
-      pri_funct_msg_ttvr("free select curve blur node %d", ii);
-    }
-  }
-}
-
-/********************************************************************/
-
 /* lengthの値を見て、距離の近い(小さい値)順になるように追加する
         すべての選択リストより小さいなら先頭
         すべての選択リストより大きいなら最後に追加
         値から選択リストの間に入るならそこに追加
 */
-int pixel_select_curve_blur_root::_sort_append(
+void pixel_select_curve_blur_root::_sort_append(
     pixel_select_curve_blur_node *clp_src) {
-  pixel_select_curve_blur_node *clp_prev;
-  int32_t ii;
-
   assert(0.0 < clp_src->d_length);
+  auto p = std::prev(m_nodes.end());
 
-  /* リストの最後から距離を比較し、より小さい場所 */
-  clp_prev = (pixel_select_curve_blur_node *)this->get_clp_last();
-  for (ii      = 0; NULL != clp_prev; ++ii,
-      clp_prev = (pixel_select_curve_blur_node *)clp_prev->get_clp_previous()) {
-    assert(ii < this->get_i32_count());
-    if (clp_prev->d_length < clp_src->d_length) {
+  for (auto i = m_nodes.begin(); i != m_nodes.end(); ++i) {
+    if (i->d_length < clp_src->d_length) {
+      p = i;
       break;
     }
   }
 
-  /* 示した場所の後ろに追加 */
-  clp_prev = this->_append(clp_prev);
-  if (NULL == clp_prev) {
-    pri_funct_err_bttvr("Error : this->_append(clp_prev) returns NULL.");
-    return NG;
-  }
-
-  /* 情報をコピー */
-  clp_prev->copy(clp_src);
-
-  return OK;
+  m_nodes.insert(p, *clp_src);
 }
 
 /********************************************************************/
@@ -2986,7 +2899,7 @@ void pixel_select_curve_blur_root::exec(double d_xp, double d_yp,
   pixel_select_curve_blur_node cl_select;
 
   /* 選択リストをクリア */
-  this->mem_free();
+  m_nodes.clear();
 
   /* 全体の bbox を見る */
   if ((d_xp <
@@ -3129,60 +3042,49 @@ double pixel_select_curve_blur_root::_get_line_accum_count(
 */
 int pixel_select_curve_blur_root::get_line(int32_t i32_blur_count,
                                            double *dp_xv, double *dp_yv) {
-  int32_t ii, jj, i32_count;
-  double d_xp, d_yp;
-  double d_ratio, d_accum;
-  pixel_select_curve_blur_node *clp_select;
-  pixel_point_node *clp_point;
-
-  for (ii = 0; ii < i32_blur_count; ++ii) {
-    dp_xv[ii] = 0.0;
-    dp_yv[ii] = 0.0;
+  for (int32_t i = 0; i < i32_blur_count; ++i) {
+    dp_xv[i] = 0.0;
+    dp_yv[i] = 0.0;
   }
 
-  i32_count = 0;
-  d_accum   = 0.0;
+  double d_accum = 0.0;
+  int32_t count = 0;
+  for (auto e = m_nodes.begin(); (e != m_nodes.end()) && (count < _i32_count_max); ++e, ++count) {
+    assert(e->clp_line != nullptr);
+    assert(e->clp_start_point != nullptr);
+    assert(e->clp_near_point != nullptr);
 
-  clp_select = (pixel_select_curve_blur_node *)this->get_clp_first();
-  for (ii = 0; (NULL != clp_select) && (ii < this->_i32_count_max); ++ii,
-      ++i32_count,
-      clp_select = (pixel_select_curve_blur_node *)clp_select->get_clp_next()) {
-    assert(ii < this->get_i32_count());
-    assert(NULL != clp_select->clp_line);
-    assert(NULL != clp_select->clp_start_point);
-    assert(NULL != clp_select->clp_near_point);
-
-    d_ratio = this->_get_line_accum_count(clp_select, i32_blur_count);
+    double d_ratio = this->_get_line_accum_count(&*e, i32_blur_count);
     d_accum += d_ratio;
 
-    d_xp      = clp_select->clp_near_point->get_d_xp_tgt();
-    d_yp      = clp_select->clp_near_point->get_d_yp_tgt();
-    clp_point = clp_select->clp_start_point;
+    double d_xp      = e->clp_near_point->get_d_xp_tgt();
+    double d_yp      = e->clp_near_point->get_d_yp_tgt();
+    pixel_point_node *clp_point = e->clp_start_point;
 
     /* 線分合成(いきなりの変化をへらす) */
-    if (!clp_select->i_reverse_sw) {
-      for (jj = 0; jj < i32_blur_count; ++jj) {
-        dp_xv[jj] += (clp_point->get_d_xp_tgt() - d_xp) * d_ratio;
-        dp_yv[jj] += (clp_point->get_d_yp_tgt() - d_yp) * d_ratio;
+    if (!e->i_reverse_sw) {
+      for (int32_t j = 0; j < i32_blur_count; ++j) {
+        dp_xv[j] += (clp_point->get_d_xp_tgt() - d_xp) * d_ratio;
+        dp_yv[j] += (clp_point->get_d_yp_tgt() - d_yp) * d_ratio;
         clp_point = clp_point->get_clp_next_point();
       }
     } else {
-      for (jj = 0; jj < i32_blur_count; ++jj) {
-        dp_xv[jj] += (clp_point->get_d_xp_tgt() - d_xp) * d_ratio;
-        dp_yv[jj] += (clp_point->get_d_yp_tgt() - d_yp) * d_ratio;
+      for (int32_t j = 0; j < i32_blur_count; ++j) {
+        dp_xv[j] += (clp_point->get_d_xp_tgt() - d_xp) * d_ratio;
+        dp_yv[j] += (clp_point->get_d_yp_tgt() - d_yp) * d_ratio;
         clp_point = clp_point->get_clp_previous_point();
       }
     }
   }
 
-  if (i32_count <= 0) {
+  if (count <= 0) {
     return NG;
   }
 
   assert(0.0 < d_accum);
-  for (ii = 0; ii < i32_blur_count; ++ii) {
-    dp_xv[ii] /= d_accum;
-    dp_yv[ii] /= d_accum;
+  for (int32_t i = 0; i < i32_blur_count; ++i) {
+    dp_xv[i] /= d_accum;
+    dp_yv[i] /= d_accum;
   }
 
   return OK;
@@ -4345,7 +4247,7 @@ int igs_line_blur_brush_curve_blur_subpixel_(
           cl_brush_curve_blur.get_d_effect_area_radius());
 
       /* 選択できなかったらサブピクセルループを抜けて次のピクセルへ */
-      if (cl_pixel_select_curve_blur_root.get_i32_count() <= 0) {
+      if (cl_pixel_select_curve_blur_root.getNodes().size() <= 0) {
         return NG;
       }
 
@@ -4994,9 +4896,6 @@ void igs::line_blur::convert(
                                     cl_pixel_line_root, in, height, width,
                                     channels, bits, out);
   }
-
-  /* 線ぼかし方向参照リスト開放 */
-  cl_pixel_select_curve_blur_root.mem_free();
 }
 
 //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
