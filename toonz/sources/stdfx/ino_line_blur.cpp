@@ -2140,47 +2140,32 @@ void pixel_line_node::smooth_expand(int32_t i32_smooth_retry) {
 
 #include "igs_line_blur.h"  // "list_root.h" "calculator_geometry.h" "pixel_point_root.h" "pixel_line_root.h"
 
-class pixel_select_same_way_node final : public list_node {
-public:
-  pixel_select_same_way_node(void) {
-    this->clp_point_middle = NULL;
-    this->clp_point_term   = NULL;
-    this->clp_point_expand = NULL;
-    this->d_length         = -1.0;
-  }
-  void copy(pixel_select_same_way_node *clp) {
-    this->clp_point_middle = clp->clp_point_middle;
-    this->clp_point_term   = clp->clp_point_term;
-    this->clp_point_expand = clp->clp_point_expand;
-    this->d_length         = clp->d_length;
-  }
+struct pixel_select_same_way_node {
+  pixel_select_same_way_node()
+    : clp_point_middle(nullptr)
+    , clp_point_term(nullptr)
+    , clp_point_expand(nullptr)
+    , d_length(-1.0) { }
+
   pixel_point_node *clp_point_middle;
   pixel_point_node *clp_point_term;
   pixel_point_node *clp_point_expand;
   double d_length;
-
-private:
 };
 
-class pixel_select_same_way_root final : public list_root {
+class pixel_select_same_way_root {
 public:
   pixel_select_same_way_root(void) {
-    this->_i_mv_sw = false;
-    this->_i_cv_sw = false;
-    this->_i_pv_sw = false;
-
     this->_i32_count_max = 4;
     this->_d_length_max  = 160;
   }
-  ~pixel_select_same_way_root(void) { this->mem_free(); }
-  void set_i_mv_sw(bool sw) { this->_i_mv_sw = sw; }
-  void set_i_cv_sw(bool sw) { this->_i_cv_sw = sw; }
-  void set_i_pv_sw(bool sw) { this->_i_pv_sw = sw; }
 
   int32_t get_i32_count_max(void) { return this->_i32_count_max; }
   void set_i32_count_max(int32_t ii) { this->_i32_count_max = ii; }
   double get_d_length_max(void) { return this->_d_length_max; }
   void set_d_length_max(double dd) { this->_d_length_max = dd; }
+
+  std::list<pixel_select_same_way_node> &getNodes() { return m_nodes; }
 
   void exec(std::list<pixel_line_node> &cl_pixel_line_root,
             pixel_point_node *clp_point_middle,
@@ -2188,20 +2173,15 @@ public:
             pixel_point_node *clp_point_expand);
   void get_vector(double *dp_xv, double *dp_yv);
 
-  void mem_free(void);
-
 private:
-  bool _i_mv_sw, _i_cv_sw, _i_pv_sw;
+  std::list<pixel_select_same_way_node> m_nodes;
 
   int32_t _i32_count_max;
   double _d_length_max;
 
   calculator_geometry _cl_cal_geom;
 
-  pixel_select_same_way_node *_append(pixel_select_same_way_node *clp_previous);
-  void _remove(pixel_select_same_way_node *clp_old);
-
-  int _sort_append(pixel_select_same_way_node *clp_src);
+  void _sort_append(pixel_select_same_way_node *clp_src);
   double _term_length(pixel_point_node *clp_middle1,
                       pixel_point_node *clp_term1,
                       pixel_point_node *clp_middle2,
@@ -2220,48 +2200,6 @@ private:
 #define M_PI 3.14159265358979323846
 #endif
 
-pixel_select_same_way_node *pixel_select_same_way_root::_append(
-    pixel_select_same_way_node *clp_previous) {
-  pixel_select_same_way_node *clp_new;
-
-  clp_new = new pixel_select_same_way_node;
-  if (NULL == clp_new) {
-    pri_funct_err_bttvr(
-        "Error : 'new pixel_select_same_way_node' returns NULL.");
-    return NULL;
-  }
-  clp_new = (pixel_select_same_way_node *)this->push(clp_previous, clp_new);
-
-  return clp_new;
-}
-
-void pixel_select_same_way_root::_remove(pixel_select_same_way_node *clp_old) {
-  assert(NULL != clp_old); /* あってはならないプログラムバグのチェック */
-  this->pop(clp_old);
-  delete clp_old;
-}
-
-void pixel_select_same_way_root::mem_free(void) {
-  pixel_select_same_way_node *clp_;
-  int32_t ii;
-
-  if (NULL != this->get_clp_last()) {
-    if (this->_i_mv_sw) {
-      pri_funct_msg_ttvr("pixel_select_same_way_root::mem_free()");
-    }
-
-    ii = 0;
-    while (NULL !=
-           (clp_ = (pixel_select_same_way_node *)this->get_clp_last())) {
-      this->_remove(clp_);
-      ++ii;
-    }
-    if (this->_i_pv_sw) {
-      pri_funct_msg_ttvr("free select same way node %d", ii);
-    }
-  }
-}
-
 /********************************************************************/
 
 /* lengthの値を見て、小さい値順になるように追加する
@@ -2269,57 +2207,20 @@ void pixel_select_same_way_root::mem_free(void) {
         他の選択より大きいなら最後に追加
         他の選択の値の間入るならそこに追加
 */
-int pixel_select_same_way_root::_sort_append(
+void pixel_select_same_way_root::_sort_append(
     pixel_select_same_way_node *clp_src) {
-  pixel_select_same_way_node *clp_loop, *clp_prev;
-  int32_t ii;
-
   assert(0.0 < clp_src->d_length);
 
-  clp_loop = (pixel_select_same_way_node *)this->get_clp_first();
+  auto p = std::prev(m_nodes.end());
 
-  /* まだなにも選択されていないとき */
-  if (NULL == clp_loop) {
-    clp_prev = NULL;
-  }
-  /* 1つだけ選択されているとき */
-  else if (NULL == clp_loop->get_clp_next()) {
-    /* 既選択より値が小さいので先頭位置を示す */
-    if (clp_src->d_length < clp_loop->d_length) {
-      clp_prev = NULL;
-    }
-    /* 既選択より値が大きいので既選択を示す */
-    else {
-      clp_prev = clp_loop;
-    }
-  }
-  /* 2つ以上の選択があるとき */
-  else {
-    /* 既選択より値が大きいときのため最後尾を示しておく */
-    clp_prev = (pixel_select_same_way_node *)this->get_clp_last();
-    /* 既選択より値が小さい場所があればその手前を示す */
-    for (ii      = 0; NULL != clp_loop; ++ii,
-        clp_loop = (pixel_select_same_way_node *)clp_loop->get_clp_next()) {
-      assert(ii < this->get_i32_count());
-
-      if (clp_src->d_length < clp_loop->d_length) {
-        clp_prev = (pixel_select_same_way_node *)clp_loop->get_clp_previous();
-        break;
-      }
+  for (auto i = m_nodes.begin(); i != m_nodes.end(); ++i) {
+    if (clp_src->d_length < i->d_length) {
+      p = i;
+      break;
     }
   }
 
-  /* 示した場所の後ろに追加 */
-  clp_prev = this->_append(clp_prev);
-  if (NULL == clp_prev) {
-    pri_funct_err_bttvr("Error : this->_append(clp_prev) returns NULL.");
-    return NG;
-  }
-
-  /* 情報をコピー */
-  clp_prev->copy(clp_src);
-
-  return OK;
+  m_nodes.insert(p, *clp_src);
 }
 
 /********************************************************************/
@@ -2374,7 +2275,7 @@ void pixel_select_same_way_root::exec(std::list<pixel_line_node> &cl_pixel_line_
   assert(clp_point_expand != clp_point_middle);
 
   /* 選択リストをクリア */
-  this->mem_free();
+  m_nodes.clear();
 
   /* 自身以外の全端点と比較 */
   for (auto & clp_line : cl_pixel_line_root) {
@@ -2431,20 +2332,15 @@ void pixel_select_same_way_root::exec(std::list<pixel_line_node> &cl_pixel_line_
         のベクトルを合成する
 */
 void pixel_select_same_way_root::get_vector(double *dp_xv, double *dp_yv) {
-  pixel_select_same_way_node *clp_loop;
-  int32_t ii;
+  int32_t i = 0;
+  for (auto e = m_nodes.begin(); (e != m_nodes.end()) && (i < _i32_count_max); ++e, ++i) {
+    assert(e->clp_point_expand != nullptr);
+    assert(e->clp_point_term != nullptr);
 
-  clp_loop = (pixel_select_same_way_node *)this->get_clp_first();
-  for (ii      = 0; (NULL != clp_loop) && (ii < this->_i32_count_max); ++ii,
-      clp_loop = (pixel_select_same_way_node *)clp_loop->get_clp_next()) {
-    assert(ii < this->get_i32_count());
-    assert(NULL != clp_loop->clp_point_expand);
-    assert(NULL != clp_loop->clp_point_term);
-
-    *dp_xv += clp_loop->clp_point_expand->get_d_xp_tgt() -
-              clp_loop->clp_point_term->get_d_xp_tgt();
-    *dp_yv += clp_loop->clp_point_expand->get_d_yp_tgt() -
-              clp_loop->clp_point_term->get_d_yp_tgt();
+    *dp_xv += e->clp_point_expand->get_d_xp_tgt() -
+              e->clp_point_term->get_d_xp_tgt();
+    *dp_yv += e->clp_point_expand->get_d_yp_tgt() -
+              e->clp_point_term->get_d_yp_tgt();
   }
 }
 
@@ -2483,7 +2379,7 @@ public:
   void exec06_int2double_body(void);
   void exec07_smooth_body(void);
   void exec08_expand_lines(std::list<pixel_point_node> &pixel_point_list);
-  void exec09_same_way_expand(pixel_select_same_way_root *clp_select);
+  void exec09_same_way_expand(pixel_select_same_way_root &clp_select);
   void exec10_smooth_expand(void);
   void exec11_set_bbox(void);
 
@@ -2497,9 +2393,6 @@ private:
 
   calculator_geometry _cl_cal_geom;
 
-  pixel_line_node *_append(pixel_line_node *clp_previous);
-  void _remove(pixel_line_node *clp_old);
-
   int _exec01_link_left_right(std::list<pixel_point_node> &pixel_point_list);
   int _exec02_link_up_down(std::list<pixel_point_node> &pixel_point_list);
   int _exec03_link_slant(std::list<pixel_point_node> &pixel_point_list);
@@ -2508,7 +2401,7 @@ private:
   double _same_way_expand_radian_diff(pixel_point_node *clp_point_middle,
                                       pixel_point_node *clp_point_term,
                                       pixel_point_node *clp_point_term_expand,
-                                      pixel_select_same_way_root *clp_select);
+                                      pixel_select_same_way_root &clp_select);
 };
 
 #endif                      /* !_pixel_line_root_h_ */
@@ -2762,7 +2655,7 @@ void pixel_line_root::exec08_expand_lines(
 double pixel_line_root::_same_way_expand_radian_diff(
     pixel_point_node *clp_point_middle, pixel_point_node *clp_point_term,
     pixel_point_node *clp_point_term_expand,
-    pixel_select_same_way_root *clp_select) {
+    pixel_select_same_way_root &clp_select) {
   double d_xv, d_yv;
 
   assert(clp_point_middle != clp_point_term);
@@ -2770,17 +2663,17 @@ double pixel_line_root::_same_way_expand_radian_diff(
   assert(clp_point_term_expand != clp_point_middle);
 
   /* 自身以外の全端点と比較 */
-  clp_select->exec(m_nodes, clp_point_middle, clp_point_term,
+  clp_select.exec(m_nodes, clp_point_middle, clp_point_term,
                    clp_point_term_expand);
 
-  if (clp_select->get_i32_count() <= 0) {
+  if (clp_select.getNodes().size() <= 0) {
     return 0.0;
   }
 
   /* ベクトルを付加合成 */
   d_xv = 0.0;
   d_yv = 0.0;
-  clp_select->get_vector(&d_xv, &d_yv);
+  clp_select.get_vector(&d_xv, &d_yv);
 
   /* ベクトルがゼロの場合
      --> 何も選択していない
@@ -2806,7 +2699,7 @@ double pixel_line_root::_same_way_expand_radian_diff(
 }
 
 void pixel_line_root::exec09_same_way_expand(
-    pixel_select_same_way_root *clp_select) {
+    pixel_select_same_way_root &clp_select) {
   pixel_point_node *clp_point_start, *clp_point_tmp;
   pixel_line_node *clp_line;
   double d_radian, d_x, d_y;
@@ -2871,7 +2764,7 @@ void pixel_line_root::exec09_same_way_expand(
     }
   }
 
-  clp_select->mem_free();
+  clp_select.getNodes().clear();
 }
 
 void pixel_line_root::exec11_set_bbox() {
@@ -5183,7 +5076,7 @@ void igs::line_blur::convert(
   cl_pixel_line_root.exec08_expand_lines(pixel_point_list);
 
   /* 伸ばした線分の方向をそろえる */
-  cl_pixel_line_root.exec09_same_way_expand(&(cl_pixel_select_same_way_root));
+  cl_pixel_line_root.exec09_same_way_expand(cl_pixel_select_same_way_root);
 
   /* 伸ばした線分を再度スムースに */
   cl_pixel_line_root.exec10_smooth_expand();
@@ -5209,9 +5102,6 @@ void igs::line_blur::convert(
 
   /* 線ぼかし方向参照リスト開放 */
   cl_pixel_select_curve_blur_root.mem_free();
-
-  /* 同方向線曲げ方向参照リスト開放 */
-  cl_pixel_select_same_way_root.mem_free();
 }
 
 //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
