@@ -1223,7 +1223,7 @@ void pixel_point_node::print_xy_around(void) {
 #define NG (-1)
 #endif
 
-class pixel_line_node final : public list_node {
+class pixel_line_node {
 public:
   pixel_line_node() {
     this->_i32_point_count           = 0;
@@ -2182,7 +2182,7 @@ public:
   double get_d_length_max(void) { return this->_d_length_max; }
   void set_d_length_max(double dd) { this->_d_length_max = dd; }
 
-  void exec(pixel_line_node *clp_line_first, int32_t i32_count,
+  void exec(std::list<pixel_line_node> &cl_pixel_line_root,
             pixel_point_node *clp_point_middle,
             pixel_point_node *clp_point_term,
             pixel_point_node *clp_point_expand);
@@ -2360,8 +2360,7 @@ double pixel_select_same_way_root::_term_length(pixel_point_node *clp_middle1,
 /********************************************************************/
 
 /* 同方向で、一定の距離の範囲にある端点を選択する */
-void pixel_select_same_way_root::exec(pixel_line_node *clp_line_first,
-                                      int32_t i32_count,
+void pixel_select_same_way_root::exec(std::list<pixel_line_node> &cl_pixel_line_root,
                                       pixel_point_node *clp_point_middle,
                                       pixel_point_node *clp_point_term,
                                       pixel_point_node *clp_point_expand) {
@@ -2378,24 +2377,22 @@ void pixel_select_same_way_root::exec(pixel_line_node *clp_line_first,
   this->mem_free();
 
   /* 自身以外の全端点と比較 */
-  for (clp_line = clp_line_first, ii = 0; NULL != clp_line;
-       clp_line = (pixel_line_node *)clp_line->get_clp_next(), ++ii) {
-    assert(ii < i32_count);
+  for (auto & clp_line : cl_pixel_line_root) {
 
     /* 端点1が自分以外のときで、
        線分が短すぎて(1点以下)真中指定と端点1が同じではない */
-    if ((clp_line->get_clp_link_one() != clp_point_term) &&
-        (clp_line->get_clp_link_middle() != clp_line->get_clp_link_one())) {
-      assert(NULL != clp_line->get_clp_link_middle());
-      assert(NULL != clp_line->get_clp_link_one());
+    if ((clp_line.get_clp_link_one() != clp_point_term) &&
+        (clp_line.get_clp_link_middle() != clp_line.get_clp_link_one())) {
+      assert(clp_line.get_clp_link_middle() != nullptr);
+      assert(clp_line.get_clp_link_one() != nullptr);
       d_length = this->_term_length(clp_point_middle, clp_point_term,
-                                    clp_line->get_clp_link_middle(),
-                                    clp_line->get_clp_link_one());
+                                    clp_line.get_clp_link_middle(),
+                                    clp_line.get_clp_link_one());
       /* 同方向で一定の距離の範囲内にあるなら */
-      if ((0.0 < d_length) && (NULL != clp_line->get_clp_link_one_expand())) {
-        cl_select.clp_point_middle = clp_line->get_clp_link_middle();
-        cl_select.clp_point_term   = clp_line->get_clp_link_one();
-        cl_select.clp_point_expand = clp_line->get_clp_link_one_expand();
+      if ((0.0 < d_length) && (clp_line.get_clp_link_one_expand() != nullptr)) {
+        cl_select.clp_point_middle = clp_line.get_clp_link_middle();
+        cl_select.clp_point_term   = clp_line.get_clp_link_one();
+        cl_select.clp_point_expand = clp_line.get_clp_link_one_expand();
         cl_select.d_length         = d_length;
         /* 登録 */
         this->_sort_append(&cl_select);
@@ -2404,20 +2401,20 @@ void pixel_select_same_way_root::exec(pixel_line_node *clp_line_first,
 
     /* 端点2が自分以外のときで、
        線分が短すぎて(2点以下)真中指定と端点2が同じではない */
-    if ((clp_line->get_clp_link_another() != clp_point_term) &&
-        (clp_line->get_clp_link_middle() != clp_line->get_clp_link_another())) {
-      assert(NULL != clp_line->get_clp_link_middle());
-      assert(NULL != clp_line->get_clp_link_another());
+    if ((clp_line.get_clp_link_another() != clp_point_term) &&
+        (clp_line.get_clp_link_middle() != clp_line.get_clp_link_another())) {
+      assert(clp_line.get_clp_link_middle() != nullptr);
+      assert(clp_line.get_clp_link_another() != nullptr);
       /* 端点(another)を調べて */
       d_length = this->_term_length(clp_point_middle, clp_point_term,
-                                    clp_line->get_clp_link_middle(),
-                                    clp_line->get_clp_link_another());
+                                    clp_line.get_clp_link_middle(),
+                                    clp_line.get_clp_link_another());
       /* 同方向で一定の距離の範囲内にあるなら */
       if ((0.0 < d_length) &&
-          (NULL != clp_line->get_clp_link_another_expand())) {
-        cl_select.clp_point_middle = clp_line->get_clp_link_middle();
-        cl_select.clp_point_term   = clp_line->get_clp_link_another();
-        cl_select.clp_point_expand = clp_line->get_clp_link_another_expand();
+          (clp_line.get_clp_link_another_expand() != nullptr)) {
+        cl_select.clp_point_middle = clp_line.get_clp_link_middle();
+        cl_select.clp_point_term   = clp_line.get_clp_link_another();
+        cl_select.clp_point_expand = clp_line.get_clp_link_another_expand();
         cl_select.d_length         = d_length;
         /* 登録 */
         this->_sort_append(&cl_select);
@@ -2458,13 +2455,9 @@ void pixel_select_same_way_root::get_vector(double *dp_xv, double *dp_yv) {
 
 #include "igs_line_blur.h"  // "list_root.h" "calculator_geometry.h" "pixel_point_root.h" "pixel_line_node.h" "pixel_select_same_way.h"
 
-class pixel_line_root final : public list_root {
+class pixel_line_root {
 public:
   pixel_line_root(void) {
-    this->_i_mv_sw = false;
-    this->_i_cv_sw = false;
-    this->_i_pv_sw = false;
-
     this->_d_bbox_x_min = 0.0;
     this->_d_bbox_x_max = 0.0;
     this->_d_bbox_y_min = 0.0;
@@ -2473,15 +2466,13 @@ public:
     this->_i32_smooth_retry   = 100;
     this->_i_same_way_exec_sw = true;
   }
-  ~pixel_line_root(void) { this->mem_free(); }
-  void set_i_mv_sw(bool sw) { this->_i_mv_sw = sw; }
-  void set_i_cv_sw(bool sw) { this->_i_cv_sw = sw; }
-  void set_i_pv_sw(bool sw) { this->_i_pv_sw = sw; }
 
   double get_d_bbox_x_min(void) { return this->_d_bbox_x_min; }
   double get_d_bbox_x_max(void) { return this->_d_bbox_x_max; }
   double get_d_bbox_y_min(void) { return this->_d_bbox_y_min; }
   double get_d_bbox_y_max(void) { return this->_d_bbox_y_max; }
+
+  std::list<pixel_line_node> &getNodes() { return m_nodes; }
 
   void set_i32_smooth_retry(int32_t i32) { this->_i32_smooth_retry = i32; }
   int32_t get_i32_smooth_retry(void) { return this->_i32_smooth_retry; }
@@ -2496,10 +2487,8 @@ public:
   void exec10_smooth_expand(void);
   void exec11_set_bbox(void);
 
-  void mem_free(void);
-
 private:
-  bool _i_mv_sw, _i_cv_sw, _i_pv_sw;
+  std::list<pixel_line_node> m_nodes;
 
   double _d_bbox_x_min, _d_bbox_x_max, _d_bbox_y_min, _d_bbox_y_max;
 
@@ -2514,7 +2503,7 @@ private:
   int _exec01_link_left_right(std::list<pixel_point_node> &pixel_point_list);
   int _exec02_link_up_down(std::list<pixel_point_node> &pixel_point_list);
   int _exec03_link_slant(std::list<pixel_point_node> &pixel_point_list);
-  int _exec04_grouping(std::list<pixel_point_node> &pixel_point_list);
+  void _exec04_grouping(std::list<pixel_point_node> &pixel_point_list);
 
   double _same_way_expand_radian_diff(pixel_point_node *clp_point_middle,
                                       pixel_point_node *clp_point_term,
@@ -2543,22 +2532,13 @@ int pixel_line_root::exec01020304(std::list<pixel_point_node> &pixel_point_list)
   }
 
   /* リンクしたものを、グループ化 */
-  if (OK != this->_exec04_grouping(pixel_point_list)) {
-    pri_funct_err_bttvr("Error : this->_exec04_grouping() returns NG.");
-    return NG;
-  }
+  this->_exec04_grouping(pixel_point_list);
 
   return OK;
 }
 
-/********************************************************************/
-
 int pixel_line_root::_exec01_link_left_right(
     std::list<pixel_point_node> &pixel_point_list) {
-  if (this->_i_mv_sw) {
-    pri_funct_msg_ttvr("pixel_line_root::_exec01_link_left_right()");
-  }
-
   int32_t ii = 0;
   auto clp_point2 = pixel_point_list.end();
   for (auto clp_point = pixel_point_list.begin(); clp_point != pixel_point_list.end(); ++clp_point) {
@@ -2584,19 +2564,11 @@ int pixel_line_root::_exec01_link_left_right(
     clp_point2 = clp_point;
   }
 
-  if (this->_i_pv_sw) {
-    pri_funct_msg_ttvr(" link left right %d", ii);
-  }
-
   return OK;
 }
 int pixel_line_root::_exec02_link_up_down(
     std::list<pixel_point_node> &pixel_point_list) {
-  if (this->_i_mv_sw) {
-    pri_funct_msg_ttvr("pixel_line_root::_exec02_link_up_down()");
-  }
-
-  int32_t ii = 0 ;
+  int32_t ii = 0;
 
   for (auto clp_point = pixel_point_list.begin();
        clp_point != pixel_point_list.end(); ++clp_point) {
@@ -2628,11 +2600,6 @@ int pixel_line_root::_exec02_link_up_down(
       }
     }
   }
-
-  if (this->_i_pv_sw) {
-    pri_funct_msg_ttvr(" link up down %d", ii);
-  }
-
   return OK;
 }
 
@@ -2642,10 +2609,6 @@ int pixel_line_root::_exec03_link_slant(
   int32_t ii, jj;
 
   bool i_left_link_sw, i_right_link_sw, i_up_link_sw;
-
-  if (this->_i_mv_sw) {
-    pri_funct_msg_ttvr("pixel_line_root::_exec03_link_slant()");
-  }
 
   ii = 0;
 
@@ -2737,25 +2700,11 @@ int pixel_line_root::_exec03_link_slant(
     }
   }
 
-  if (this->_i_pv_sw) {
-    pri_funct_msg_ttvr(" link slant %d", ii);
-  }
-
   return OK;
 }
 
-int pixel_line_root::_exec04_grouping(std::list<pixel_point_node> &pixel_point_list) {
-  pixel_line_node *clp_line_before, *clp_line_crnt;
-  int32_t ii;
-
-  if (this->_i_mv_sw) {
-    pri_funct_msg_ttvr("pixel_line_root::_exec04_grouping()");
-  }
-
-  ii              = 0;
-  clp_line_before = NULL;
-
-  for (auto &clp_point : pixel_point_list) {
+void pixel_line_root::_exec04_grouping(std::list<pixel_point_node> &pixel_point_list) {
+  for (auto & clp_point : pixel_point_list) {
     /* 線分としてリンク済みのは飛ばして次へ */
     if ((NULL != clp_point.get_clp_next_point()) ||
         (NULL != clp_point.get_clp_previous_point())) {
@@ -2765,193 +2714,50 @@ int pixel_line_root::_exec04_grouping(std::list<pixel_point_node> &pixel_point_l
     /* 端点をみつけた */
     if ((NULL != clp_point.get_clp_link_near(0)) &&
         (NULL == clp_point.get_clp_link_near(1))) {
-      clp_line_crnt = this->_append(clp_line_before);
-      if (NULL == clp_line_crnt) {
-        pri_funct_err_bttvr("Error : this->_append() returns NULL.");
-        return NG;
-      }
+      m_nodes.push_back({});
+      auto & back = m_nodes.back();
 
       /* 線分としてリンクし、両端点をセットする */
-      clp_line_crnt->link_line(&clp_point, clp_point.get_clp_link_near(0),
+      back.link_line(&clp_point, clp_point.get_clp_link_near(0),
                                pixel_point_list.size());
       /* リンクした線分は3点以上でないとだめ */
-      if (clp_line_crnt->get_i32_point_count() < 3) {
-        this->_remove(clp_line_crnt);
+      if (back.get_i32_point_count() < 3) {
+        m_nodes.pop_back();
       }
-      /* 選択が3点以上ならOKなので、次のラインへ */
-      else {
-        clp_line_before = clp_line_crnt;
-      }
-
-      ++ii;
     }
   }
-
-  if (this->_i_pv_sw) {
-    pri_funct_msg_ttvr(" make %d lines", this->get_i32_count());
-  }
-
-  return OK;
 }
 
-#include <assert.h> /* assert() */
-
-#include "igs_line_blur.h"  // "pri.h" "pixel_line_root.h"
-
-void pixel_line_root::exec05_set_middle(void) {
-  pixel_line_node *clp_line;
-  int32_t ii;
-
-  if (this->_i_mv_sw) {
-    pri_funct_msg_ttvr("pixel_line_root::exec05_set_middle()");
-  }
-
-  for (clp_line = (pixel_line_node *)this->get_clp_first(), ii = 0;
-       NULL != clp_line;
-       clp_line = (pixel_line_node *)clp_line->get_clp_next(), ++ii) {
-    assert(ii < this->get_i32_count());
-
-    clp_line->set_middle();
-  }
-  if (this->_i_pv_sw) {
-    pri_funct_msg_ttvr(" set middle point about %d lines", ii);
+void pixel_line_root::exec05_set_middle() {
+  for (auto & clp_line : m_nodes) {
+    clp_line.set_middle();
   }
 }
 
-#include <assert.h> /* assert() */
-
-#include "igs_line_blur.h"  // "pri.h" "pixel_line_root.h"
-
-void pixel_line_root::exec06_int2double_body(void) {
-  pixel_line_node *clp_line;
-  int32_t ii;
-
-  if (this->_i_mv_sw) {
-    pri_funct_msg_ttvr("pixel_line_root::exec06_int2double_body()");
-  }
-
-  for (clp_line = (pixel_line_node *)this->get_clp_first(), ii = 0;
-       NULL != clp_line;
-       clp_line = (pixel_line_node *)clp_line->get_clp_next(), ++ii) {
-    assert(ii < this->get_i32_count());
-
-    clp_line->int2double_body();
-  }
-
-  if (this->_i_pv_sw) {
-    pri_funct_msg_ttvr(" int to double %d lines", ii);
-  }
-}
-#include <assert.h> /* assert() */
-
-#include "igs_line_blur.h"  // "pri.h" "pixel_line_root.h"
-
-void pixel_line_root::exec07_smooth_body(void) {
-  pixel_line_node *clp_line;
-  int32_t ii;
-
-  if (this->_i_mv_sw) {
-    pri_funct_msg_ttvr("pixel_line_root::exec07_smooth_body()");
-  }
-
-  if (this->_i_pv_sw) {
-    pri_funct_msg_ttvr(" smooth retry %u", this->_i32_smooth_retry);
-  }
-
-  /* カウントダウン表示始め */
-  if (this->_i_cv_sw) {
-    pri_funct_cv_start(this->get_i32_count());
-  }
-
-  for (clp_line = (pixel_line_node *)this->get_clp_first(), ii = 0;
-       NULL != clp_line;
-       clp_line = (pixel_line_node *)clp_line->get_clp_next(), ++ii) {
-    assert(ii < this->get_i32_count());
-
-    /* カウントダウン表示中 */
-    if (this->_i_cv_sw) {
-      pri_funct_cv_run(ii);
-    }
-
-    clp_line->smooth_body(this->_i32_smooth_retry);
-  }
-  /* カウントダウン表示終了 */
-  if (this->_i_cv_sw) {
-    pri_funct_cv_end();
-  }
-
-  if (this->_i_pv_sw) {
-    pri_funct_msg_ttvr(" smooth %d lines", ii);
+void pixel_line_root::exec06_int2double_body() {
+  for (auto & clp_line : m_nodes) {
+    clp_line.int2double_body();
   }
 }
 
-void pixel_line_root::exec10_smooth_expand(void) {
-  pixel_line_node *clp_line;
-  int32_t ii;
-
-  if (this->_i_mv_sw) {
-    pri_funct_msg_ttvr("pixel_line_root::exec10_smooth_expand()");
-  }
-  if (this->_i_pv_sw) {
-    pri_funct_msg_ttvr(" smooth retry %u", this->_i32_smooth_retry);
-  }
-
-  /* カウントダウン表示始め */
-  if (this->_i_cv_sw) {
-    pri_funct_cv_start(this->get_i32_count());
-  }
-
-  for (clp_line = (pixel_line_node *)this->get_clp_first(), ii = 0;
-       NULL != clp_line;
-       clp_line = (pixel_line_node *)clp_line->get_clp_next(), ++ii) {
-    assert(ii < this->get_i32_count());
-
-    /* カウントダウン表示中 */
-    if (this->_i_cv_sw) {
-      pri_funct_cv_run(ii);
-    }
-
-    clp_line->smooth_expand(this->_i32_smooth_retry);
-  }
-  /* カウントダウン表示終了 */
-  if (this->_i_cv_sw) {
-    pri_funct_cv_end();
-  }
-
-  if (this->_i_pv_sw) {
-    pri_funct_msg_ttvr(" smooth %d lines", ii);
+void pixel_line_root::exec07_smooth_body() {
+  for (auto & clp_line : m_nodes) {
+    clp_line.smooth_body(_i32_smooth_retry);
   }
 }
 
-#include <assert.h> /* assert() */
-
-#include "igs_line_blur.h"  // "pri.h" "pixel_line_root.h"
+void pixel_line_root::exec10_smooth_expand() {
+  for (auto & clp_line : m_nodes) {
+    clp_line.smooth_expand(_i32_smooth_retry);
+  }
+}
 
 void pixel_line_root::exec08_expand_lines(
     std::list<pixel_point_node> &pixel_point_list) {
-  pixel_line_node *clp_line;
-  int32_t ii;
-
-  if (this->_i_mv_sw) {
-    pri_funct_msg_ttvr("pixel_line_root::exec08_expand_lines()");
-  }
-
-  for (clp_line = (pixel_line_node *)this->get_clp_first(), ii = 0;
-       NULL != clp_line;
-       clp_line = (pixel_line_node *)clp_line->get_clp_next(), ++ii) {
-    assert(ii < this->get_i32_count());
-
-    clp_line->expand_line(pixel_point_list);
-  }
-
-  if (this->_i_pv_sw) {
-    pri_funct_msg_ttvr(" expand %d lines", ii);
+  for (auto & clp_line : m_nodes) {
+    clp_line.expand_line(pixel_point_list);
   }
 }
-
-#include <assert.h> /* assert() */
-
-#include "igs_line_blur.h"  // "pri.h" "pixel_line_root.h"
 
 double pixel_line_root::_same_way_expand_radian_diff(
     pixel_point_node *clp_point_middle, pixel_point_node *clp_point_term,
@@ -2964,8 +2770,7 @@ double pixel_line_root::_same_way_expand_radian_diff(
   assert(clp_point_term_expand != clp_point_middle);
 
   /* 自身以外の全端点と比較 */
-  clp_select->exec((pixel_line_node *)this->get_clp_first(),
-                   this->get_i32_count(), clp_point_middle, clp_point_term,
+  clp_select->exec(m_nodes, clp_point_middle, clp_point_term,
                    clp_point_term_expand);
 
   if (clp_select->get_i32_count() <= 0) {
@@ -3000,13 +2805,10 @@ double pixel_line_root::_same_way_expand_radian_diff(
       d_xv, d_yv);
 }
 
-/********************************************************************/
-
 void pixel_line_root::exec09_same_way_expand(
     pixel_select_same_way_root *clp_select) {
   pixel_point_node *clp_point_start, *clp_point_tmp;
   pixel_line_node *clp_line;
-  int32_t ii;
   double d_radian, d_x, d_y;
   int32_t i32_count_one, i32_count_another;
 
@@ -3015,35 +2817,22 @@ void pixel_line_root::exec09_same_way_expand(
     return;
   }
 
-  if (this->_i_mv_sw) {
-    pri_funct_msg_ttvr("pixel_line_root::exec09_same_way_expand()");
-  }
-  if (this->_i_pv_sw) {
-    pri_funct_msg_ttvr(" select max length %g count %d",
-                       clp_select->get_d_length_max(),
-                       clp_select->get_i32_count_max());
-  }
-
   /* 各端点(one,anohter)ごと
      同方向線分となる端点の近点を探し、
      それらの合成ベクトルによる角度との差を一時保管する */
-  for (clp_line = (pixel_line_node *)this->get_clp_first(), ii = 0;
-       NULL != clp_line;
-       clp_line = (pixel_line_node *)clp_line->get_clp_next(), ++ii) {
-    assert(ii < this->get_i32_count());
-
-    if (NULL != clp_line->get_clp_link_one_expand()) {
+  for (auto & clp_line : m_nodes) {
+    if (clp_line.get_clp_link_one_expand() != nullptr) {
       d_radian = this->_same_way_expand_radian_diff(
-          clp_line->get_clp_link_middle(), clp_line->get_clp_link_one(),
-          clp_line->get_clp_link_one_expand(), clp_select);
-      clp_line->set_d_same_way_radian_one(d_radian);
+          clp_line.get_clp_link_middle(), clp_line.get_clp_link_one(),
+          clp_line.get_clp_link_one_expand(), clp_select);
+      clp_line.set_d_same_way_radian_one(d_radian);
     }
 
-    if (NULL != clp_line->get_clp_link_another_expand()) {
+    if (clp_line.get_clp_link_another_expand() != nullptr) {
       d_radian = this->_same_way_expand_radian_diff(
-          clp_line->get_clp_link_middle(), clp_line->get_clp_link_another(),
-          clp_line->get_clp_link_another_expand(), clp_select);
-      clp_line->set_d_same_way_radian_another(d_radian);
+          clp_line.get_clp_link_middle(), clp_line.get_clp_link_another(),
+          clp_line.get_clp_link_another_expand(), clp_select);
+      clp_line.set_d_same_way_radian_another(d_radian);
     }
   }
 
@@ -3051,34 +2840,30 @@ void pixel_line_root::exec09_same_way_expand(
      伸ばした線分を、一時保管した角度に曲げる */
   i32_count_one     = 0;
   i32_count_another = 0;
-  for (clp_line = (pixel_line_node *)this->get_clp_first(), ii = 0;
-       NULL != clp_line;
-       clp_line = (pixel_line_node *)clp_line->get_clp_next(), ++ii) {
-    assert(ii < this->get_i32_count());
-
-    if (0.0 < clp_line->get_d_same_way_radian_one()) {
-      clp_point_start = clp_line->get_clp_link_one();
+  for (auto & clp_line : m_nodes) {
+    if (0.0 < clp_line.get_d_same_way_radian_one()) {
+      clp_point_start = clp_line.get_clp_link_one();
       clp_point_tmp   = clp_point_start->get_clp_previous_point();
       for (; NULL != clp_point_tmp;
            clp_point_tmp = clp_point_tmp->get_clp_previous_point()) {
         this->_cl_cal_geom.get_dd_rotate_by_pos(
             clp_point_tmp->get_d_xp_tgt(), clp_point_tmp->get_d_yp_tgt(),
             clp_point_start->get_d_xp_tgt(), clp_point_start->get_d_yp_tgt(),
-            clp_line->get_d_same_way_radian_one(), &d_x, &d_y);
+            clp_line.get_d_same_way_radian_one(), &d_x, &d_y);
         clp_point_tmp->set_d_xp_tgt(d_x);
         clp_point_tmp->set_d_yp_tgt(d_y);
       }
       ++i32_count_one;
     }
-    if (0.0 < clp_line->get_d_same_way_radian_another()) {
-      clp_point_start = clp_line->get_clp_link_another();
+    if (0.0 < clp_line.get_d_same_way_radian_another()) {
+      clp_point_start = clp_line.get_clp_link_another();
       clp_point_tmp   = clp_point_start->get_clp_next_point();
       for (; NULL != clp_point_tmp;
            clp_point_tmp = clp_point_tmp->get_clp_next_point()) {
         this->_cl_cal_geom.get_dd_rotate_by_pos(
             clp_point_tmp->get_d_xp_tgt(), clp_point_tmp->get_d_yp_tgt(),
             clp_point_start->get_d_xp_tgt(), clp_point_start->get_d_yp_tgt(),
-            clp_line->get_d_same_way_radian_another(), &d_x, &d_y);
+            clp_line.get_d_same_way_radian_another(), &d_x, &d_y);
         clp_point_tmp->set_d_xp_tgt(d_x);
         clp_point_tmp->set_d_yp_tgt(d_y);
       }
@@ -3087,97 +2872,32 @@ void pixel_line_root::exec09_same_way_expand(
   }
 
   clp_select->mem_free();
-
-  if (this->_i_pv_sw) {
-    pri_funct_msg_ttvr(" same way expand  one %d another %d", i32_count_one,
-                       i32_count_another);
-  }
 }
 
-#include <assert.h> /* assert() */
+void pixel_line_root::exec11_set_bbox() {
+  int32_t ii = 0;
+  for (auto & clp_line : m_nodes) {
 
-#include "igs_line_blur.h"  // "pri.h" "pixel_line_root.h"
-
-void pixel_line_root::exec11_set_bbox(void) {
-  pixel_line_node *clp_line;
-  int32_t ii;
-
-  if (this->_i_mv_sw) {
-    pri_funct_msg_ttvr("pixel_line_root::exec11_set_bbox()");
-  }
-
-  for (clp_line = (pixel_line_node *)this->get_clp_first(), ii = 0;
-       NULL != clp_line;
-       clp_line = (pixel_line_node *)clp_line->get_clp_next(), ++ii) {
-    assert(ii < this->get_i32_count());
-
-    clp_line->set_bbox();
+    clp_line.set_bbox();
 
     if (0 == ii) {
-      this->_d_bbox_x_min = clp_line->get_d_bbox_x_min();
-      this->_d_bbox_x_max = clp_line->get_d_bbox_x_max();
-      this->_d_bbox_y_min = clp_line->get_d_bbox_y_min();
-      this->_d_bbox_y_max = clp_line->get_d_bbox_y_max();
+      this->_d_bbox_x_min = clp_line.get_d_bbox_x_min();
+      this->_d_bbox_x_max = clp_line.get_d_bbox_x_max();
+      this->_d_bbox_y_min = clp_line.get_d_bbox_y_min();
+      this->_d_bbox_y_max = clp_line.get_d_bbox_y_max();
     } else {
-      if (clp_line->get_d_bbox_x_min() < this->_d_bbox_x_min) {
-        this->_d_bbox_x_min = clp_line->get_d_bbox_x_min();
-      } else if (this->_d_bbox_x_max < clp_line->get_d_bbox_x_max()) {
-        this->_d_bbox_x_max = clp_line->get_d_bbox_x_max();
+      if (clp_line.get_d_bbox_x_min() < this->_d_bbox_x_min) {
+        this->_d_bbox_x_min = clp_line.get_d_bbox_x_min();
+      } else if (this->_d_bbox_x_max < clp_line.get_d_bbox_x_max()) {
+        this->_d_bbox_x_max = clp_line.get_d_bbox_x_max();
       }
-      if (clp_line->get_d_bbox_y_min() < this->_d_bbox_y_min) {
-        this->_d_bbox_y_min = clp_line->get_d_bbox_y_min();
-      } else if (this->_d_bbox_y_max < clp_line->get_d_bbox_y_max()) {
-        this->_d_bbox_y_max = clp_line->get_d_bbox_y_max();
+      if (clp_line.get_d_bbox_y_min() < this->_d_bbox_y_min) {
+        this->_d_bbox_y_min = clp_line.get_d_bbox_y_min();
+      } else if (this->_d_bbox_y_max < clp_line.get_d_bbox_y_max()) {
+        this->_d_bbox_y_max = clp_line.get_d_bbox_y_max();
       }
     }
-  }
-
-  if (this->_i_pv_sw) {
-    pri_funct_msg_ttvr(" set bbox %d lines : min x %g y %g : max x %g y %g", ii,
-                       this->_d_bbox_x_min, this->_d_bbox_y_min,
-                       this->_d_bbox_x_max, this->_d_bbox_y_max);
-  }
-}
-#include <assert.h> /* assert() */
-
-#include "igs_line_blur.h"  // "pri.h" "pixel_line_root.h"
-
-pixel_line_node *pixel_line_root::_append(pixel_line_node *clp_previous) {
-  pixel_line_node *clp_new;
-
-  clp_new = new pixel_line_node;
-  if (NULL == clp_new) {
-    pri_funct_err_bttvr("Error : 'new pixel_line_node' returns NULL.");
-    return NULL;
-  }
-  clp_new = (pixel_line_node *)this->push(clp_previous, clp_new);
-
-  return clp_new;
-}
-
-void pixel_line_root::_remove(pixel_line_node *clp_old) {
-  assert(NULL != clp_old); /* あってはならないプログラムバグのチェック */
-  this->pop(clp_old);
-  delete clp_old;
-}
-
-void pixel_line_root::mem_free(void) {
-  pixel_line_node *clp_;
-  int32_t ii;
-
-  if (NULL != this->get_clp_last()) {
-    if (this->_i_mv_sw) {
-      pri_funct_msg_ttvr("pixel_line_root::mem_free()");
-    }
-
-    ii = 0;
-    while (NULL != (clp_ = (pixel_line_node *)this->get_clp_last())) {
-      this->_remove(clp_);
-      ++ii;
-    }
-    if (this->_i_pv_sw) {
-      pri_funct_msg_ttvr("free line node %d", ii);
-    }
+    ++ii;
   }
 }
 
@@ -3369,7 +3089,7 @@ void pixel_select_curve_blur_root::exec(double d_xp, double d_yp,
                                         int32_t i32_blur_count,
                                         double d_effect_area_radius) {
   pixel_line_node *clp_line;
-  int32_t ii, i32_pos;
+  int32_t i32_pos;
   bool i_reverse_sw;
   pixel_point_node *clp_near_point, *clp_start_point;
   double d_length, d_radius, d_radius_1st;
@@ -3393,30 +3113,25 @@ void pixel_select_curve_blur_root::exec(double d_xp, double d_yp,
   d_radius_1st = NOT_USE_PARAMETER_VAL;
 
   /* 全ライン */
-  ii = 0;
-  for (clp_line = (pixel_line_node *)clp_pixel_line_root->get_clp_first();
-       NULL != clp_line;
-       clp_line = (pixel_line_node *)clp_line->get_clp_next(), ++ii) {
-    /* 無限ループ? */
-    assert(ii < clp_pixel_line_root->get_i32_count());
+  for (auto & clp_line : clp_pixel_line_root->getNodes()) {
     /* 選択してない? */
-    assert(NULL != clp_line->get_clp_link_middle());
-    assert(NULL != clp_line->get_clp_link_one());
-    assert(NULL != clp_line->get_clp_link_another());
+    assert(clp_line.get_clp_link_middle() != nullptr);
+    assert(clp_line.get_clp_link_one() != nullptr);
+    assert(clp_line.get_clp_link_another() != nullptr);
     /* 線が短すぎ? */
-    assert(clp_line->get_clp_link_middle() != clp_line->get_clp_link_one());
-    assert(clp_line->get_clp_link_middle() != clp_line->get_clp_link_another());
+    assert(clp_line.get_clp_link_middle() != clp_line.get_clp_link_one());
+    assert(clp_line.get_clp_link_middle() != clp_line.get_clp_link_another());
 
     /* 各ラインの bbox を見る */
-    if ((d_xp < (clp_line->get_d_bbox_x_min() - d_effect_area_radius)) ||
-        ((clp_line->get_d_bbox_x_max() + d_effect_area_radius) < d_xp) ||
-        (d_yp < (clp_line->get_d_bbox_y_min() - d_effect_area_radius)) ||
-        ((clp_line->get_d_bbox_y_max() + d_effect_area_radius) < d_yp)) {
+    if ((d_xp < (clp_line.get_d_bbox_x_min() - d_effect_area_radius)) ||
+        ((clp_line.get_d_bbox_x_max() + d_effect_area_radius) < d_xp) ||
+        (d_yp < (clp_line.get_d_bbox_y_min() - d_effect_area_radius)) ||
+        ((clp_line.get_d_bbox_y_max() + d_effect_area_radius) < d_yp)) {
       continue;
     }
 
     /* ラインとの近点を探す */
-    clp_line->get_near_point(d_xp, d_yp, &i32_pos, &clp_near_point, &d_length);
+    clp_line.get_near_point(d_xp, d_yp, &i32_pos, &clp_near_point, &d_length);
 
     /* 距離が遠すぎる */
     if (this->_d_length_max < d_length) {
@@ -3427,7 +3142,7 @@ void pixel_select_curve_blur_root::exec(double d_xp, double d_yp,
             画面の端の場合、問題あり!!!!!!
      */
     if ((i32_pos < (i32_blur_count / 2)) ||
-        ((clp_line->get_i32_point_count() - 1 - i32_pos) <
+        ((clp_line.get_i32_point_count() - 1 - i32_pos) <
          (i32_blur_count / 2))) {
       continue;
     }
@@ -3437,7 +3152,7 @@ void pixel_select_curve_blur_root::exec(double d_xp, double d_yp,
 
     /* 対応する部分のスタート点 */
     clp_start_point =
-        clp_line->get_prev_point_by_count(clp_near_point, i32_blur_count / 2);
+        clp_line.get_prev_point_by_count(clp_near_point, i32_blur_count / 2);
 
     /* 近点からスタート点へのベクトル角度 */
     d_radius = this->_cl_cal_geom.get_d_radian(
@@ -3458,14 +3173,14 @@ void pixel_select_curve_blur_root::exec(double d_xp, double d_yp,
       d_radius -= d_radius_1st;
       /* 反対方向なら、逆方向スイッチをonし、スタート点を最設定 */
       if ((M_PI / 2.0 < d_radius) && (d_radius < M_PI * 3.0 / 2.0)) {
-        clp_start_point = clp_line->get_next_point_by_count(clp_near_point,
+        clp_start_point = clp_line.get_next_point_by_count(clp_near_point,
                                                             i32_blur_count / 2);
         i_reverse_sw = true;
       }
     }
 
     /* 選択リストに追加(近い順に) */
-    cl_select.clp_line           = clp_line;
+    cl_select.clp_line           = &clp_line;
     cl_select.clp_start_point    = clp_start_point;
     cl_select.clp_near_point     = clp_near_point;
     cl_select.i32_near_point_pos = i32_pos;
@@ -5191,20 +4906,6 @@ void igs_line_blur_brush_smudge_all_(
     ,
     const int channels, const int bits, void *out  // no_margin
     ) {
-  /* 処理ごとのメッセージ */
-  if (mv_sw) {
-    std::cout << "igs::line_expand::_brush_smudge_all()" << std::endl;
-  }
-
-  if (pv_sw) {
-    std::cout << " smudge ratio " << cl_brush_smudge_circle.get_d_ratio()
-              << std::endl
-              << " smudge brush size by pixel "
-              << cl_brush_smudge_circle.get_i32_size_by_pixel() << std::endl
-              << " smudge subpixel divide "
-              << cl_brush_smudge_circle.get_i32_subpixel_divide() << std::endl;
-  }
-
   /* ブラシメモリの確保 */
   if (OK != cl_brush_smudge_circle.mem_alloc()) {
     throw std::domain_error(
@@ -5214,32 +4915,17 @@ void igs_line_blur_brush_smudge_all_(
   /* 画像をinからoutへコピーしておく */
   (void)memcpy(out, in, height * width * channels * ((16 == bits) ? 2 : 1));
 
-  /* カウントダウン表示始め */
-  if (cv_sw) {
-    pri_funct_cv_start(cl_pixel_line_root.get_i32_count());
-  }
-
   /* 汚れ線描画 */
-  pixel_line_node *clp_line =
-      (pixel_line_node *)cl_pixel_line_root.get_clp_first();
-  for (int ii   = 0; NULL != clp_line;
-       clp_line = (pixel_line_node *)clp_line->get_clp_next(), ++ii) {
-    if (cl_pixel_line_root.get_i32_count() <= ii) {
+  int i = 0;
+  for (auto & clp_line : cl_pixel_line_root.getNodes()) {
+    if (cl_pixel_line_root.getNodes().size() <= i) {
       throw std::domain_error(
           "Error : over cl_pixel_line_root.get_i32_count()");
     }
 
-    /* カウントダウン表示中 */
-    if (cv_sw) {
-      pri_funct_cv_run(ii);
-    }
-
     igs_line_blur_brush_smudge_line_(cl_brush_smudge_circle, in, height, width,
-                                     channels, bits, out, clp_line);
-  }
-  /* カウントダウン表示終了 */
-  if (cv_sw) {
-    pri_funct_cv_end();
+                                     channels, bits, out, &clp_line);
+    ++i;
   }
 }
 
@@ -5385,13 +5071,10 @@ void igs::line_blur::convert(
 
   /* --- 標準出力への動作表示スイッチ --- */
   cl_thinnest_ui16_image.set_i_mv_sw(mv_sw);
-  cl_pixel_line_root.set_i_mv_sw(mv_sw);
 
   cl_thinnest_ui16_image.set_i_pv_sw(pv_sw);
-  cl_pixel_line_root.set_i_pv_sw(pv_sw);
 
   cl_thinnest_ui16_image.set_i_cv_sw(cv_sw);
-  cl_pixel_line_root.set_i_cv_sw(cv_sw);
 
   /* --- 処理ごとのメッセージ --- */
   if (mv_sw) {
@@ -5529,9 +5212,6 @@ void igs::line_blur::convert(
 
   /* 同方向線曲げ方向参照リスト開放 */
   cl_pixel_select_same_way_root.mem_free();
-
-  /* ラインリストメモリ開放 */
-  cl_pixel_line_root.mem_free();
 }
 
 //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
