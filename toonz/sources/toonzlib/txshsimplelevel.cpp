@@ -2237,13 +2237,14 @@ TFilePath TXshSimpleLevel::getExistingHookFile(
       QRegExp(".*\\.\\.?xml$")        // whatever.(.)xml
   };
 
-  struct locals {
-    static inline int getPattern(const QString &fp) {
-      for (int p = 0; p != pCount; ++p)
-        if (pattern[p].exactMatch(fp)) return p;
-      return -1;
+  auto const getPattern = [](const QString &fp) -> int {
+    for (int p = 0; p < pCount; ++p) {
+      if (pattern[p].exactMatch(fp)) {
+        return p;
+      }
     }
-  };  // locals
+    return -1;
+  };
 
   const QStringList &hookFiles = getHookFiles(decodedLevelPath);
   if (hookFiles.empty()) return TFilePath();
@@ -2254,7 +2255,7 @@ TFilePath TXshSimpleLevel::getExistingHookFile(
 
   int f, fCount = hookFiles.size();
   for (f = 0; f != fCount; ++f) {
-    fPattern = locals::getPattern(hookFiles[f]);
+    fPattern = getPattern(hookFiles[f]);
     if (fPattern < p) p = fPattern, h = f;
   }
 
