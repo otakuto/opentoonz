@@ -352,16 +352,15 @@ void StudioPaletteTreeViewer::onRefreshTreeShortcutTriggered() {
  */
 
 void StudioPaletteTreeViewer::refreshItem(QTreeWidgetItem *item) {
-  struct Locals {
-    bool isUpper(const TFilePath &fp1, const TFilePath &fp2) {
-      bool fp1IsFolder = StudioPalette::instance()->isFolder(fp1);
-      bool fp2IsFolder = StudioPalette::instance()->isFolder(fp2);
-      if (fp1IsFolder == fp2IsFolder)
-        return fp1 < fp2;
-      else
-        return fp1IsFolder;
+  auto const isUpper = [](const TFilePath &fp1, const TFilePath &fp2) {
+    bool fp1IsFolder = StudioPalette::instance()->isFolder(fp1);
+    bool fp2IsFolder = StudioPalette::instance()->isFolder(fp2);
+    if (fp1IsFolder == fp2IsFolder) {
+      return fp1 < fp2;
+    } else {
+      return fp1IsFolder;
     }
-  } locals;
+  };
 
   TFilePath folderPath = getItemPath(item);
   assert(folderPath != TFilePath());
@@ -388,13 +387,13 @@ void StudioPaletteTreeViewer::refreshItem(QTreeWidgetItem *item) {
     if (path == currentItemPath) {
       itemIndex++;
       pathIndex++;
-    } else if ((!path.isEmpty() && locals.isUpper(path, currentItemPath)) ||
+    } else if ((!path.isEmpty() && isUpper(path, currentItemPath)) ||
                currentItemPath.isEmpty()) {
       currentItem = createItem(path);
       item->insertChild(pathIndex, currentItem);
       pathIndex++;
     } else {
-      assert(locals.isUpper(currentItemPath, path) || path.isEmpty());
+      assert(isUpper(currentItemPath, path) || path.isEmpty());
       assert(currentItem);
       item->removeChild(currentItem);
       itemIndex++;
