@@ -124,18 +124,12 @@ void FxDag::removeFromXsheet(TFx *fx) { m_terminalFxs->removeFx(fx); }
 
 //-------------------------------------------------------------------
 
-namespace {
-struct NotAlnum {
-  bool operator()(wint_t val) const { return !iswalnum(val); }
-};
-}  // namespace
-
 void FxDag::assignUniqueId(TFx *fx) {
-  struct locals {
-    static void eraseNonAlnums(std::wstring &str) {
-      str.erase(std::remove_if(str.begin(), str.end(), NotAlnum()), str.end());
-    }
-  };  // locals
+  auto const eraseNonAlnums = [](std::wstring &str) {
+    str.erase(std::remove_if(str.begin(), str.end(),
+                             [](wint_t val) { return !iswalnum(val); }),
+              str.end());
+  };
 
   std::string type = fx->getFxType();
   int count        = ++m_typeTable[type];
@@ -143,10 +137,10 @@ void FxDag::assignUniqueId(TFx *fx) {
   fx->getAttributes()->setId(count);
 
   std::wstring name = TStringTable::translate(type);
-  locals::eraseNonAlnums(
-      name);  // fx ids are used as XML tag names - thus, we'll restrict
-              // the char set to alnums. Specifically, '/' must be ruled out.
-              // E.g.: "Erode/Dilate 1" must become "ErodeDilate1"
+  // fx ids are used as XML tag names - thus, we'll restrict
+  // the char set to alnums. Specifically, '/' must be ruled out.
+  // E.g.: "Erode/Dilate 1" must become "ErodeDilate1"
+  eraseNonAlnums(name);
   name = name + QString::number(count).rightJustified(2, '0').toStdWString();
 
   if (fx->getName() == L"") fx->setName(name);
