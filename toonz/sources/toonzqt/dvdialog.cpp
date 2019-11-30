@@ -1398,13 +1398,6 @@ int DVGui::eraseStylesInDemand(TPalette *palette,
 
 int DVGui::eraseStylesInDemand(TPalette *palette, std::vector<int> styleIds,
                                const TXsheetHandle *xsheetHandle) {
-  struct locals {
-    static bool isRasterLevel(const TXshSimpleLevel *level) {
-      return level->getType() == TZP_XSHLEVEL ||
-             level->getType() == OVL_XSHLEVEL;
-    }
-  };  // locals
-
   // Search xsheet levels attached to the palette
   std::set<TXshSimpleLevel *> levels;
   int row, column;
@@ -1433,7 +1426,11 @@ int DVGui::eraseStylesInDemand(TPalette *palette, std::vector<int> styleIds,
 
   // Inform the user that case 2 will not produce an undo if a raster-based
   // level is detected
-  if (boost::algorithm::any_of(levels, locals::isRasterLevel)) {
+  auto const isRasterLevel = [](const TXshSimpleLevel *level) -> bool {
+    return level->getType() == TZP_XSHLEVEL || level->getType() == OVL_XSHLEVEL;
+  };
+
+  if (boost::algorithm::any_of(levels, isRasterLevel)) {
     std::vector<QString> buttons(2);
     buttons[0] = QObject::tr("Ok"), buttons[1] = QObject::tr("Cancel");
 
