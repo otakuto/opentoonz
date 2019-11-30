@@ -274,17 +274,16 @@ struct LinearFaceColorFunction final : public LinearColorFunction,
 
 void tglDrawSO(const TMeshImage &image, double minColor[4], double maxColor[4],
                const PlasticDeformerDataGroup *group, bool deformedDomain) {
-  struct locals {
-    static double returnSO(const LinearColorFunction *cf, int m, int f) {
-      return cf->m_group->m_datas[m].m_so[f];
-    }
+  auto const returnSO = [](const LinearColorFunction *cf, int m,
+                           int f) -> double {
+    return cf->m_group->m_datas[m].m_so[f];
   };
 
   double min = 0.0, max = 0.0;
   if (group) min = group->m_soMin, max = group->m_soMax;
 
   LinearFaceColorFunction colorFunction(image, group, min, max, minColor,
-                                        maxColor, locals::returnSO);
+                                        maxColor, returnSO);
 
   if (group && deformedDomain)
     tglDrawFaces(image, group, colorFunction);
@@ -297,14 +296,13 @@ void tglDrawSO(const TMeshImage &image, double minColor[4], double maxColor[4],
 void tglDrawRigidity(const TMeshImage &image, double minColor[4],
                      double maxColor[4], const PlasticDeformerDataGroup *group,
                      bool deformedDomain) {
-  struct locals {
-    static double returnRigidity(const LinearColorFunction *cf, int m, int v) {
-      return cf->m_meshImg.meshes()[m]->vertex(v).P().rigidity;
-    }
+  auto const returnRigidity = [](const LinearColorFunction *cf, int m,
+                                 int v) -> double {
+    return cf->m_meshImg.meshes()[m]->vertex(v).P().rigidity;
   };
 
   LinearVertexColorFunction colorFunction(image, group, 1.0, 1e4, minColor,
-                                          maxColor, locals::returnRigidity);
+                                          maxColor, returnRigidity);
 
   if (group && deformedDomain)
     tglDrawFaces(image, group, colorFunction);
