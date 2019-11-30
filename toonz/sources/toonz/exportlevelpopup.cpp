@@ -685,20 +685,18 @@ void ExportLevelPopup::initFolder() {
 
 ExportLevelPopup::ExportOptions::ExportOptions(QWidget *parent)
     : QFrame(parent) {
-  struct locals {
-    static inline QGridLayout *newGridLayout() {
-      QGridLayout *layout = new QGridLayout;
+  auto const newGridLayout = []() -> QGridLayout * {
+    QGridLayout *layout = new QGridLayout;
 
-      layout->setColumnMinimumWidth(0, 50);
-      layout->setColumnStretch(3, 1);
+    layout->setColumnMinimumWidth(0, 50);
+    layout->setColumnStretch(3, 1);
 
-      return layout;
-    }
+    return layout;
   };
 
   static const double dmax = (std::numeric_limits<double>::max)(), dmin = -dmax;
 
-  QGridLayout *layout = locals::newGridLayout();
+  QGridLayout *layout = newGridLayout();
   setLayout(layout);
 
   {
@@ -720,7 +718,7 @@ ExportLevelPopup::ExportOptions::ExportOptions(QWidget *parent)
     m_pliOptions = new QWidget;
     layout->addWidget(m_pliOptions, row++, 0, 1, 4);
     {
-      QGridLayout *layout = locals::newGridLayout();
+      QGridLayout *layout = newGridLayout();
       m_pliOptions->setLayout(layout);
 
       layout->setMargin(0);
