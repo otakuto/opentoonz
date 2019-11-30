@@ -442,19 +442,17 @@ QString& LutManager::getMonitorName() const {
 //-----------------------------------------------------------------------------
 
 bool LutManager::loadLutFile(const QString& fp) {
-  struct locals {
-    // skip empty or comment lines
-    static inline QString readDataLine(QTextStream& stream) {
-      while (1) {
-        if (stream.atEnd()) return QString();
-        QString ret = stream.readLine();
-        if (!ret.isEmpty() && ret[0] != QChar('#')) return ret;
-      }
+  // skip empty or comment lines
+  auto const readDataLine = [](QTextStream & stream) -> QString {
+    while (1) {
+      if (stream.atEnd()) return QString();
+      QString ret = stream.readLine();
+      if (!ret.isEmpty() && ret[0] != QChar('#')) return ret;
     }
+  };
 
-    static inline int lutCoords(int r, int g, int b, int meshSize) {
-      return b * meshSize * meshSize * 3 + g * meshSize * 3 + r * 3;
-    }
+  auto const lutCoords = [](int r, int g, int b, int meshSize) -> int {
+    return b * meshSize * meshSize * 3 + g * meshSize * 3 + r * 3;
   };
 
   QFile file(fp);
@@ -467,7 +465,7 @@ bool LutManager::loadLutFile(const QString& fp) {
   //---- read the 3DLUT files
 
   // The first line shoud start from "3DMESH" keyword (case sensitive)
-  line = locals::readDataLine(stream);
+  line = readDataLine(stream);
   if (line != "3DMESH") {
     file.close();
     return execWarning(
@@ -477,7 +475,7 @@ bool LutManager::loadLutFile(const QString& fp) {
 
   // The second line is "Mesh [Input bit depth] [Output bit depth]"
   // "Mesh" is a keyword (case sensitive) 
-  line             = locals::readDataLine(stream);
+  line             = readDataLine(stream);
   QStringList list = line.split(" ");
   if (list.size() != 3 || list.at(0) != "Mesh") {
     file.close();
@@ -494,7 +492,7 @@ bool LutManager::loadLutFile(const QString& fp) {
   float maxValue = pow(2.0, outputBitDepth) - 1.0f;
 
   // The third line is corrections of values at each LUT grid
-  line = locals::readDataLine(stream);
+  line = readDataLine(stream);
   list = line.split(" ", QString::SkipEmptyParts);
   if (list.size() != m_lut.meshSize) {
     file.close();
@@ -509,14 +507,14 @@ bool LutManager::loadLutFile(const QString& fp) {
     {
       for (int i = 0; i < m_lut.meshSize; ++i)  // b
       {
-        line = locals::readDataLine(stream);
+        line = readDataLine(stream);
         list = line.split(" ", QString::SkipEmptyParts);
         if (list.size() != 3) {
           file.close();
           delete[] m_lut.data;
           return execWarning(QObject::tr("Failed to Load 3DLUT File."));
         }
-        float* lut = m_lut.data + locals::lutCoords(k, j, i, m_lut.meshSize);
+        float* lut = m_lut.data + lutCoords(k, j, i, m_lut.meshSize);
         *lut       = (float)(list.at(0).toInt()) / maxValue;
         lut++;
         *lut = (float)(list.at(1).toInt()) / maxValue;
@@ -533,13 +531,11 @@ bool LutManager::loadLutFile(const QString& fp) {
 
 // input : 0-1
 void LutManager::convert(float& r, float& g, float& b) {
-  struct locals {
-    static inline float lerp(float val1, float val2, float ratio) {
-      return val1 * (1.0f - ratio) + val2 * ratio;
-    }
-    static inline int getCoord(int r, int g, int b, int meshSize) {
-      return b * meshSize * meshSize * 3 + g * meshSize * 3 + r * 3;
-    }
+  auto const lerp = [](float val1, float val2, float ratio) -> float {
+    return val1 * (1.0f - ratio) + val2 * ratio;
+  };
+  auto const getCoord = [](int r, int g, int b, int meshSize) -> int {
+    return b * meshSize * meshSize * 3 + g * meshSize * 3 + r * 3;
   };
 
   if (!m_isValid) return;
@@ -561,26 +557,25 @@ void LutManager::convert(float& r, float& g, float& b) {
   for (int rr = 0; rr < 2; rr++)
     for (int gg = 0; gg < 2; gg++)
       for (int bb = 0; bb < 2; bb++) {
-        float* val = &m_lut.data[locals::getCoord(
-            index[0][rr], index[1][gg], index[2][bb], m_lut.meshSize)];
+        float* val = &m_lut.data[getCoord(index[0][rr], index[1][gg],
+                                          index[2][bb], m_lut.meshSize)];
         for (int chan = 0; chan < 3; chan++, val++)
           vertex_color[rr][gg][bb][chan] = *val;
       }
   float result[3];
 
   for (int chan = 0; chan < 3; chan++) {
-    result[chan] = locals::lerp(
-        locals::lerp(locals::lerp(vertex_color[0][0][0][chan],
+    result[chan] = lerp(lerp(lerp(vertex_color[0][0][0][chan],
                                   vertex_color[0][0][1][chan], ratio[2]),
-                     locals::lerp(vertex_color[0][1][0][chan],
+                             lerp(vertex_color[0][1][0][chan],
                                   vertex_color[0][1][1][chan], ratio[2]),
-                     ratio[1]),
-        locals::lerp(locals::lerp(vertex_color[1][0][0][chan],
+                             ratio[1]),
+                        lerp(lerp(vertex_color[1][0][0][chan],
                                   vertex_color[1][0][1][chan], ratio[2]),
-                     locals::lerp(vertex_color[1][1][0][chan],
+                             lerp(vertex_color[1][1][0][chan],
                                   vertex_color[1][1][1][chan], ratio[2]),
-                     ratio[1]),
-        ratio[0]);
+                             ratio[1]),
+                        ratio[0]);
   }
 
   r = result[0];
