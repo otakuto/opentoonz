@@ -373,14 +373,8 @@ bool isResource(const QUrl &url) { return isResource(url.toLocalFile()); }
 //-----------------------------------------------------------------------------
 
 bool isResourceOrFolder(const QUrl &url) {
-  struct locals {
-    static inline bool isDir(const QString &path) {
-      return QFileInfo(path).isDir();
-    }
-  };  // locals
-
   const QString &path = url.toLocalFile();
-  return (isResource(path) || locals::isDir(path));
+  return (isResource(path) || QFileInfo(path).isDir());
 }
 
 //-----------------------------------------------------------------------------
