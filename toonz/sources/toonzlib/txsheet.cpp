@@ -1569,47 +1569,44 @@ TRectD TXsheet::getBBox(int r) const {
 
   //-----------------------------------------------------------------------
 
-  struct locals {
-    static TRectD getBBox(const TXsheet *xsh, int r, int c) {
-      // Discriminate cell content
-      const TXshCell &cell = xsh->getCell(CellPosition(r, c));
-      if (cell.isEmpty()) return voidRect;
+  auto const getBBox = [](const TXsheet *xsh, int r, int c) -> TRectD {
+    // Discriminate cell content
+    const TXshCell &cell = xsh->getCell(CellPosition(r, c));
+    if (cell.isEmpty()) return voidRect;
 
-      if (TXshChildLevel *cl = cell.getChildLevel())
-        return cl->getXsheet()->getBBox(cell.getFrameId().getNumber() - 1);
+    if (TXshChildLevel *cl = cell.getChildLevel())
+      return cl->getXsheet()->getBBox(cell.getFrameId().getNumber() - 1);
 
-      TXshSimpleLevel *sl = cell.getSimpleLevel();
-      if (!sl ||
-          !(sl->getType() &
-            LEVELCOLUMN_XSHLEVEL))  // Avoid other mesh levels - which could
-        return voidRect;            // be deformed too...
+    TXshSimpleLevel *sl = cell.getSimpleLevel();
+    if (!sl ||
+        !(sl->getType() &
+          LEVELCOLUMN_XSHLEVEL))  // Avoid other mesh levels - which could
+      return voidRect;            // be deformed too...
 
-      // Retrieve column affine
-      TAffine columnZaff;
-      {
-        TStageObject *colObj = xsh->getStageObject(TStageObjectId::ColumnId(c));
+    // Retrieve column affine
+    TAffine columnZaff;
+    {
+      TStageObject *colObj = xsh->getStageObject(TStageObjectId::ColumnId(c));
 
-        const TAffine &columnAff = colObj->getPlacement(r);  // ...
-        double columnZ           = colObj->getZ(r);          // ...
-        double columnNoScaleZ    = colObj->getGlobalNoScaleZ();
+      const TAffine &columnAff = colObj->getPlacement(r);  // ...
+      double columnZ           = colObj->getZ(r);          // ...
+      double columnNoScaleZ    = colObj->getGlobalNoScaleZ();
 
-        TStageObjectId cameraId =
-            xsh->getStageObjectTree()->getCurrentCameraId();
-        TStageObject *camera = xsh->getStageObject(cameraId);
+      TStageObjectId cameraId = xsh->getStageObjectTree()->getCurrentCameraId();
+      TStageObject *camera    = xsh->getStageObject(cameraId);
 
-        const TAffine &cameraAff = camera->getPlacement(r);  // ...
-        double cameraZ           = camera->getZ(r);          // ...
+      const TAffine &cameraAff = camera->getPlacement(r);  // ...
+      double cameraZ           = camera->getZ(r);          // ...
 
-        if (!TStageObject::perspective(columnZaff, cameraAff, cameraZ,
-                                       columnAff, columnZ, columnNoScaleZ))
-          return voidRect;
-      }
-
-      const TRectD &bbox = sl->getBBox(cell.getFrameId());
-      if (bbox.getLx() <= 0.0 || bbox.getLy() <= 0.0) return voidRect;
-
-      return columnZaff * TScale(Stage::inch, Stage::inch) * bbox;
+      if (!TStageObject::perspective(columnZaff, cameraAff, cameraZ, columnAff,
+                                     columnZ, columnNoScaleZ))
+        return voidRect;
     }
+
+    const TRectD &bbox = sl->getBBox(cell.getFrameId());
+    if (bbox.getLx() <= 0.0 || bbox.getLy() <= 0.0) return voidRect;
+
+    return columnZaff * TScale(Stage::inch, Stage::inch) * bbox;
   };
 
   //-----------------------------------------------------------------------
@@ -1624,7 +1621,7 @@ TRectD TXsheet::getBBox(int r) const {
     TXshColumn *column = getColumn(c);
     if (column->isEmpty() || !column->isCamstandVisible()) continue;
 
-    const TRectD &colBBox = locals::getBBox(this, r, c);
+    const TRectD &colBBox = getBBox(this, r, c);
 
     // Make the union
     bbox.x0 = std::min(bbox.x0, colBBox.x0);
