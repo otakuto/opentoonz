@@ -621,15 +621,13 @@ void TSolidColorStyle::drawRegion(TFlash &flash, const TRegion *r) const {
 void TSolidColorStyle::drawStroke(const TColorFunction *cf,
                                   TStrokeOutline *outline,
                                   const TStroke *stroke) const {
-  struct locals {
-    static inline void fillOutlinedStroke(const std::vector<TOutlinePoint> &v) {
-      static const int stride = sizeof(TOutlinePoint);
-      glEnableClientState(GL_VERTEX_ARRAY);
-      glVertexPointer(2, GL_DOUBLE, stride, &v[0]);
-      glDrawArrays(QUAD_PRIMITIVE, 0, v.size());
-      glDisableClientState(GL_VERTEX_ARRAY);
-    }
-  };  // locals
+  auto const fillOutlinedStroke = [](const std::vector<TOutlinePoint> &v) {
+    static const int stride = sizeof(TOutlinePoint);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(2, GL_DOUBLE, stride, &v[0]);
+    glDrawArrays(QUAD_PRIMITIVE, 0, v.size());
+    glDisableClientState(GL_VERTEX_ARRAY);
+  };
 
   TPixel32 color = m_color;
   if (cf) color  = (*cf)(color);
@@ -661,7 +659,7 @@ stencil->endMask();
 */
 
       stencil->beginMask(TStencilControl::DRAW_ON_SCREEN_ONLY_ONCE);
-      locals::fillOutlinedStroke(v);
+      fillOutlinedStroke(v);
       stencil->endMask();
       stencil->enableMask(TStencilControl::SHOW_OUTSIDE);
       drawAntialiasedOutline(v, stroke);
@@ -672,7 +670,7 @@ stencil->endMask();
       drawAntialiasedOutline(v, stroke);
 
       // center line
-      locals::fillOutlinedStroke(v);
+      fillOutlinedStroke(v);
     }
 
   } else {
@@ -1076,18 +1074,16 @@ void TRasterImagePatternStrokeStyle::setParamValue(int index, double value) {
 // carico il pattern 'patternName' dalla directory dei custom styles
 //
 void TRasterImagePatternStrokeStyle::loadLevel(const std::string &patternName) {
-  struct locals {
-    static TAffine getAffine(const TDimension &srcSize,
-                             const TDimension &dstSize) {
-      double scx = 1 * dstSize.lx / (double)srcSize.lx;
-      double scy = 1 * dstSize.ly / (double)srcSize.ly;
-      double sc  = std::min(scx, scy);
-      double dx  = (dstSize.lx - srcSize.lx * sc) * 0.5;
-      double dy  = (dstSize.ly - srcSize.ly * sc) * 0.5;
-      return TScale(sc) * TTranslation(0.5 * TPointD(srcSize.lx, srcSize.ly) +
-                                       TPointD(dx, dy));
-    }
-  };  // locals
+  auto const getAffine = [](const TDimension &srcSize,
+                            const TDimension &dstSize) -> TAffine {
+    double scx = 1 * dstSize.lx / (double)srcSize.lx;
+    double scy = 1 * dstSize.ly / (double)srcSize.ly;
+    double sc  = std::min(scx, scy);
+    double dx  = (dstSize.lx - srcSize.lx * sc) * 0.5;
+    double dy  = (dstSize.ly - srcSize.ly * sc) * 0.5;
+    return TScale(sc) * TTranslation(0.5 * TPointD(srcSize.lx, srcSize.ly) +
+                                     TPointD(dx, dy));
+  };
 
   // button l'eventuale livello
   m_level = TLevelP();
@@ -1147,8 +1143,8 @@ void TRasterImagePatternStrokeStyle::loadLevel(const std::string &patternName) {
       TDimension cameraSize(1920, 1080);
 
       // definisco i renderdata
-      const TVectorRenderData rd(locals::getAffine(cameraSize, ras->getSize()),
-                                 TRect(), level->getPalette(), 0, true, true);
+      const TVectorRenderData rd(getAffine(cameraSize, ras->getSize()), TRect(),
+                                 level->getPalette(), 0, true, true);
       // rasterizzo
       glContext->draw(vi, rd);
       ras->copy(glContext->getRaster());
