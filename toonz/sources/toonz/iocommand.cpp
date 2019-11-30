@@ -2247,17 +2247,14 @@ int IoCmd::loadResources(LoadResourceArguments &args, bool updateRecentFile,
                          std::wstring levelName, int step, int inc,
                          int frameCount, bool doesFileActuallyExist,
                          CacheTlvBehavior cachingBehavior) {
-  struct locals {
-    static bool isDir(const LoadResourceArguments::ResourceData &rd) {
-      return QFileInfo(rd.m_path.getQString()).isDir();
-    }
-  };  // locals
+  auto const isDir = [](const LoadResourceArguments::ResourceData &rd) -> bool {
+    return QFileInfo(rd.m_path.getQString()).isDir();
+  };
 
   if (args.resourceDatas.empty()) return 0;
 
   // Redirect to resource folders loading in case they're all dirs
-  if (ba::all_of(args.resourceDatas.begin(), args.resourceDatas.end(),
-                 locals::isDir))
+  if (ba::all_of(args.resourceDatas.begin(), args.resourceDatas.end(), isDir))
     return loadResourceFolders(args, sb);
 
   boost::optional<LoadScopedBlock> sb_;
