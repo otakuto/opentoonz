@@ -485,27 +485,25 @@ class RemoveGlobalKeyframeUndo final : public GlobalKeyframeUndo {
 public:
   RemoveGlobalKeyframeUndo(int frame, const std::vector<int> &columns)
       : GlobalKeyframeUndo(frame) {
-    struct locals {
-      static TStageObject::Keyframe getKeyframe(int r, int c) {
-        TXsheet *xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
+    auto const getKeyframe = [](int r, int c) -> TStageObject::Keyframe {
+      TXsheet *xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
 
-        TStageObjectId objectId =
-            (c == -1) ? TStageObjectId::CameraId(xsh->getCameraColumnIndex())
-                      : TStageObjectId::ColumnId(c);
+      TStageObjectId objectId =
+          (c == -1) ? TStageObjectId::CameraId(xsh->getCameraColumnIndex())
+                    : TStageObjectId::ColumnId(c);
 
-        TStageObject *object = xsh->getStageObject(objectId);
-        assert(object);
+      TStageObject *object = xsh->getStageObject(objectId);
+      assert(object);
 
-        return object->getKeyframe(r);
-      }
-    };  // locals
+      return object->getKeyframe(r);
+    };
 
     tcg::substitute(m_columns,
                     columns | ba::filtered(boost::bind(isKeyframe, frame, _1)));
 
-    tcg::substitute(m_keyframes,
-                    m_columns | ba::transformed(boost::bind(locals::getKeyframe,
-                                                            frame, _1)));
+    tcg::substitute(m_keyframes, m_columns | ba::transformed(std::bind(
+                                                 getKeyframe, frame,
+                                                 std::placeholders::_1)));
   }
 
   void redo() const override {
