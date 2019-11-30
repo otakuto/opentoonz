@@ -79,12 +79,6 @@ void addRegionsInArea(TRegion *reg, std::vector<TFilledRegionInf> &regs,
 
 void getFrameIds(TFrameId from, TFrameId to, const TLevelP &level,
                  std::vector<TFrameId> &frames) {
-  struct locals {
-    static inline TFrameId getFrame(const TLevel::Table::value_type &pair) {
-      return pair.first;
-    }
-  };  // locals
-
   if (from.isEmptyFrame()) from = TFrameId(-(std::numeric_limits<int>::max)());
 
   if (to.isEmptyFrame()) to = TFrameId((std::numeric_limits<int>::max)());
@@ -97,9 +91,12 @@ void getFrameIds(TFrameId from, TFrameId to, const TLevelP &level,
                                 lEnd   = table.upper_bound(to);
 
   assert(frames.empty());
+  auto const getFrame = [](const TLevel::Table::value_type &pair) -> TFrameId {
+    return pair.first;
+  };
   frames.insert(frames.end(),
-                boost::make_transform_iterator(lBegin, locals::getFrame),
-                boost::make_transform_iterator(lEnd, locals::getFrame));
+                boost::make_transform_iterator(lBegin, getFrame),
+                boost::make_transform_iterator(lEnd, getFrame));
 }
 
 }  // namespace
