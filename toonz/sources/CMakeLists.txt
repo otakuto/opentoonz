@@ -4,6 +4,7 @@ set(CMAKE_BUILD_TYPE_INIT Release)
 
 project(OpenToonz)
 
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 #-----------------------------------------------------------------------------
 # Platform Specific Defaults
@@ -144,8 +145,10 @@ if(BUILD_ENV_MSVC)
     endif()
     set(QT_LIB_PATH ${QT_PATH})
     set(CMAKE_PREFIX_PATH "${QT_PATH}/lib/cmake/")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4251")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251")
+    add_definitions("/wd4244")
+    add_definitions("/wd4251")
+    #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4251")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251")
     add_definitions(
         -DVC_EXTRALEAN
         -DNOMINMAX
