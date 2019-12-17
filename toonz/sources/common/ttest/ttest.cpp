@@ -20,13 +20,11 @@
 #include <typeinfo>
 #endif
 
-using namespace std;
-
 namespace {
 
 class TTestTable {
-  typedef map<std::string, TTest *> Table;
-  typedef set<std::string> SkipTable;
+  typedef std::map<std::string, TTest *> Table;
+  typedef std::set<std::string> SkipTable;
   Table m_table;
   SkipTable m_skipTable;
   TTestTable(){};
@@ -41,7 +39,7 @@ public:
   void add(const std::string &str, TTest *test) {
     assert(test);
     if (m_table.find(str) != m_table.end()) {
-      cout << "*error* Duplicate test name '" << str << "'" << endl;
+      std::cout << "*error* Duplicate test name '" << str << "'" << std::endl;
       assert(0);
       return;
     }
@@ -54,40 +52,40 @@ public:
     if (m_skipTable.find(str) != m_skipTable.end()) return;
     Table::iterator it = m_table.find(str);
     if (it == m_table.end())
-      cout << "*error* test '" << str << "' not found" << endl;
+      std::cout << "*error* test '" << str << "' not found" << std::endl;
     else {
-      cout << "\nVerifying " << str << " ... " << endl;
+      std::cout << "\nVerifying " << str << " ... " << std::endl;
       it->second->before();
       it->second->test();
       it->second->after();
-      cout << "OK" << endl;
+      std::cout << "OK" << std::endl;
     }
   }
 
   void runAll() {
     int count = 0;
-    cout << "Running all tests:" << endl;
+    std::cout << "Running all tests:" << std::endl;
     Table::iterator it;
     for (it = m_table.begin(); it != m_table.end(); ++it) {
       run(it->first);
       ++count;
     }
-    cout << count << " test(s) launched" << endl;
+    std::cout << count << " test(s) launched" << std::endl;
   }
 
-  void runType(string type) {
+  void runType(std::string type) {
     int count = 0;
-    cout << "Running " << type << " tests:" << endl;
+    std::cout << "Running " << type << " tests:" << std::endl;
     Table::iterator it;
     for (it = m_table.begin(); it != m_table.end(); ++it) {
-      string str(it->first);
+      std::string str(it->first);
       int i = str.find("_");
       if (i <= 0) continue;
-      string subStr(str, 0, i);
+      std::string subStr(str, 0, i);
       if (subStr == type) run(it->first);
       ++count;
     }
-    cout << count << " test(s) launched" << endl;
+    std::cout << count << " test(s) launched" << std::endl;
   }
 };
 }
@@ -137,7 +135,7 @@ void TTest::verifyInstanceCount() {
 
 //------------------------------------------------------------
 
-void TTest::runTests(string name) {
+void TTest::runTests(std::string name) {
   TFilePath testFile = getTestFile(name);
 
   std::vector<std::string> testType;
@@ -147,15 +145,16 @@ void TTest::runTests(string name) {
   }
   Tifstream is(testFile);
   if (!is) {
-    cout << "*error* test file '" << testFile << "' not found" << endl;
+    std::cout << "*error* test file '" << testFile << "' not found"
+              << std::endl;
     return;
   }
-  cout << "Test file : '" << testFile << "'" << endl;
+  std::cout << "Test file : '" << testFile << "'" << std::endl;
   char buffer[1024];
   while (is.getline(buffer, sizeof(buffer))) {
     std::istringstream ss(buffer);
     while (ss) {
-      string s;
+      std::string s;
       ss >> s;
       if (s == "") continue;
       if (s[0] == '#' || s[0] == '!') break;
@@ -186,7 +185,7 @@ void TTest::runTests(string name) {
 // Utility
 //--------------------------------------------------------------------------------
 
-TFilePath getTestFile(string name) {
+TFilePath getTestFile(std::string name) {
   TFilePath testFile;
 
   TFilePath parentDir = TSystem::getBinDir().getParentDir();
@@ -256,11 +255,11 @@ int areEqual(TRasterP ra, TRasterP rb, double err) {
             !areAlmostEqual(double(gA), double(gB), err) ||
             !areAlmostEqual(double(bA), double(bB), err) ||
             !areAlmostEqual(double(mA), double(mB), err)) {
-          cout << "MISMATCH: x=" << x << " y=" << y << ". Pixel a = ("
-               << (int)rA << "," << (int)gA << "," << (int)bA << "," << (int)mA
-               << ")"
-               << ". Pixel b = (" << (int)rB << "," << (int)gB << "," << (int)bB
-               << "," << (int)mB << ")" << endl;
+          std::cout << "MISMATCH: x=" << x << " y=" << y << ". Pixel a = ("
+                    << (int)rA << "," << (int)gA << "," << (int)bA << ","
+                    << (int)mA << ")"
+                    << ". Pixel b = (" << (int)rB << "," << (int)gB << ","
+                    << (int)bB << "," << (int)mB << ")" << std::endl;
           return false;
         }
       }
@@ -284,11 +283,11 @@ int areEqual(TRasterP ra, TRasterP rb, double err) {
             !areAlmostEqual(double(gA), double(gB), err) ||
             !areAlmostEqual(double(bA), double(bB), err) ||
             !areAlmostEqual(double(mA), double(mB), err)) {
-          cout << "MISMATCH: x=" << x << " y=" << y << ". Pixel a = ("
-               << (int)rA << "," << (int)gA << "," << (int)bA << "," << (int)mA
-               << ")"
-               << ". Pixel b = (" << (int)rB << "," << (int)gB << "," << (int)bB
-               << "," << (int)mB << ")" << endl;
+          std::cout << "MISMATCH: x=" << x << " y=" << y << ". Pixel a = ("
+                    << (int)rA << "," << (int)gA << "," << (int)bA << ","
+                    << (int)mA << ")"
+                    << ". Pixel b = (" << (int)rB << "," << (int)gB << ","
+                    << (int)bB << "," << (int)mB << ")" << std::endl;
           return false;
         }
       }
@@ -302,9 +301,9 @@ int areEqual(TRasterP ra, TRasterP rb, double err) {
         int rA          = apix->value;
         int rB          = bpix->value;
         if (!areAlmostEqual(double(rA), double(rB), err)) {
-          cout << "MISMATCH: x=" << x << " y=" << y << ". Pixel a = ("
-               << (int)rA << ")"
-               << ". Pixel b = (" << (int)rB << ")" << endl;
+          std::cout << "MISMATCH: x=" << x << " y=" << y << ". Pixel a = ("
+                    << (int)rA << ")"
+                    << ". Pixel b = (" << (int)rB << ")" << std::endl;
           return false;
         }
       }
@@ -326,11 +325,13 @@ int areEqual(TRasterP ra, TRasterP rb, double err) {
         if (!areAlmostEqual(double(rAink), double(rBink), err) ||
             !areAlmostEqual(double(rAtone), double(rBtone), err) ||
             !areAlmostEqual(double(rAPaint), double(rBPaint), err)) {
-          cout << "MISMATCH: x=" << x << " y=" << y
-               << ". Pixel a = (Ink: " << (int)rAink << ",Tone: " << (int)rAtone
-               << ",Paint: " << (int)rBPaint << ")"
-               << ". Pixel b = (Ink: " << (int)rBink << ",Tone: " << (int)rBtone
-               << ",Paint: " << (int)rBPaint << ")" << endl;
+          std::cout << "MISMATCH: x=" << x << " y=" << y
+                    << ". Pixel a = (Ink: " << (int)rAink
+                    << ",Tone: " << (int)rAtone << ",Paint: " << (int)rBPaint
+                    << ")"
+                    << ". Pixel b = (Ink: " << (int)rBink
+                    << ",Tone: " << (int)rBtone << ",Paint: " << (int)rBPaint
+                    << ")" << std::endl;
           return false;
         }
       }
@@ -357,8 +358,9 @@ int areEqual(TVectorImageP va, TVectorImageP vb, double err) {
   int aStrokeCount = va->getStrokeCount();
   int bStrokeCount = vb->getStrokeCount();
   if (aStrokeCount != bStrokeCount) {
-    cout << "MISMATCH: image stroke count = " << aStrokeCount
-         << ". Reference image stroke count = " << bStrokeCount << "." << endl;
+    std::cout << "MISMATCH: image stroke count = " << aStrokeCount
+              << ". Reference image stroke count = " << bStrokeCount << "."
+              << std::endl;
     return false;
   }
 
@@ -372,7 +374,7 @@ int areEqual(TVectorImageP va, TVectorImageP vb, double err) {
   TRectD bRect = vb->getBBox();
   if (!areAlmostEqual(bRect.getLx(), aRect.getLx(), lxErr) ||
       !areAlmostEqual(bRect.getLy(), aRect.getLy(), lyErr)) {
-    cout << "MISMATCH: different save box rect." << endl;
+    std::cout << "MISMATCH: different save box rect." << std::endl;
     return false;
   }
 
@@ -383,10 +385,11 @@ int areEqual(TVectorImageP va, TVectorImageP vb, double err) {
     int aStrCPCount  = aStroke->getControlPointCount();
     int bStrCPCount  = bStroke->getControlPointCount();
     if (aStrCPCount != bStrCPCount) {
-      cout << "MISMATCH: image stroke " << i
-           << "_mo control point count = " << aStrCPCount
-           << ". Reference image stroke " << i
-           << "_mo control point count = " << bStrCPCount << "." << endl;
+      std::cout << "MISMATCH: image stroke " << i
+                << "_mo control point count = " << aStrCPCount
+                << ". Reference image stroke " << i
+                << "_mo control point count = " << bStrCPCount << "."
+                << std::endl;
       return false;
     }
 
@@ -395,15 +398,18 @@ int areEqual(TVectorImageP va, TVectorImageP vb, double err) {
       TThickPoint aControlPoint = aStroke->getControlPoint(j);
       TThickPoint bControlPoint = bStroke->getControlPoint(j);
       if (!areAlmostEqual(aControlPoint.x, bControlPoint.x, lxErr)) {
-        cout << "MISMATCH: different control point x position." << endl;
+        std::cout << "MISMATCH: different control point x position."
+                  << std::endl;
         return false;
       }
       if (!areAlmostEqual(aControlPoint.y, bControlPoint.y, lyErr)) {
-        cout << "MISMATCH: different control point y position." << endl;
+        std::cout << "MISMATCH: different control point y position."
+                  << std::endl;
         return false;
       }
       if (!areAlmostEqual(aControlPoint.thick, bControlPoint.thick)) {
-        cout << "MISMATCH: different control point thickness." << endl;
+        std::cout << "MISMATCH: different control point thickness."
+                  << std::endl;
         return false;
       }
     }
@@ -485,7 +491,7 @@ int areEqual(TImageP a, TImageP b, double err) {
 bool areEqual(const TPalette *paletteA, const TPalette *paletteB) {
   if (paletteA->getStyleCount() != paletteB->getStyleCount() ||
       paletteA->getPageCount() != paletteB->getPageCount()) {
-    cout << "PALETTE style count MISMATCH" << endl;
+    std::cout << "PALETTE style count MISMATCH" << std::endl;
     return false;
   }
   int i;
@@ -493,7 +499,7 @@ bool areEqual(const TPalette *paletteA, const TPalette *paletteB) {
     TColorStyle *styleA = paletteA->getStyle(i);
     TColorStyle *styleB = paletteB->getStyle(i);
     if (styleA->getMainColor() == styleB->getMainColor()) continue;
-    cout << "PALETTE style MISMATCH" << endl;
+    std::cout << "PALETTE style MISMATCH" << std::endl;
     return false;
   }
   return true;
@@ -503,7 +509,7 @@ bool areEqual(const TPalette *paletteA, const TPalette *paletteB) {
 
 bool areEqual(TLevelP la, TLevelP lb) {
   if (la->getFrameCount() != lb->getFrameCount()) {
-    cout << "FRAME COUNT MISMATCH" << endl;
+    std::cout << "FRAME COUNT MISMATCH" << std::endl;
     return false;
   }
   if (!areEqual(la->getPalette(), lb->getPalette())) return false;

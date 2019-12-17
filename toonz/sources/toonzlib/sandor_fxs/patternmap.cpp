@@ -28,8 +28,6 @@
 //#include "tmsg.h"
 #include "patternmap.h"
 
-using namespace std;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -79,8 +77,7 @@ static void patternmapUC(
       // Reads the pattern
       CPattern pat(imgContour);
 
-      for (vector<SPOINT>::iterator pp = pPos.m_pos.begin();
-           pp != pPos.m_pos.end(); pp++) {
+      for (auto const &pp : pPos.m_pos) {
         // Calculates the rotation angle
         double angle = 0.0;
         if (pmP.m_isRandomDir)
@@ -88,9 +85,8 @@ static void patternmapUC(
                   (double)(rand() % 1001) * 0.001 *
                       (pmP.m_maxDirAngle - pmP.m_minDirAngle);
         else {
-          if (pp->x >= 0 && pp->y >= 0 && pp->x < ipUC.m_lX &&
-              pp->y < ipUC.m_lY) {
-            UCHAR *sel = ipUC.m_sel.get() + pp->y * ipUC.m_lX + pp->x;
+          if (pp.x >= 0 && pp.y >= 0 && pp.x < ipUC.m_lX && pp.y < ipUC.m_lY) {
+            UCHAR *sel = ipUC.m_sel.get() + pp.y * ipUC.m_lX + pp.x;
             if (*sel > (UCHAR)0) angle = (double)(*sel) - 50.0;
           }
           angle += pmP.m_minDirAngle +
@@ -105,7 +101,7 @@ static void patternmapUC(
             (double)(rand() % 1001) * 0.001 * (pmP.m_maxScale - pmP.m_minScale);
 
         // Mapping of Pattern
-        pat.mapIt(ipUC, ipOri, pp->x, pp->y, scale, angle, pmP.m_isUseInkColor,
+        pat.mapIt(ipUC, ipOri, pp.x, pp.y, scale, angle, pmP.m_isUseInkColor,
                   pmP.m_isIncludeAlpha);
       }
     }
@@ -161,8 +157,7 @@ static void patternmapUS(
       // Reads the pattern
       CPattern pat(imgContour);
 
-      for (vector<SPOINT>::iterator pp = pPos.m_pos.begin();
-           pp != pPos.m_pos.end(); pp++) {
+      for (auto const &pp : pPos.m_pos) {
         // Calculates the rotation angle
         double angle = 0.0;
         if (pmP.m_isRandomDir)
@@ -170,9 +165,8 @@ static void patternmapUS(
                   (double)(rand() % 1001) * 0.001 *
                       (pmP.m_maxDirAngle - pmP.m_minDirAngle);
         else {
-          if (pp->x >= 0 && pp->y >= 0 && pp->x < ipUS.m_lX &&
-              pp->y < ipUS.m_lY) {
-            UCHAR *sel = ipUS.m_sel.get() + pp->y * ipUS.m_lX + pp->x;
+          if (pp.x >= 0 && pp.y >= 0 && pp.x < ipUS.m_lX && pp.y < ipUS.m_lY) {
+            UCHAR *sel = ipUS.m_sel.get() + pp.y * ipUS.m_lX + pp.x;
             if (*sel > (UCHAR)0) angle = (double)(*sel) - 50.0;
           }
           angle += pmP.m_minDirAngle +
@@ -187,7 +181,7 @@ static void patternmapUS(
             (double)(rand() % 1001) * 0.001 * (pmP.m_maxScale - pmP.m_minScale);
 
         // Mapping of Pattern
-        pat.mapIt(ipUS, ipOri, pp->x, pp->y, scale, angle, pmP.m_isUseInkColor,
+        pat.mapIt(ipUS, ipOri, pp.x, pp.y, scale, angle, pmP.m_isUseInkColor,
                   pmP.m_isIncludeAlpha);
       }
     }

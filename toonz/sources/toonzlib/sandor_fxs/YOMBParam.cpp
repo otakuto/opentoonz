@@ -23,8 +23,6 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-using namespace std;
-
 void CYOMBParam::print() {
   /*
   char s[1024];
@@ -70,7 +68,7 @@ void CYOMBParam::null() {
 }
 
 #ifdef _WIN32
-bool CYOMBParam::read(basic_ifstream<char> &in) {
+bool CYOMBParam::read(std::basic_ifstream<char> &in) {
   char token[1000] = "";
   bool isBegin     = false;
 
@@ -92,7 +90,7 @@ bool CYOMBParam::read(basic_ifstream<char> &in) {
     if (isBegin && strcmp(token, "END") == 0) return true;
     if (isBegin && strcmp(token, "COLOR") == 0) {
       m_color.resize(m_color.size() + 1);
-      vector<I_PIXEL>::iterator p = m_color.end();
+      std::vector<I_PIXEL>::iterator p = m_color.end();
       p--;
       p->r = p->g = p->b = p->m = 0;
       if (in.good()) in >> p->r;
@@ -179,10 +177,10 @@ void CYOMBParam::makeItUS() {
 }
 
 void CYOMBParam::makeColorsUS() {
-  for (vector<I_PIXEL>::iterator p = m_color.begin(); p != m_color.end(); ++p) {
-    p->r = PIX_USHORT_FROM_BYTE((UCHAR)p->r);
-    p->g = PIX_USHORT_FROM_BYTE((UCHAR)p->g);
-    p->b = PIX_USHORT_FROM_BYTE((UCHAR)p->b);
-    p->m = PIX_USHORT_FROM_BYTE((UCHAR)p->m);
+  for (auto &p : m_color) {
+    p.r = PIX_USHORT_FROM_BYTE((UCHAR)p.r);
+    p.g = PIX_USHORT_FROM_BYTE((UCHAR)p.g);
+    p.b = PIX_USHORT_FROM_BYTE((UCHAR)p.b);
+    p.m = PIX_USHORT_FROM_BYTE((UCHAR)p.m);
   }
 }

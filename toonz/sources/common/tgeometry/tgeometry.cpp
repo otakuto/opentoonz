@@ -5,31 +5,29 @@
 #include <values.h>
 #endif
 
-using namespace std;
+const T3DPointD TConsts::nap3d((std::numeric_limits<double>::max)(),
+                               (std::numeric_limits<double>::max)(),
+                               (std::numeric_limits<double>::max)());
 
-const T3DPointD TConsts::nap3d((numeric_limits<double>::max)(),
-                               (numeric_limits<double>::max)(),
-                               (numeric_limits<double>::max)());
+const TThickPoint TConsts::natp((std::numeric_limits<double>::max)(),
+                                (std::numeric_limits<double>::max)(),
+                                (std::numeric_limits<double>::max)());
 
-const TThickPoint TConsts::natp((numeric_limits<double>::max)(),
-                                (numeric_limits<double>::max)(),
-                                (numeric_limits<double>::max)());
+const TPointD TConsts::napd((std::numeric_limits<double>::max)(),
+                            (std::numeric_limits<double>::max)());
 
-const TPointD TConsts::napd((numeric_limits<double>::max)(),
-                            (numeric_limits<double>::max)());
+const TPointI TConsts::nap((std::numeric_limits<int>::max)(),
+                           (std::numeric_limits<int>::max)());
 
-const TPointI TConsts::nap((numeric_limits<int>::max)(),
-                           (numeric_limits<int>::max)());
+const TRectD TConsts::infiniteRectD(-(std::numeric_limits<double>::max)(),
+                                    -(std::numeric_limits<double>::max)(),
+                                    (std::numeric_limits<double>::max)(),
+                                    (std::numeric_limits<double>::max)());
 
-const TRectD TConsts::infiniteRectD(-(numeric_limits<double>::max)(),
-                                    -(numeric_limits<double>::max)(),
-                                    (numeric_limits<double>::max)(),
-                                    (numeric_limits<double>::max)());
-
-const TRectI TConsts::infiniteRectI(-(numeric_limits<int>::max)(),
-                                    -(numeric_limits<int>::max)(),
-                                    (numeric_limits<int>::max)(),
-                                    (numeric_limits<int>::max)());
+const TRectI TConsts::infiniteRectI(-(std::numeric_limits<int>::max)(),
+                                    -(std::numeric_limits<int>::max)(),
+                                    (std::numeric_limits<int>::max)(),
+                                    (std::numeric_limits<int>::max)());
 
 //==================================================================================================
 

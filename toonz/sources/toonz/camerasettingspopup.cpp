@@ -49,7 +49,6 @@
 #include <QMoveEvent>
 #include <QMainWindow>
 
-using namespace std;
 using namespace DVGui;
 
 class CameraSettingsPopup;

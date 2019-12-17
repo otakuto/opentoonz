@@ -19,8 +19,6 @@
 
 #include "strokestyles.h"
 
-using namespace std;
-
 #define MINTHICK 1.0
 
 //=============================================================================
@@ -206,7 +204,7 @@ void TFurStrokeStyle::drawStroke(TFlash &flash, const TStroke *stroke) const {
   double vs = 1;
   TRandom rnd;
   flash.setLineColor(m_color);
-  vector<TSegment> segmentsArray;
+  std::vector<TSegment> segmentsArray;
 
   while (s <= length) {
     double w        = stroke->getParameterAtLength(s);
@@ -476,7 +474,7 @@ void TChainStrokeStyle::drawStroke(TFlash &flash, const TStroke *stroke) const {
   double a = .6, b = .6;
 
   TScale scaleM(ringWidth, ringHeight);
-  vector<TPointD> chain;
+  std::vector<TPointD> chain;
   chain.push_back(scaleM * TPointD(1, b));    // 0
   chain.push_back(scaleM * TPointD(a, 1));    // 1
   chain.push_back(scaleM * TPointD(-a, 1));   // 2
@@ -499,7 +497,7 @@ chain.push_back( TPointD( 1,-b));	//7
 chain.push_back( TPointD(1, b));	//8
 */
 
-  vector<TSegment> chainS;
+  std::vector<TSegment> chainS;
   chainS.push_back(TSegment(chain[0], chain[1]));
   chainS.push_back(TSegment(chain[1], chain[2]));
   chainS.push_back(TSegment(chain[2], chain[3]));
@@ -532,7 +530,7 @@ chain.push_back( TPointD(1, b));	//8
     TAffine tM = translM * rotM;
 
     //	 With direct transformation
-    vector<TSegment> lchainS;
+    std::vector<TSegment> lchainS;
     for (int i = 0; i < 8; i++)
       lchainS.push_back(TSegment(tM * chain[i], tM * chain[i + 1]));
     flash.drawSegments(lchainS, false);
@@ -553,7 +551,7 @@ flash.popMatrix();
 
     if (!firstRing) {
       TPointD q = pos - u * joinPos;
-      vector<TSegment> sv;
+      std::vector<TSegment> sv;
       sv.push_back(TSegment(oldPos, q));
       flash.drawSegments(sv, false);
     } else
@@ -897,7 +895,7 @@ void TGraphicPenStrokeStyle::computeData(DrawmodePointsMatrix &data,
     }
     if (!tmpPoints.empty()) {
       assert(drawMode == GL_POINTS || drawMode == GL_LINES);
-      data.push_back(make_pair(drawMode, tmpPoints));
+      data.push_back(std::make_pair(drawMode, tmpPoints));
     }
     s += step;
   }
@@ -939,7 +937,7 @@ void TGraphicPenStrokeStyle::drawStroke(TFlash &flash,
 
 {
   // TStroke *stroke = getStroke();
-  vector<TSegment> segmentsArray;
+  std::vector<TSegment> segmentsArray;
   double length = stroke->getLength();
   double step   = 10;
   TPointD pos1, pos2;
@@ -1316,7 +1314,7 @@ blank=blankmax*(1+rnd.getFloat())*pos.thick;
     if (firstRing) {
       firstRing = false;
     } else {
-      vector<TPointD> pv;
+      std::vector<TPointD> pv;
       pv.push_back(oldPos1);
       pv.push_back(pos1);
       pv.push_back(pos2);
@@ -1574,14 +1572,14 @@ void TRopeStrokeStyle::drawStroke(TFlash &flash, const TStroke *stroke) const {
       pp[6] = (pos + u * (-bend) - v);
       pp[7] = (pos + u * (bump - bend) - v + v1);
 
-      vector<TPointD> pv;
+      std::vector<TPointD> pv;
       int i;
       for (i = 0; i < nbpp; i++) pv.push_back(pp[i]);
 
       flash.setFillColor(color);
       flash.drawPolyline(pv);
 
-      vector<TSegment> sv;
+      std::vector<TSegment> sv;
       for (i = 0; i < (nbpp - 1); i++) sv.push_back(TSegment(pp[i], pp[i + 1]));
       flash.setThickness(1.0);
       flash.setLineColor(blackcolor);
@@ -1592,7 +1590,7 @@ void TRopeStrokeStyle::drawStroke(TFlash &flash, const TStroke *stroke) const {
     s += step;
   }
 
-  vector<TSegment> sv;
+  std::vector<TSegment> sv;
   sv.push_back(TSegment(oldPos1, oldPos2));
   flash.setLineColor(blackcolor);
   flash.drawSegments(sv, false);
@@ -1758,8 +1756,8 @@ void TCrystallizeStrokeStyle::drawStroke(TFlash &flash,
   TPixel32 color = m_color;
 
   TPixelD dcolor = toPixelD(color);
-  vector<TPointD> points1;
-  vector<TPointD> points2;
+  std::vector<TPointD> points1;
+  std::vector<TPointD> points2;
   double s = 0;
   while (s <= length) {
     double w = stroke->getParameterAtLength(s);
@@ -1796,7 +1794,7 @@ void TCrystallizeStrokeStyle::drawStroke(TFlash &flash,
     TPixel32 lcolor;
     lcolor = toPixel32(ldcolor);
 
-    vector<TPointD> tpv;
+    std::vector<TPointD> tpv;
     tpv.push_back(points1[i]);
     tpv.push_back(points2[i]);
     tpv.push_back(points2[i + 1]);
@@ -1812,7 +1810,7 @@ void TCrystallizeStrokeStyle::drawStroke(TFlash &flash,
   }
 
   counter = 0;
-  vector<TSegment> tsv1, tsv2;
+  std::vector<TSegment> tsv1, tsv2;
   for (int j = 1; j < (int)points1.size(); j++) {
     tsv1.push_back(TSegment(points1[j - 1], points1[j]));
     tsv2.push_back(TSegment(points2[j - 1], points2[j]));
@@ -1839,7 +1837,7 @@ public:
   void drawpolygon();
   void drawpolygon(TFlash &flash);
   void drawlines(TPixel32 blackcolor);
-  void addToSegment(vector<TSegment> *sv, vector<TSegment> &scontour,
+  void addToSegment(std::vector<TSegment> *sv, std::vector<TSegment> &scontour,
                     TPixel32 *colors);
 };
 
@@ -1863,7 +1861,7 @@ void Stripe::drawpolygon() {
 }
 
 void Stripe::drawpolygon(TFlash &flash) {
-  vector<TPointD> pv;
+  std::vector<TPointD> pv;
   pv.push_back(oldpos1);
   pv.push_back(oldpos2);
   pv.push_back(pos2);
@@ -1875,7 +1873,7 @@ void Stripe::drawpolygon(TFlash &flash) {
   // Draws the black contour
   flash.setThickness(0.5);
   flash.setLineColor(TPixel32::Black);
-  vector<TSegment> sv;
+  std::vector<TSegment> sv;
   sv.push_back(TSegment(oldpos1, pos1));
   sv.push_back(TSegment(oldpos2, pos2));
   flash.drawSegments(sv, false);
@@ -1888,8 +1886,8 @@ flash.setLineColor(TPixel32::Black);
 */
 }
 
-void Stripe::addToSegment(vector<TSegment> *sv, vector<TSegment> &scontour,
-                          TPixel32 *colors) {
+void Stripe::addToSegment(std::vector<TSegment> *sv,
+                          std::vector<TSegment> &scontour, TPixel32 *colors) {
   TPointD p0 = (oldpos1 + oldpos2) * 0.5;
   TPointD p1 = (pos1 + pos2) * 0.5;
   //	TPointD p0=oldpos1;
@@ -2040,8 +2038,8 @@ void TBraidStrokeStyle::drawStroke(const TColorFunction *cf,
   bool firstRing               = true;
   double s                     = 0;
   double swap;
-  vector<Stripe> braid;
-  vector<double> ssin;
+  std::vector<Stripe> braid;
+  std::vector<double> ssin;
   int k = 0;
   TPixel32 colors[3];
   for (k = 0; k < 3; k++) {
@@ -2125,8 +2123,8 @@ void TBraidStrokeStyle::drawStroke(TFlash &flash, const TStroke *stroke) const {
   bool firstRing               = true;
   double s                     = 0;
   double swap;
-  vector<Stripe> braid;
-  vector<double> ssin;
+  std::vector<Stripe> braid;
+  std::vector<double> ssin;
   int k = 0;
   TPixel32 colors[3];
 
@@ -2326,7 +2324,7 @@ void TSketchStrokeStyle::drawStroke(TFlash &flash,
                                     const TStroke *stroke) const {
   double length = stroke->getLength();
   if (length <= 0) return;
-  vector<TQuadratic> quadsArray;
+  std::vector<TQuadratic> quadsArray;
 
   int count = (int)(length * m_density);
 
@@ -2555,8 +2553,8 @@ void TTissueStrokeStyle::computeData(PointMatrix &data, const TStroke *stroke,
   TRandom rnd;
   double increment = 0.0;
   int intensity    = (int)m_density + 2;
-  vector<TPointD> points;
-  vector<TPointD> oldpoints;
+  std::vector<TPointD> points;
+  std::vector<TPointD> oldpoints;
   double s       = 0;
   bool firstRing = true;
   while (s <= length) {
@@ -2649,8 +2647,8 @@ void TTissueStrokeStyle::drawStroke(TFlash &flash,
   TRandom rnd;
   double increment = 0.0;
   int intensity    = (int)m_density + 2;
-  vector<TPointD> points;
-  vector<TPointD> oldpoints;
+  std::vector<TPointD> points;
+  std::vector<TPointD> oldpoints;
   TPixel32 color = m_color;
 
   flash.setLineColor(m_color);
@@ -2680,7 +2678,7 @@ void TTissueStrokeStyle::drawStroke(TFlash &flash,
       firstRing = false;
     } else {
       flash.setThickness(1.5);
-      vector<TSegment> sv;
+      std::vector<TSegment> sv;
       for (int i = 1; i < intensity - 1; i++) {
         pos1    = points[i - 1];
         oldPos1 = oldpoints[i - 1];
@@ -2809,7 +2807,7 @@ void TBiColorStrokeStyle::drawStroke(TFlash &flash,
   // Just for the polygon grading function
   SFlashUtils sfu;
   for (UINT i = 0; i < (v.size() - 3); i += 2) {
-    vector<TPointD> plv;
+    std::vector<TPointD> plv;
     plv.push_back(TPointD(v[i].x, v[i].y));
     plv.push_back(TPointD(v[i + 2].x, v[i + 2].y));
     plv.push_back(TPointD(v[i + 3].x, v[i + 3].y));
@@ -2985,7 +2983,7 @@ void TNormal2StrokeStyle::drawStroke(const TColorFunction *cf,
   double bend                         = 2 * m_bend;
   const std::vector<TOutlinePoint> &v = outline->getArray();
   if (v.empty()) return;
-  vector<T3DPointD> normal;
+  std::vector<T3DPointD> normal;
 
   GLfloat light_position[] = {(float)(m_lightx), (float)(m_lighty), 100.0, 0.0};
   glLightfv(GL_LIGHT0, GL_POSITION, light_position);
@@ -3103,7 +3101,7 @@ void TNormal2StrokeStyle::drawStroke(TFlash &flash,
     TPointD b(v[i + 3].x, v[i + 3].y);
     TPointD center = 0.5 * (a + b);
 
-    vector<TPointD> vpl;
+    std::vector<TPointD> vpl;
     vpl.push_back(olda);
     vpl.push_back(a);
     vpl.push_back(center);
@@ -3549,30 +3547,32 @@ void TBlendStrokeStyle2::computeData(PointsAndDoubles &data,
     } else {
       int max       = (int)(maxfactor * thickness);
       double invmax = 1.0 / max;
-      data.push_back(make_pair(oldPos1, 0.0));
-      data.push_back(make_pair(pos1, 0.0));
+      data.push_back(std::make_pair(oldPos1, 0.0));
+      data.push_back(std::make_pair(pos1, 0.0));
       int i;
       for (i = 1; i < max; i++) {
-        data.push_back(make_pair(i * (oldPos2 - oldPos1) * invmax + oldPos1,
-                                 (i * oldintslope) * invmax));
-        data.push_back(make_pair(i * (pos2 - pos1) * invmax + pos1,
-                                 (i * intslope) * invmax));
+        data.push_back(
+            std::make_pair(i * (oldPos2 - oldPos1) * invmax + oldPos1,
+                           (i * oldintslope) * invmax));
+        data.push_back(std::make_pair(i * (pos2 - pos1) * invmax + pos1,
+                                      (i * intslope) * invmax));
       }
 
-      data.push_back(make_pair(oldPos2, oldintslope));
-      data.push_back(make_pair(pos2, intslope));
-      data.push_back(make_pair(oldPos3, oldintslope));
-      data.push_back(make_pair(pos3, intslope));
+      data.push_back(std::make_pair(oldPos2, oldintslope));
+      data.push_back(std::make_pair(pos2, intslope));
+      data.push_back(std::make_pair(oldPos3, oldintslope));
+      data.push_back(std::make_pair(pos3, intslope));
 
       for (i = 0; i < max; i++) {
-        data.push_back(make_pair(i * (oldPos4 - oldPos3) * invmax + oldPos3,
-                                 (oldintslope * invmax) * (max - i)));
-        data.push_back(make_pair(i * (pos4 - pos3) * invmax + pos3,
-                                 (intslope * invmax) * (max - i)));
+        data.push_back(
+            std::make_pair(i * (oldPos4 - oldPos3) * invmax + oldPos3,
+                           (oldintslope * invmax) * (max - i)));
+        data.push_back(std::make_pair(i * (pos4 - pos3) * invmax + pos3,
+                                      (intslope * invmax) * (max - i)));
       }
 
-      data.push_back(make_pair(oldPos4, 0.0));
-      data.push_back(make_pair(pos4, 0.0));
+      data.push_back(std::make_pair(oldPos4, 0.0));
+      data.push_back(std::make_pair(pos4, 0.0));
     }
     oldPos1     = pos1;
     oldPos2     = pos2;
@@ -3628,8 +3628,8 @@ void TBlendStrokeStyle2::drawStroke(TFlash &flash,
   // cui la regione viene divisa
   // per evitare il problema del blend poco efficiente sui triangoli
 
-  vector<TPointD> vp1, vp2;
-  vector<TPixelD> vdc1, vdc2;
+  std::vector<TPointD> vp1, vp2;
+  std::vector<TPixelD> vdc1, vdc2;
 
   flash.setThickness(0);
   SFlashUtils sfu;
@@ -3681,7 +3681,7 @@ void TBlendStrokeStyle2::drawStroke(TFlash &flash,
       vdc2.push_back(TPixelD(dcolor.r, dcolor.g, dcolor.b, 0));
       vp2.push_back(pos4);
 
-      vector<TPointD> vpl;
+      std::vector<TPointD> vpl;
       vpl.push_back(vp1[0]);
       vpl.push_back(vp1[3]);
       vpl.push_back(vp2[3]);
@@ -3879,9 +3879,9 @@ void TTwirlStrokeStyle::drawStroke(TFlash &flash, const TStroke *stroke) const {
   TPixel32 color      = m_color;
   blackcolor.m        = m_color.m;
 
-  vector<TPointD> points1;
-  vector<TPointD> points2;
-  vector<double> vblend;
+  std::vector<TPointD> points1;
+  std::vector<TPointD> points2;
+  std::vector<double> vblend;
   double s = 0;
   while (s <= length) {
     double w = stroke->getParameterAtLength(s);
@@ -3908,7 +3908,7 @@ void TTwirlStrokeStyle::drawStroke(TFlash &flash, const TStroke *stroke) const {
 
   SFlashUtils sfu;
   for (int i = 1; i < (int)points1.size(); i++) {
-    vector<TPointD> vp;
+    std::vector<TPointD> vp;
     vp.push_back(points1[i - 1]);
     vp.push_back(points2[i - 1]);
     vp.push_back(points2[i]);
@@ -3919,7 +3919,7 @@ void TTwirlStrokeStyle::drawStroke(TFlash &flash, const TStroke *stroke) const {
     //	flash.setFillColor(blend(blackcolor, color , vblend[i-1]));
     //	flash.drawPolyline(vp);
 
-    vector<TSegment> sv;
+    std::vector<TSegment> sv;
     sv.push_back(TSegment(points1[i - 1], points1[i]));
     sv.push_back(TSegment(points2[i - 1], points2[i]));
     flash.setThickness(1.0);
@@ -3969,7 +3969,7 @@ void TSawToothStrokeStyle::drawStroke(TFlash &flash,
   for (UINT i = 0; i < v.size() - 2; i += 2) {
     if (0 != v[i].stepCount) {
       if (counter) {
-        vector<TPointD> plv;
+        std::vector<TPointD> plv;
         //        flash.setFillColor(color);
 
         plv.push_back(TPointD(old[0], old[1]));
@@ -4233,7 +4233,7 @@ void TMultiLineStrokeStyle2::computeData(BlendAndPoints &data,
   double factor = 0;
   TRandom rnd;
 
-  vector<myLineData> LineData;
+  std::vector<myLineData> LineData;
   myLineData Data;
   double s = 0;
 
@@ -4340,7 +4340,7 @@ void TMultiLineStrokeStyle2::drawStroke(TFlash &flash,
   color0 = m_color0;
   color1 = m_color1;
 
-  vector<myLineData> LineData;
+  std::vector<myLineData> LineData;
   myLineData Data;
   double s           = 0;
   double strokethick = m_thick;
@@ -4370,7 +4370,7 @@ void TMultiLineStrokeStyle2::drawStroke(TFlash &flash,
     double vshift                       = (0.5 - rnd.getFloat());
     flash.setThickness(0.0);
     flash.setFillColor(blend(color0, color1, rnd.getFloat()));
-    vector<TSegment> sv;
+    std::vector<TSegment> sv;
     int j;
     for (j = 0; j < (end - start); j++) {
       if (j < halfcount)
@@ -4389,7 +4389,7 @@ void TMultiLineStrokeStyle2::drawStroke(TFlash &flash,
       sv.push_back(TSegment(p0, p1));
     }
     for (j = 0; j < ((int)sv.size() - 1); j++) {
-      vector<TPointD> pv;
+      std::vector<TPointD> pv;
       pv.push_back(sv[j].getP0());
       pv.push_back(sv[j].getP1());
       pv.push_back(sv[j + 1].getP1());
@@ -4684,7 +4684,7 @@ void TZigzagStrokeStyle::drawStroke(TFlash &flash,
   }
 
   flash.setLineColor(m_color);
-  vector<TSegment> segmentsArray;
+  std::vector<TSegment> segmentsArray;
 
   flash.setThickness(m_thickness);
   RectVector::const_iterator rvi = rects.begin();
@@ -4836,8 +4836,7 @@ void TSinStrokeStyle::drawStroke(TFlash &flash, const TStroke *stroke) const {
   double step   = 5.0;
 
   double frequency = m_frequency / 100;
-  ;
-  vector<TPointD> points;
+  std::vector<TPointD> points;
 
   double s = 0;
   // bool firstRing = true;
@@ -4865,7 +4864,7 @@ void TSinStrokeStyle::drawStroke(TFlash &flash, const TStroke *stroke) const {
   flash.setThickness(0.0);
   flash.setFillColor(m_color);
   for (int i = 0; i < ((int)points.size() - 2); i += 2) {
-    vector<TPointD> plv;
+    std::vector<TPointD> plv;
     plv.push_back(points[i]);
     plv.push_back(points[i + 1]);
     plv.push_back(points[i + 3]);
@@ -5001,7 +5000,7 @@ void TFriezeStrokeStyle2::computeData(Points &positions, const TStroke *stroke,
   double phi   = 0;
   double lastW = 0;
   double thick = 1 - m_thick;
-  vector<TPointD> points;
+  std::vector<TPointD> points;
   while (s <= length) {
     double w = stroke->getParameterAtLength(s);
     if (w < lastW) {
@@ -5080,7 +5079,7 @@ void TFriezeStrokeStyle2::drawStroke(TFlash &flash,
   double phi   = 0;
   double lastW = 0;
   double thick = 1 - m_thick;
-  vector<TPointD> points;
+  std::vector<TPointD> points;
   while (s <= length) {
     double w = stroke->getParameterAtLength(s);
     if (w < lastW) {
@@ -5120,7 +5119,7 @@ void TFriezeStrokeStyle2::drawStroke(TFlash &flash,
   flash.setThickness(0.0);
   flash.setFillColor(m_color);
   for (int i = 0; i < ((int)points.size() - 2); i += 2) {
-    vector<TPointD> plv;
+    std::vector<TPointD> plv;
     plv.push_back(points[i]);
     plv.push_back(points[i + 1]);
     plv.push_back(points[i + 3]);
@@ -5280,7 +5279,7 @@ void TDualColorStrokeStyle2::drawStroke(TFlash &flash,
   flash.setThickness(0.0);
   flash.setFillColor(TPixel32(0, 0, 0, 255));
   for (UINT i = 0; i < (v.size() - 2); i += 2) {
-    vector<TPointD> tpv;
+    std::vector<TPointD> tpv;
     tpv.push_back(TPointD(v[i].x, v[i].y));
     tpv.push_back(TPointD(v[i + 1].x, v[i + 1].y));
     tpv.push_back(TPointD(v[i + 3].x, v[i + 3].y));
@@ -5460,7 +5459,7 @@ void TLongBlendStrokeStyle2::drawStroke(TFlash &flash,
       col1 = blend(color0, color1, (double)mystepCount / ntick);
       mystepCount++;
     }
-    vector<TPointD> plv;
+    std::vector<TPointD> plv;
     plv.push_back(TPointD(v[i - 2].x, v[i - 2].y));
     plv.push_back(TPointD(v[i - 1].x, v[i - 1].y));
     plv.push_back(TPointD(v[i + 1].x, v[i + 1].y));
@@ -5873,7 +5872,7 @@ const TColorStyle *TMatrioskaStrokeProp::getColorStyle() const {
 //-----------------------------------------------------------------------------
 
 namespace {
-void recomputeStrokes(const TStroke *stroke, vector<TStroke *> &strokes,
+void recomputeStrokes(const TStroke *stroke, std::vector<TStroke *> &strokes,
                       int strokeNumber) {
   clearPointerContainer(strokes);
 
@@ -5896,8 +5895,8 @@ void recomputeStrokes(const TStroke *stroke, vector<TStroke *> &strokes,
   }
 }
 
-void recomputeOutlines(const TStroke *stroke, vector<TStroke *> &strokes,
-                       vector<TStrokeOutline> &outlines,
+void recomputeOutlines(const TStroke *stroke, std::vector<TStroke *> &strokes,
+                       std::vector<TStrokeOutline> &outlines,
                        const TSolidColorStyle *style) {
   TOutlineUtil::OutlineParameter param;
   int strokeNumber = strokes.size();

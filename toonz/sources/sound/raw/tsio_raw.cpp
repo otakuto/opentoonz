@@ -4,7 +4,6 @@
 #include "tsound_t.h"
 #include "tsystem.h"
 #include "tfilepath_io.h"
-using namespace std;
 
 //==============================================================================
 
@@ -20,9 +19,9 @@ TSoundTrackP TSoundTrackReaderRaw::load() {
     throw TException(L"Unable to load the RAW file " + m_path.getWideString() +
                      L" : doesn't exist");
 
-  is.seekg(0, ios_base::end);
+  is.seekg(0, std::ios_base::end);
   long sampleCount = is.tellg() / 2;
-  is.seekg(0, ios_base::beg);
+  is.seekg(0, std::ios_base::beg);
 
   TSoundTrack *track = new TSoundTrackMono16(22050, 1, sampleCount);
   is.read((char *)track->getRawData(), sampleCount * 2);

@@ -15,8 +15,6 @@
 
 #include "tlevel_io.h"
 
-using namespace std;
-
 DEFINE_CLASS_CODE(TLevelReader, 8)
 DEFINE_CLASS_CODE(TLevelWriter, 9)
 // DEFINE_CLASS_CODE(TLevelReaderWriter, 25)  //brutto
@@ -111,7 +109,7 @@ TLevelP TLevelReader::loadInfo() {
     throw TImageException(m_path, "unable to read directory content");
   }
   TLevelP level;
-  vector<TFilePath> data;
+  std::vector<TFilePath> data;
   for (TFilePathSet::iterator it = files.begin(); it != files.end(); it++) {
     TFilePath ln(it->getLevelName());
     // cout << "try " << *it << "  " << it->getLevelName() <<  endl;
@@ -133,19 +131,19 @@ TLevelP TLevelReader::loadInfo() {
     std::vector<TFilePath>::iterator it =
         std::min_element(data.begin(), data.end(), myLess);
     TFilePath fr = (*it).withoutParentDir().withName("").withType("");
-    wstring ws   = fr.getWideString();
+    std::wstring ws = fr.getWideString();
     if (ws.length() == 5) {
-      if (ws.rfind(L'_') == (int)wstring::npos)
+      if (ws.rfind(L'_') == (int)std::wstring::npos)
         m_frameFormat = TFrameId::FOUR_ZEROS;
       else
         m_frameFormat = TFrameId::UNDERSCORE_FOUR_ZEROS;
     } else if (ws.rfind(L'0') == 1) {  // leads with any number of zeros
-      if (ws.rfind(L'_') == (int)wstring::npos)
+      if (ws.rfind(L'_') == (int)std::wstring::npos)
         m_frameFormat = TFrameId::CUSTOM_PAD;
       else
         m_frameFormat = TFrameId::UNDERSCORE_CUSTOM_PAD;
     } else {
-      if (ws.rfind(L'_') == (int)wstring::npos)
+      if (ws.rfind(L'_') == (int)std::wstring::npos)
         m_frameFormat = TFrameId::NO_PAD;
       else
         m_frameFormat = TFrameId::UNDERSCORE_NO_PAD;
@@ -184,7 +182,7 @@ TLevelWriter::TLevelWriter(const TFilePath &path, TPropertyGroup *prop)
     , m_path(path)
     , m_properties(prop)
     , m_contentHistory(0) {
-  string ext              = path.getType();
+  std::string ext = path.getType();
   if (!prop) m_properties = Tiio::makeWriterProperties(ext);
 }
 

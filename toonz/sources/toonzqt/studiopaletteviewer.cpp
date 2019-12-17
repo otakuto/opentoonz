@@ -42,7 +42,6 @@
 
 #include <time.h>
 
-using namespace std;
 using namespace PaletteViewerGUI;
 using namespace DVGui;
 
@@ -451,7 +450,7 @@ void StudioPaletteTreeViewer::onItemClicked(QTreeWidgetItem *item, int column) {
 
 void StudioPaletteTreeViewer::onItemChanged(QTreeWidgetItem *item, int column) {
   if (item != currentItem() || isRootItem(item)) return;
-  wstring name      = item->text(column).toStdWString();
+  std::wstring name = item->text(column).toStdWString();
   TFilePath oldPath = getCurrentFolderPath();
   if (oldPath.isEmpty() || name.empty() || oldPath.getWideName() == name)
     return;
@@ -483,7 +482,7 @@ void StudioPaletteTreeViewer::onCurrentItemChanged(QTreeWidgetItem *current,
     TFilePath oldPath = StudioPalette::instance()->getPalettePath(
         m_currentPalette->getGlobalName());
     if (oldPath == newPath) return;
-    wstring gname = m_currentPalette->getGlobalName();
+    std::wstring gname = m_currentPalette->getGlobalName();
     QString question =
         tr("The current palette %1\nin the studio palette has been modified. "
            "Do you want to "
@@ -581,7 +580,8 @@ void StudioPaletteTreeViewer::convertToStudioPalette() {
     // apply global name
     time_t ltime;
     time(&ltime);
-    wstring gname = std::to_wstring(ltime) + L"_" + std::to_wstring(rand());
+    std::wstring gname =
+        std::to_wstring(ltime) + L"_" + std::to_wstring(rand());
     m_currentPalette->setGlobalName(gname);
     studioPalette->setStylesGlobalNames(m_currentPalette.getPointer());
     studioPalette->save(path, m_currentPalette.getPointer());
@@ -956,8 +956,8 @@ void StudioPaletteTreeViewer::contextMenuEvent(QContextMenuEvent *event) {
 void StudioPaletteTreeViewer::createMenuAction(QMenu &menu, const char *id,
                                                QString name, const char *slot) {
   QAction *act = menu.addAction(name);
-  string slotName(slot);
-  slotName = string("1") + slotName;
+  std::string slotName(slot);
+  slotName = std::string("1") + slotName;
   connect(act, SIGNAL(triggered()), slotName.c_str());
 }
 

@@ -6,11 +6,9 @@
 #include "tmathutil.h"
 #include "tbezier.h"
 
-using namespace std;
-
 //=============================================================================
 
-ostream &operator<<(ostream &out, const TSegment &segment) {
+std::ostream &operator<<(std::ostream &out, const TSegment &segment) {
   return out << "S{" << segment.getP0() << ", " << segment.getP1() << "}";
 }
 
@@ -71,7 +69,7 @@ double TQuadratic::getT(const TPointD &p) const {
   // 2·a ·t  + 3·a·b·t  + t·(2·a·v + b ) + b·v
   // dove v e' pari a c - p
 
-  vector<TPointD> bez(3), poly(3);
+  std::vector<TPointD> bez(3), poly(3);
 
   bez[0] = m_p0;
   bez[1] = m_p1;
@@ -81,8 +79,8 @@ double TQuadratic::getT(const TPointD &p) const {
 
   TPointD v = poly[0] - p;
 
-  vector<double> toSolve(4);
-  vector<double> sol;
+  std::vector<double> toSolve(4);
+  std::vector<double> sol;
 
   toSolve[3] = 2.0 * norm2(poly[2]);
   toSolve[2] = 3.0 * (poly[2].x * poly[1].x + poly[2].y * poly[1].y);
@@ -208,8 +206,8 @@ double TQuadratic::getCurvature(double t) const {
 double TQuadratic::getLength(double t0, double t1) const {
   TQuadraticLengthEvaluator lengthEval(*this);
 
-  t0 = min(max(0.0, t0), 1.0);  // backward compatibility
-  t1 = min(max(0.0, t1), 1.0);  // backward compatibility
+  t0 = std::min(std::max(0.0, t0), 1.0);  // backward compatibility
+  t1 = std::min(std::max(0.0, t1), 1.0);  // backward compatibility
   if (t0 > t1) std::swap(t0, t1);
 
   if (t0 > 0.0) return lengthEval.getLengthAt(t1) - lengthEval.getLengthAt(t0);
@@ -221,8 +219,8 @@ double TQuadratic::getApproximateLength(double t0, double t1,
                                         double error) const {
   if (t0 == t1) return 0;
 
-  t0 = min(max(0.0, t0), 1.0);
-  t1 = min(max(0.0, t1), 1.0);
+  t0 = std::min(std::max(0.0, t0), 1.0);
+  t1 = std::min(std::max(0.0, t1), 1.0);
 
   if (t0 > t1) std::swap(t0, t1);
 
@@ -323,9 +321,9 @@ int TQuadratic::getX(double y, double &x0, double &x1) const {
 int TQuadratic::getY(double y, double &y0, double &y1) const {
   TQuadratic temp(*this);
 
-  swap(temp.m_p0.x, temp.m_p0.y);
-  swap(temp.m_p1.x, temp.m_p1.y);
-  swap(temp.m_p2.x, temp.m_p2.y);
+  std::swap(temp.m_p0.x, temp.m_p0.y);
+  std::swap(temp.m_p1.x, temp.m_p1.y);
+  std::swap(temp.m_p2.x, temp.m_p2.y);
 
   return temp.getX(y, y0, y1);
 }
@@ -602,27 +600,27 @@ void TThickCubic::split(double t, TThickCubic &first,
 
 //-----------------------------------------------------------------------------
 
-ostream &operator<<(ostream &out, const TQuadratic &curve) {
+std::ostream &operator<<(std::ostream &out, const TQuadratic &curve) {
   return out << "Q{" << curve.getP0() << ", " << curve.getP1() << ", "
              << curve.getP2() << "}";
 }
 
-ostream &operator<<(ostream &out, const TCubic &curve) {
+std::ostream &operator<<(std::ostream &out, const TCubic &curve) {
   return out << "C{" << curve.getP0() << ", " << curve.getP1() << ", "
              << curve.getP2() << ", " << curve.getP3() << "}";
 }
 
-ostream &operator<<(ostream &out, const TThickSegment &segment) {
+std::ostream &operator<<(std::ostream &out, const TThickSegment &segment) {
   return out << "TS{" << segment.getThickP0() << ", " << segment.getThickP1()
              << "}";
 }
 
-ostream &operator<<(ostream &out, const TThickQuadratic &tq) {
+std::ostream &operator<<(std::ostream &out, const TThickQuadratic &tq) {
   return out << "TQ{" << tq.getThickP0() << ", " << tq.getThickP1() << ", "
              << tq.getThickP2() << "}";
 }
 
-ostream &operator<<(ostream &out, const TThickCubic &tc) {
+std::ostream &operator<<(std::ostream &out, const TThickCubic &tc) {
   return out << "TC{" << tc.getThickP0() << ", " << tc.getThickP1() << ", "
              << tc.getThickP2() << ", " << tc.getThickP3() << "}";
 }

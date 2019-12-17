@@ -4,8 +4,6 @@
 #include <tmathutil.h>
 #include <algorithm>
 
-using namespace std;
-
 //-----------------------------------------------------------------------------
 
 void ToonzExt::SquarePotential::setParameters_(const TStroke *ref, double par,
@@ -19,11 +17,12 @@ void ToonzExt::SquarePotential::setParameters_(const TStroke *ref, double par,
   lengthAtParam_ = ref->getLength(par);
 
   // lunghezza dal pto di click all'inizio della curva
-  leftFactor_ = min(lengthAtParam_,
-                    actionLength_ * 0.5);  // lengthAtParam_ / strokeLength_;
+  leftFactor_ =
+      std::min(lengthAtParam_,
+               actionLength_ * 0.5);  // lengthAtParam_ / strokeLength_;
 
   // lunghezza dal pto di click alla fine
-  rightFactor_ = min(strokeLength_ - lengthAtParam_, actionLength_ * 0.5);
+  rightFactor_ = std::min(strokeLength_ - lengthAtParam_, actionLength_ * 0.5);
 
   // considero come intervallo di mapping [-range,range].
   //  4 ha come valore c.a. 10exp-6

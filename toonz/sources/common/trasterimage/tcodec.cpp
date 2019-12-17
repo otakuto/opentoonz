@@ -20,8 +20,6 @@
 #include <QProcess>
 #include <QCoreApplication>
 
-using namespace std;
-
 namespace {
 class Header {
   enum RasType {

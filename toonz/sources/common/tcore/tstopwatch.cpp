@@ -48,8 +48,6 @@ static int overheadTicks  = 0;  // overhead  in calling timer
 static TimerType timerToUse = TTUTickCount;
 #endif
 
-using namespace std;
-
 //-----------------------------------------------------------
 
 TStopWatch::TStopWatch(std::string name)
@@ -336,8 +334,8 @@ TUINT32 TStopWatch::getSystemTime() {
 
 //-----------------------------------------------------------
 
-TStopWatch::operator string() {
-  ostringstream out;
+TStopWatch::operator std::string() {
+  std::ostringstream out;
   out << m_name.c_str() << ": " << (int)getTotalTime() << " u"
       << (int)getUserTime() << " s" << (TINT32)getSystemTime();
   return out.str();
@@ -345,18 +343,18 @@ TStopWatch::operator string() {
 
 //------------------------------------------------------------
 
-void TStopWatch::print() { print(cout); }
+void TStopWatch::print() { print(std::cout); }
 
 //-------------------------------------------------------------------------------------------
 
-void TStopWatch::print(ostream &out) {
-  string s(*this);
-  out << s.c_str() << endl;
+void TStopWatch::print(std::ostream &out) {
+  std::string s(*this);
+  out << s.c_str() << std::endl;
 }
 
 //-------------------------------------------------------------------------------------------
 
-void TStopWatch::printGlobals(ostream &out) {
+void TStopWatch::printGlobals(std::ostream &out) {
   const int n = sizeof(StopWatch) / sizeof(StopWatch[0]);
   for (int i = 0; i < n; i++)
     if (StopWatch[i].m_active) StopWatch[i].print(out);
@@ -364,7 +362,7 @@ void TStopWatch::printGlobals(ostream &out) {
 
 //-------------------------------------------------------------------------------------------
 
-void TStopWatch::printGlobals() { printGlobals(cout); }
+void TStopWatch::printGlobals() { printGlobals(std::cout); }
 
 //-----------------------------------------------------------
 #ifdef _WIN32

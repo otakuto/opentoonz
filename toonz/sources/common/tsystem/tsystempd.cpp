@@ -104,11 +104,9 @@
 PLATFORM_NOT_SUPPORTED
 #endif
 
-using namespace std;
-
 #ifdef _WIN32
 
-wstring getFormattedMessage(DWORD lastError) {
+std::wstring getFormattedMessage(DWORD lastError) {
   LPVOID lpMsgBuf;
   FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
                     FORMAT_MESSAGE_IGNORE_INSERTS,
@@ -117,12 +115,14 @@ wstring getFormattedMessage(DWORD lastError) {
                 (LPTSTR)&lpMsgBuf, 0, NULL);
 
   int wSize = MultiByteToWideChar(0, 0, (char *)lpMsgBuf, -1, 0, 0);
-  if (!wSize) return wstring();
+  if (!wSize) {
+    return std::wstring();
+  }
 
   std::unique_ptr<wchar_t[]> wBuffer(new wchar_t[wSize + 1]);
   MultiByteToWideChar(0, 0, (char *)lpMsgBuf, -1, wBuffer.get(), wSize);
   wBuffer[wSize] = '\0';
-  wstring wmsg(wBuffer.get());
+  std::wstring wmsg(wBuffer.get());
 
   LocalFree(lpMsgBuf);
   return wmsg;
@@ -131,12 +131,12 @@ wstring getFormattedMessage(DWORD lastError) {
 #endif
 //------------------------------------------------------------
 
-void TSystem::outputDebug(string s) {
+void TSystem::outputDebug(std::string s) {
 #ifdef TNZCORE_LIGHT
 #ifdef _WIN32
   OutputDebugString((LPCWSTR)s.c_str());
 #else
-  cerr << s << endl;
+  std::cerr << s << std::endl;
 #endif
 #else
   qDebug("%s", s.c_str());
@@ -438,9 +438,9 @@ void TSystem::moveFileToRecycleBin(const TFilePath &fp) {
     return;
   }
   // TFilePath dest = TFilePath(path)+(fp.getName()+fp.getDottedType());
-  string fullNameWithExt = ::to_string(fp);
+  std::string fullNameWithExt = ::to_string(fp);
   int i                  = fullNameWithExt.rfind("/");
-  string nameWithExt     = fullNameWithExt.substr(i + 1);
+  std::string nameWithExt     = fullNameWithExt.substr(i + 1);
   TFilePath dest         = TFilePath((char *)path) + nameWithExt;
 
   try {
@@ -461,7 +461,7 @@ void TSystem::moveFileToRecycleBin(const TFilePath &fp) {
 //------------------------------------------------------------
 
 TString TSystemException::getMessage() const {
-  wstring msg;
+  std::wstring msg;
   switch (m_err) {
   case -1:
     msg = m_msg;

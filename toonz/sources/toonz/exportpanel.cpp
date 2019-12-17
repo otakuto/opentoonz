@@ -105,7 +105,7 @@ void RenderController::setUseMarkers(bool useMarkers) {
 
 //-----------------------------------------------------------------------------
 
-void RenderController::setMovieExt(string ext) { m_movieExt = ext; }
+void RenderController::setMovieExt(std::string ext) { m_movieExt = ext; }
 
 //-----------------------------------------------------------------------------
 

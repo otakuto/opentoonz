@@ -44,7 +44,6 @@
 #include <QTextStream>
 #include <QString>
 
-using namespace std;
 using namespace DVGui;
 
 namespace {
@@ -226,16 +225,16 @@ CameraSettingsWidget::CameraSettingsWidget(bool forCleanup)
 
   m_lxFld->setMeasure("camera.lx");
   m_lyFld->setMeasure("camera.ly");
-  m_lxFld->setRange(numeric_limits<double>::epsilon(),
-                    numeric_limits<double>::infinity());
-  m_lyFld->setRange(numeric_limits<double>::epsilon(),
-                    numeric_limits<double>::infinity());
+  m_lxFld->setRange(std::numeric_limits<double>::epsilon(),
+                    std::numeric_limits<double>::infinity());
+  m_lyFld->setRange(std::numeric_limits<double>::epsilon(),
+                    std::numeric_limits<double>::infinity());
 
   m_xResFld->setRange(1, 10000000);
   m_yResFld->setRange(1, 10000000);
 
-  m_xDpiFld->setRange(1, numeric_limits<double>::infinity());
-  m_yDpiFld->setRange(1, numeric_limits<double>::infinity());
+  m_xDpiFld->setRange(1, std::numeric_limits<double>::infinity());
+  m_yDpiFld->setRange(1, std::numeric_limits<double>::infinity());
 
   m_fspChk->setFixedSize(20, 20);
   m_fspChk->setCheckable(true);

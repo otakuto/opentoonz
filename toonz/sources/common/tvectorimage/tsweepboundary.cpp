@@ -20,9 +20,6 @@
 #include "tsweepboundary.h"
 #include "tcurves.h"
 
-// Some using declaration
-using namespace std;
-
 inline bool operator<(const TPointD &a, const TPointD &b) {
   if (a.x < b.x)
     return true;
@@ -46,8 +43,8 @@ const int nonSimpleLoopsMaxSize        = 5;
 const int smallStrokeDim               = nonSimpleLoopsMaxSize * 5;
 bool isSmallStroke                     = false;
 
-set<TPointD> simpleCrossing;
-set<TPointD> nonSimpleCrossing;
+std::set<TPointD> simpleCrossing;
+std::set<TPointD> nonSimpleCrossing;
 
 class LinkedQuadratic final : public TQuadratic {
 public:
@@ -112,8 +109,8 @@ public:
 
 class CompareBranches {
 public:
-  bool operator()(const pair<LinkedQuadratic *, Direction> &b1,
-                  const pair<LinkedQuadratic *, Direction> &b2) {
+  bool operator()(const std::pair<LinkedQuadratic *, Direction> &b1,
+                  const std::pair<LinkedQuadratic *, Direction> &b2) {
     TPointD p1, p2;
     if (b1.second == inward) {
       p1 = b1.first->getP1() - b1.first->getP2();
@@ -168,15 +165,15 @@ public:
   }
 };
 
-typedef list<LinkedQuadratic> LinkedQuadraticList;
-typedef list<TQuadratic> QuadraticList;
+typedef std::list<LinkedQuadratic> LinkedQuadraticList;
+typedef std::list<TQuadratic> QuadraticList;
 }  // namespace {
 
 //---------------------------------------------------------------------------
 
 static void splitCircularArcIntoQuadraticCurves(
     const TPointD &Center, const TPointD &Pstart, const TPointD &Pend,
-    vector<TQuadratic *> &quadArray) {
+    std::vector<TQuadratic *> &quadArray) {
   // It splits a circular anticlockwise arc into a sequence of quadratic bezier
   // curves
   // Every quadratic curve can approximate an arc no longer than 45 degrees (or
@@ -310,20 +307,21 @@ void linkQuadraticList(LinkedQuadraticList &inputBoundaries);
 void computeInputBoundaries(LinkedQuadraticList &inputBoundaries);
 void processAdjacentQuadratics(LinkedQuadraticList &inputBoundaries);
 void findIntersections(
-    LinkedQuadratic *quadratic, set<LinkedQuadratic *> &intersectionWindow,
-    map<LinkedQuadratic *, vector<double>> &intersectedQuadratics);
+    LinkedQuadratic *quadratic, std::set<LinkedQuadratic *> &intersectionWindow,
+    std::map<LinkedQuadratic *, std::vector<double>> &intersectedQuadratics);
 void refreshIntersectionWindow(LinkedQuadratic *quadratic,
-                               set<LinkedQuadratic *> &intersectionWindow);
+                               std::set<LinkedQuadratic *> &intersectionWindow);
 void segmentate(LinkedQuadraticList &inputBoundaries,
-                LinkedQuadratic *thickQuadratic, vector<double> &splitPoints);
+                LinkedQuadratic *thickQuadratic,
+                std::vector<double> &splitPoints);
 void processIntersections(LinkedQuadraticList &intersectionBoundary);
 bool processNonSimpleLoops(
     TPointD &intersectionPoint,
-    vector<pair<LinkedQuadratic *, Direction>> &crossing);
+    std::vector<std::pair<LinkedQuadratic *, Direction>> &crossing);
 bool deleteUnlinkedLoops(LinkedQuadraticList &inputBoundaries);
 bool getOutputOutlines(LinkedQuadraticList &inputBoundaries,
-                       vector<TStroke *> &sweepStrokes);
-void removeFalseHoles(const vector<TStroke *> &strokes);
+                       std::vector<TStroke *> &sweepStrokes);
+void removeFalseHoles(const std::vector<TStroke *> &strokes);
 
 inline void TraceLinkedQuadraticList(LinkedQuadraticList &quadraticList) {
 #ifdef _WIN32
@@ -365,7 +363,7 @@ inline void drawPointCross(const TPointD &point, double R, double G, double B) {
 //-------------------------------------------------------------------
 
 static TStroke *getOutStroke(LinkedQuadraticList &inputBoundaries) {
-  vector<TPointD> aux;
+  std::vector<TPointD> aux;
   LinkedQuadraticList::iterator it = inputBoundaries.begin();
 
   aux.push_back(inputBoundaries.front().getP0());
@@ -385,12 +383,12 @@ static TStroke *getOutStroke(LinkedQuadraticList &inputBoundaries) {
 //-------------------------------------------------------------------
 
 inline bool getOutputOutlines(LinkedQuadraticList &inputBoundaries,
-                              vector<TStroke *> &sweepStrokes) {
+                              std::vector<TStroke *> &sweepStrokes) {
   // int count=0;
 
   while (!inputBoundaries.empty()) {
     // outputOutlines.push_back(TFlash::Polyline());
-    vector<TPointD> v;
+    std::vector<TPointD> v;
     LinkedQuadraticList::iterator it = inputBoundaries.begin();
     // std::advance(it, count+1);
     LinkedQuadratic *first = &(*it);
@@ -427,7 +425,7 @@ inline bool getOutputOutlines(LinkedQuadraticList &inputBoundaries,
 //-------------------------------------------------------------------
 
 static bool computeBoundaryStroke(const TStroke &_stroke,
-                                  vector<TStroke *> &sweepStrokes) {
+                                  std::vector<TStroke *> &sweepStrokes) {
   // if(!outlines.empty()) return false;
 
   TStroke *oriStroke = const_cast<TStroke *>(&_stroke);
@@ -492,7 +490,7 @@ inline void computeStrokeBoundary(const TStroke &stroke,
 
     ++chunkIndex;
     if (chunkIndex == chunkCount) {
-      vector<TQuadratic *> quadArray;
+      std::vector<TQuadratic *> quadArray;
       double thickness = std::max({thickQuadratic->getThickP0().thick,
                                    thickQuadratic->getThickP1().thick,
                                    thickQuadratic->getThickP2().thick});
@@ -539,7 +537,7 @@ inline void computeStrokeBoundary(const TStroke &stroke,
   if (!(rwdP2 == fwdP0)) {
     //		inputBoundaries.push_front(TQuadratic(rwdP2, (rwdP2+fwdP0)*0.5,
     // fwdP0));
-    vector<TQuadratic *> quadArray;
+    std::vector<TQuadratic *> quadArray;
     splitCircularArcIntoQuadraticCurves((rwdP2 + fwdP0) * 0.5, rwdP2, fwdP0,
                                         quadArray);
     for (unsigned int i = 0; i < quadArray.size(); ++i) {
@@ -596,7 +594,7 @@ inline void computeStrokeBoundary(const TStroke &stroke,
     normalizeTThickQuadratic(thickQuadratic, tempThickQuadratic);
     normalizeTThickQuadratic(nextThickQuadratic, tempNextThickQuadratic);
 
-    vector<DoublePair> intersections;
+    std::vector<DoublePair> intersections;
     TQuadratic quadratic(thickQuadratic->getP0(), thickQuadratic->getP1(),
                          thickQuadratic->getP2());
     TQuadratic nextQuadratic(nextThickQuadratic->getP0(),
@@ -671,7 +669,7 @@ inline void computeStrokeBoundary(const TStroke &stroke,
         inputBoundaries.push_front(LinkedQuadratic(temp, rwdP1, rwdP2));
         inputBoundaries.push_back(LinkedQuadratic(fwdP0, fwdP1, fwdP2));
 
-        vector<TQuadratic *> quadArray;
+        std::vector<TQuadratic *> quadArray;
         splitCircularArcIntoQuadraticCurves(thickQuadratic->getP2(), fwdP2,
                                             nextFwdP0, quadArray);
         for (unsigned int i = 0; i < quadArray.size(); ++i) {
@@ -700,7 +698,7 @@ inline void computeStrokeBoundary(const TStroke &stroke,
         inputBoundaries.push_front(LinkedQuadratic(rwdP0, rwdP1, rwdP2));
         inputBoundaries.push_back(LinkedQuadratic(fwdP0, fwdP1, temp));
 
-        vector<TQuadratic *> quadArray;
+        std::vector<TQuadratic *> quadArray;
         splitCircularArcIntoQuadraticCurves(thickQuadratic->getP2(), nextRwdP2,
                                             rwdP0, quadArray);
         for (int i = quadArray.size() - 1; i >= 0; --i) {
@@ -728,7 +726,7 @@ inline void computeStrokeBoundary(const TStroke &stroke,
           inputBoundaries.push_front(
               LinkedQuadratic(thickQuadratic->getP2(), rwdP1, rwdP2));
 
-          vector<TQuadratic *> quadArray;
+          std::vector<TQuadratic *> quadArray;
           splitCircularArcIntoQuadraticCurves(thickQuadratic->getP2(), fwdP2,
                                               nextFwdP0, quadArray);
           for (unsigned int i = 0; i < quadArray.size(); ++i) {
@@ -745,7 +743,7 @@ inline void computeStrokeBoundary(const TStroke &stroke,
         } else if (left(thickQuadratic->getP0(), thickQuadratic->getP1(),
                         nextThickQuadratic->getP2())) {
           inputBoundaries.push_back(LinkedQuadratic(fwdP0, fwdP1, fwdP2));
-          vector<TQuadratic *> quadArray;
+          std::vector<TQuadratic *> quadArray;
           splitCircularArcIntoQuadraticCurves(thickQuadratic->getP2(), fwdP2,
                                               nextFwdP0, quadArray);
           for (unsigned int i = 0; i < quadArray.size(); ++i) {
@@ -761,7 +759,7 @@ inline void computeStrokeBoundary(const TStroke &stroke,
         } else if (right(thickQuadratic->getP0(), thickQuadratic->getP1(),
                          nextThickQuadratic->getP2())) {
           inputBoundaries.push_front(LinkedQuadratic(rwdP0, rwdP1, rwdP2));
-          vector<TQuadratic *> quadArray;
+          std::vector<TQuadratic *> quadArray;
           splitCircularArcIntoQuadraticCurves(thickQuadratic->getP2(), fwdP2,
                                               nextFwdP0, quadArray);
           for (int i = quadArray.size() - 1; i >= 0; --i) {
@@ -826,7 +824,7 @@ inline void computeStrokeBoundary(const TStroke &stroke,
     inputBoundaries.push_back(LinkedQuadratic(fwdP0, fwdP1, fwdP2));
 
     if (!(fwdP2 == rwdP0)) {
-      vector<TQuadratic *> quadArray;
+      std::vector<TQuadratic *> quadArray;
       splitCircularArcIntoQuadraticCurves((fwdP2 + rwdP0) * 0.5, fwdP2, rwdP0,
                                           quadArray);
       for (unsigned int i = 0; i < quadArray.size(); ++i) {
@@ -991,8 +989,8 @@ inline void linkQuadraticList(LinkedQuadraticList &inputBoundaries) {
 //-------------------------------------------------------------------
 
 inline void computeInputBoundaries(LinkedQuadraticList &inputBoundaries) {
-  set<LinkedQuadratic *> intersectionWindow;
-  map<LinkedQuadratic *, vector<double>> intersectedQuadratics;
+  std::set<LinkedQuadratic *> intersectionWindow;
+  std::map<LinkedQuadratic *, std::vector<double>> intersectedQuadratics;
   LinkedQuadraticList intersectionBoundary;
 
   // detect adjacent quadratics intersections
@@ -1030,8 +1028,8 @@ inline void computeInputBoundaries(LinkedQuadraticList &inputBoundaries) {
   }*/
 
   // segmentate curves
-  map<LinkedQuadratic *, vector<double>>::iterator it_intersectedQuadratics =
-      intersectedQuadratics.begin();
+  std::map<LinkedQuadratic *, std::vector<double>>::iterator
+      it_intersectedQuadratics = intersectedQuadratics.begin();
   while (it_intersectedQuadratics != intersectedQuadratics.end()) {
     segmentate(intersectionBoundary, it_intersectedQuadratics->first,
                it_intersectedQuadratics->second);
@@ -1053,7 +1051,7 @@ inline void processAdjacentQuadratics(LinkedQuadraticList &inputBoundaries) {
   LinkedQuadratic *start = &inputBoundaries.front();
   LinkedQuadratic *curr  = start;
   do {
-    vector<DoublePair> intersections;
+    std::vector<DoublePair> intersections;
 
     LinkedQuadratic *next, *temp;
     next = curr->next;
@@ -1106,11 +1104,11 @@ inline void processAdjacentQuadratics(LinkedQuadraticList &inputBoundaries) {
 //-------------------------------------------------------------------
 
 inline void findIntersections(
-    LinkedQuadratic *quadratic, set<LinkedQuadratic *> &intersectionWindow,
-    map<LinkedQuadratic *, vector<double>> &intersectedQuadratics) {
-  set<LinkedQuadratic *>::iterator it = intersectionWindow.begin();
+    LinkedQuadratic *quadratic, std::set<LinkedQuadratic *> &intersectionWindow,
+    std::map<LinkedQuadratic *, std::vector<double>> &intersectedQuadratics) {
+  std::set<LinkedQuadratic *>::iterator it = intersectionWindow.begin();
   while (it != intersectionWindow.end()) {
-    vector<DoublePair> intersections;
+    std::vector<DoublePair> intersections;
 
     if ((quadratic->getP0() == (*it)->getP2()) &&
         (quadratic->getP1() == (*it)->getP1()) &&
@@ -1134,11 +1132,12 @@ inline void findIntersections(
 }
 
 inline void refreshIntersectionWindow(
-    LinkedQuadratic *quadratic, set<LinkedQuadratic *> &intersectionWindow) {
-  set<LinkedQuadratic *>::iterator it = intersectionWindow.begin();
+    LinkedQuadratic *quadratic,
+    std::set<LinkedQuadratic *> &intersectionWindow) {
+  std::set<LinkedQuadratic *>::iterator it = intersectionWindow.begin();
   while (it != intersectionWindow.end()) {
     if ((*it)->getBBox().y0 > quadratic->getBBox().y1) {
-      set<LinkedQuadratic *>::iterator erase_it;
+      std::set<LinkedQuadratic *>::iterator erase_it;
       erase_it = it;
       ++it;
       intersectionWindow.erase(erase_it);
@@ -1151,7 +1150,7 @@ inline void refreshIntersectionWindow(
 
 inline void segmentate(LinkedQuadraticList &intersectionBoundary,
                        LinkedQuadratic *quadratic,
-                       vector<double> &splitPoints) {
+                       std::vector<double> &splitPoints) {
   for (unsigned int k = 0; k < splitPoints.size(); k++) {
     /*		_RPT1(	_CRT_WARN,
             "\n%f\n",
@@ -1164,16 +1163,16 @@ inline void segmentate(LinkedQuadraticList &intersectionBoundary,
   }
 
   sort(splitPoints.begin(), splitPoints.end());
-  vector<double>::iterator it_duplicates =
+  std::vector<double>::iterator it_duplicates =
       unique(splitPoints.begin(), splitPoints.end());
   splitPoints.erase(it_duplicates, splitPoints.end());
 
-  vector<TQuadratic *> segments;
+  std::vector<TQuadratic *> segments;
   split<TQuadratic>(*quadratic, splitPoints, segments);
 
   LinkedQuadratic *prevQuadratic = quadratic->prev;
 
-  vector<TQuadratic *>::iterator it = segments.begin();
+  std::vector<TQuadratic *>::iterator it = segments.begin();
   while (it != segments.end()) {
     if (!((*it)->getP0() == (*it)->getP2())) {
       TQuadratic quad = *(*it);
@@ -1196,25 +1195,26 @@ inline void segmentate(LinkedQuadraticList &intersectionBoundary,
 //-------------------------------------------------------------------
 
 inline void processIntersections(LinkedQuadraticList &intersectionBoundary) {
-  vector<pair<LinkedQuadratic *, Direction>> crossing;
+  std::vector<std::pair<LinkedQuadratic *, Direction>> crossing;
 
   LinkedQuadraticList::iterator it1, it2;
 
   it1 = intersectionBoundary.begin();
   while (it1 != intersectionBoundary.end()) {
     TPointD intersectionPoint = it1->getP0();
-    crossing.push_back(pair<LinkedQuadratic *, Direction>(&(*it1), outward));
+    crossing.push_back(
+        std::pair<LinkedQuadratic *, Direction>(&(*it1), outward));
 
     it2 = intersectionBoundary.begin();
     while (it2 != intersectionBoundary.end()) {
       if (it1 != it2) {
         if (it2->getP0() == intersectionPoint) {
           crossing.push_back(
-              pair<LinkedQuadratic *, Direction>(&(*it2), outward));
+              std::pair<LinkedQuadratic *, Direction>(&(*it2), outward));
         }
         if (it2->getP2() == intersectionPoint) {
           crossing.push_back(
-              pair<LinkedQuadratic *, Direction>(&(*it2), inward));
+              std::pair<LinkedQuadratic *, Direction>(&(*it2), inward));
         }
       }
       ++it2;
@@ -1263,8 +1263,8 @@ crossing[j].first->getP0().y);
                 else assert(false);
         }*/
 
-        vector<pair<LinkedQuadratic *, Direction>>::iterator it, it_prev,
-            it_next, it_nextnext, it_prevprev;
+        std::vector<std::pair<LinkedQuadratic *, Direction>>::iterator it,
+            it_prev, it_next, it_nextnext, it_prevprev;
         it = crossing.begin();
         while (it != crossing.end()) {
           if (it->second == outward) {
@@ -1372,8 +1372,8 @@ crossing[j].first->getP0().y);
 
 bool processNonSimpleLoops(
     TPointD &intersectionPoint,
-    vector<pair<LinkedQuadratic *, Direction>> &crossing) {
-  vector<pair<LinkedQuadratic *, Direction>>::iterator it, last;
+    std::vector<std::pair<LinkedQuadratic *, Direction>> &crossing) {
+  std::vector<std::pair<LinkedQuadratic *, Direction>>::iterator it, last;
   it = crossing.begin();
   while (it != crossing.end()) {
     if (it->second == outward || it->second == deletedOutward) {
@@ -1384,8 +1384,9 @@ bool processNonSimpleLoops(
           loopStart->prev = 0;
           crossing.erase(it);
           loopCurr->next = 0;
-          last           = remove(crossing.begin(), crossing.end(),
-                        pair<LinkedQuadratic *, Direction>(loopCurr, inward));
+          last           = std::remove(
+              crossing.begin(), crossing.end(),
+              std::pair<LinkedQuadratic *, Direction>(loopCurr, inward));
           crossing.erase(last, crossing.end());
           return true;
           break;
@@ -1501,13 +1502,14 @@ inline bool deleteUnlinkedLoops(LinkedQuadraticList &inputBoundaries) {
 namespace {
 
 void computeIntersections(IntersectionData &intData,
-                          const vector<TStroke *> &strokeArray);
+                          const std::vector<TStroke *> &strokeArray);
 
 //-------------------------------------------------------------------
 
-void addBranch(IntersectionData &intData, list<IntersectedStroke> &strokeList,
-               const vector<TStroke *> &s, int ii, double w) {
-  list<IntersectedStroke>::iterator it;
+void addBranch(IntersectionData &intData,
+               std::list<IntersectedStroke> &strokeList,
+               const std::vector<TStroke *> &s, int ii, double w) {
+  std::list<IntersectedStroke>::iterator it;
   TPointD tan1, tan2;
   double crossVal;
 
@@ -1576,10 +1578,10 @@ void addBranch(IntersectionData &intData, list<IntersectedStroke> &strokeList,
 //-----------------------------------------------------------------------------
 
 void addBranches(IntersectionData &intData, Intersection &intersection,
-                 const vector<TStroke *> &s, int ii, int jj,
+                 const std::vector<TStroke *> &s, int ii, int jj,
                  DoublePair intersectionPair) {
   bool foundS1 = false, foundS2 = false;
-  list<IntersectedStroke>::iterator it;
+  std::list<IntersectedStroke>::iterator it;
 
   assert(!intersection.m_strokeList.empty());
 
@@ -1609,14 +1611,14 @@ void addBranches(IntersectionData &intData, Intersection &intersection,
 //-----------------------------------------------------------------------------
 
 #ifdef IS_DOTNET
-#define NULL_ITER list<IntersectedStroke>::iterator()
+#define NULL_ITER std::list<IntersectedStroke>::iterator()
 #else
 #define NULL_ITER 0
 #endif
 
 //-----------------------------------------------------------------------------
 Intersection makeIntersection(IntersectionData &intData,
-                              const vector<TStroke *> &s, int ii, int jj,
+                              const std::vector<TStroke *> &s, int ii, int jj,
                               DoublePair inter) {
   Intersection interList;
   IntersectedStroke item1(intData.m_intList.end(), NULL_ITER),
@@ -1662,9 +1664,8 @@ Intersection makeIntersection(IntersectionData &intData,
 
 //-----------------------------------------------------------------------------
 
-void addIntersection(IntersectionData &intData, const vector<TStroke *> &s,
+void addIntersection(IntersectionData &intData, const std::vector<TStroke *> &s,
                      int ii, int jj, DoublePair intersection) {
-  list<Intersection>::iterator it;
   TPointD p;
 
   if (areAlmostEqual(intersection.first, 0.0, 1e-9))
@@ -1679,15 +1680,17 @@ void addIntersection(IntersectionData &intData, const vector<TStroke *> &s,
 
   p = s[ii]->getPoint(intersection.first);
 
-  for (it = intData.m_intList.begin(); it != intData.m_intList.end(); it++)
-    if (areAlmostEqual((*it).m_intersection,
-                       p))  // devono essere rigorosamente uguali, altrimenti
+  for (auto const &e : intData.m_intList) {
+    if (areAlmostEqual(e.m_intersection, p))
+    // devono essere rigorosamente uguali, altrimenti
     // il calcolo dell'ordine dei rami con le tangenti sballa
     {
-      if ((*it).m_intersection == p)
-        addBranches(intData, *it, s, ii, jj, intersection);
+      if (e.m_intersection == p) {
+        addBranches(intData, e, s, ii, jj, intersection);
+      }
       return;
     }
+  }
 
   intData.m_intList.push_back(
       makeIntersection(intData, s, ii, jj, intersection));
@@ -1695,9 +1698,9 @@ void addIntersection(IntersectionData &intData, const vector<TStroke *> &s,
 
 //-----------------------------------------------------------------------------
 
-void findNearestIntersection(list<Intersection> &interList) {
-  list<Intersection>::iterator i1;
-  list<IntersectedStroke>::iterator i2;
+void findNearestIntersection(std::list<Intersection> &interList) {
+  std::list<Intersection>::iterator i1;
+  std::list<IntersectedStroke>::iterator i2;
 
   for (i1 = interList.begin(); i1 != interList.end(); i1++) {
     for (i2 = (*i1).m_strokeList.begin(); i2 != (*i1).m_strokeList.end();
@@ -1707,8 +1710,8 @@ void findNearestIntersection(list<Intersection> &interList) {
 
       int versus      = (i2->m_gettingOut) ? 1 : -1;
       double minDelta = (std::numeric_limits<double>::max)();
-      list<Intersection>::iterator it1, it1Res;
-      list<IntersectedStroke>::iterator it2, it2Res;
+      std::list<Intersection>::iterator it1, it1Res;
+      std::list<IntersectedStroke>::iterator it2, it2Res;
 
       for (it1 = i1; it1 != interList.end(); ++it1) {
         if (it1 == i1)
@@ -1771,13 +1774,13 @@ int myIntersect(const TStroke *s1, const TStroke *s2,
 //-----------------------------------------------------------------------------
 
 void computeIntersections(IntersectionData &intData,
-                          const vector<TStroke *> &strokeArray) {
+                          const std::vector<TStroke *> &strokeArray) {
   int i, j;
 
   assert(intData.m_intersectedStrokeArray.empty());
 
-  list<Intersection>::iterator it1;
-  list<IntersectedStroke>::iterator it2;
+  std::list<Intersection>::iterator it1;
+  std::list<IntersectedStroke>::iterator it2;
 
   for (i = 0; i < (int)strokeArray.size(); i++) {
     TStroke *s1 = strokeArray[i];
@@ -1785,7 +1788,7 @@ void computeIntersections(IntersectionData &intData,
                     DoublePair(0, 1));  // le stroke sono sicuramente selfloop!
     for (j = i + 1; j < (int)strokeArray.size(); j++) {
       TStroke *s2 = strokeArray[j];
-      vector<DoublePair> intersections;
+      std::vector<DoublePair> intersections;
       if (s1->getBBox().overlaps(s2->getBBox()) &&
           myIntersect(s1, s2, intersections))
         for (int k = 0; k < (int)intersections.size(); k++)
@@ -1810,9 +1813,9 @@ void computeIntersections(IntersectionData &intData,
 
 //-----------------------------------------------------------------------------
 
-TRegion *findRegion(list<Intersection> &intList,
-                    list<Intersection>::iterator it1,
-                    list<IntersectedStroke>::iterator it2);
+TRegion *findRegion(std::list<Intersection> &intList,
+                    std::list<Intersection>::iterator it1,
+                    std::list<IntersectedStroke>::iterator it2);
 
 bool isValidArea(const TRegion &r);
 
@@ -1824,11 +1827,11 @@ bool isValidArea(const TRegion &r);
 
 //-----------------------------------------------------------------------------
 
-bool computeSweepBoundary(const vector<TStroke *> &strokes,
-                          vector<vector<TQuadratic *>> &outlines) {
+bool computeSweepBoundary(const std::vector<TStroke *> &strokes,
+                          std::vector<std::vector<TQuadratic *>> &outlines) {
   if (strokes.empty()) return false;
   // if(!outlines.empty()) return false;
-  vector<TStroke *> sweepStrokes;
+  std::vector<TStroke *> sweepStrokes;
 
   UINT i = 0;
   for (i = 0; i < strokes.size(); i++)
@@ -1842,8 +1845,8 @@ return true;
 
   for (i = 0; i < sweepStrokes.size(); i++) {
     // of<<"****sweepstroke #"<<i<<"*****"<<endl;
-    outlines.push_back(vector<TQuadratic *>());
-    vector<TQuadratic *> &q = outlines.back();
+    outlines.push_back(std::vector<TQuadratic *>());
+    std::vector<TQuadratic *> &q = outlines.back();
     for (int j = 0; j < sweepStrokes[i]->getChunkCount(); j++) {
       const TThickQuadratic *q0 = sweepStrokes[i]->getChunk(j);
       // of<<"q"<<j<<": "<<q0->getP0().x<<", "<<q0->getP0().y<<endl;
@@ -1877,16 +1880,16 @@ return true;
 #ifdef LEVO
 namespace {
 
-TRegion *findRegion(list<Intersection> &intList,
-                    list<Intersection>::iterator it1,
-                    list<IntersectedStroke>::iterator it2) {
+TRegion *findRegion(std::list<Intersection> &intList,
+                    std::list<Intersection>::iterator it1,
+                    std::list<IntersectedStroke>::iterator it2) {
   TRegion *r = new TRegion();
   // int currStyle=0;
 
-  list<IntersectedStroke>::iterator itStart = it2;
+  std::list<IntersectedStroke>::iterator itStart = it2;
 
-  list<Intersection>::iterator nextIt1;
-  list<IntersectedStroke>::iterator nextIt2;
+  std::list<Intersection>::iterator nextIt1;
+  std::list<IntersectedStroke>::iterator nextIt2;
 
   while (!(*it2).m_visited) {
     (*it2).m_visited = true;

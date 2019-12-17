@@ -19,8 +19,6 @@
 TNZ_LITTLE_ENDIAN undefined !!
 #endif
 
-    using namespace std;
-
 TUINT32 convertToLong(UCHAR *buffer);
 void storeFloat(unsigned char *buffer, TUINT32 value);
 
@@ -30,21 +28,24 @@ void storeFloat(unsigned char *buffer, TUINT32 value);
 
 class TAIFFChunk {
 public:
-  string m_name;
+  std::string m_name;
   TINT32 m_length;  // lunghezza del chunk in byte
 
-  TAIFFChunk(string name, TINT32 length) : m_name(name), m_length(length) {}
+  TAIFFChunk(std::string name, TINT32 length)
+      : m_name(name), m_length(length) {}
 
   virtual ~TAIFFChunk() {}
 
-  virtual bool read(ifstream &is) {
+  virtual bool read(std::ifstream &is) {
     skip(is);
     return true;
   }
 
-  void skip(ifstream &is) { is.seekg((TINT32)is.tellg() + (TINT32)m_length); }
+  void skip(std::ifstream &is) {
+    is.seekg((TINT32)is.tellg() + (TINT32)m_length);
+  }
 
-  static bool readHeader(ifstream &is, string &name, TINT32 &length) {
+  static bool readHeader(std::ifstream &is, std::string &name, TINT32 &length) {
     char cName[5];
     TINT32 len;
 
@@ -58,7 +59,7 @@ public:
 
     if (is.fail()) return false;
 
-    name   = string(cName);
+    name   = std::string(cName);
     length = len;
     return true;
   }
@@ -75,9 +76,9 @@ public:
   USHORT m_bitPerSample;
   TUINT32 m_sampleRate;
 
-  TCOMMChunk(string name, TINT32 length) : TAIFFChunk(name, length) {}
+  TCOMMChunk(std::string name, TINT32 length) : TAIFFChunk(name, length) {}
 
-  bool read(ifstream &is) override {
+  bool read(std::ifstream &is) override {
     is.read((char *)&m_chans, sizeof(m_chans));
     is.read((char *)&m_frames, sizeof(m_frames));
     is.read((char *)&m_bitPerSample, sizeof(m_bitPerSample));
@@ -95,7 +96,7 @@ public:
     return true;
   }
 
-  bool write(ofstream &os) {
+  bool write(std::ofstream &os) {
     TINT32 length       = m_length;
     USHORT chans        = m_chans;
     TUINT32 frames      = m_frames;
@@ -124,17 +125,17 @@ public:
     return true;
   }
 
-  virtual void print(ostream &os) const {
-    os << "canali   = '" << m_chans << endl;
-    os << "frames   = '" << (unsigned int)m_frames << endl;
-    os << "bitxsam  = '" << m_bitPerSample << endl;
-    os << "rate	    = '" << (unsigned int)m_sampleRate << endl;
+  virtual void print(std::ostream &os) const {
+    os << "canali   = '" << m_chans << std::endl;
+    os << "frames   = '" << (unsigned int)m_frames << std::endl;
+    os << "bitxsam  = '" << m_bitPerSample << std::endl;
+    os << "rate     = '" << (unsigned int)m_sampleRate << std::endl;
   }
 };
 
 //--------------------------------------------------------------------
 
-static ostream &operator<<(ostream &os, const TCOMMChunk &commChunk) {
+static std::ostream &operator<<(std::ostream &os, const TCOMMChunk &commChunk) {
   commChunk.print(os);
   return os;
 }
@@ -149,9 +150,9 @@ public:
   TUINT32 m_blockSize;
   std::unique_ptr<UCHAR[]> m_waveData;
 
-  TSSNDChunk(string name, TINT32 length) : TAIFFChunk(name, length) {}
+  TSSNDChunk(std::string name, TINT32 length) : TAIFFChunk(name, length) {}
 
-  bool read(ifstream &is) override {
+  bool read(std::ifstream &is) override {
     is.read((char *)&m_offset, sizeof(m_offset));
     is.read((char *)&m_blockSize, sizeof(m_blockSize));
 
@@ -162,12 +163,12 @@ public:
 
     // alloca il buffer dei campioni
     m_waveData.reset(new UCHAR[m_length - OFFSETBLOCSIZE_NBYTE]);
-    if (!m_waveData) cout << " ERRORE " << endl;
+    if (!m_waveData) std::cout << " ERRORE " << std::endl;
     is.read((char *)m_waveData.get(), m_length - OFFSETBLOCSIZE_NBYTE);
     return true;
   }
 
-  bool write(ofstream &os) {
+  bool write(std::ofstream &os) {
     TINT32 length     = m_length;
     TUINT32 offset    = m_offset;
     TUINT32 blockSize = m_blockSize;
@@ -189,16 +190,16 @@ public:
 
 //--------------------------------------------------------------------
 
-static ostream &operator<<(ostream &os, const TSSNDChunk &ssndChunk) {
-  os << "name      = '" << ssndChunk.m_name << endl;
-  os << "length    = '" << ssndChunk.m_length << endl;
-  os << "offset    = '" << (unsigned int)ssndChunk.m_offset << endl;
-  os << "blocksize = '" << (unsigned int)ssndChunk.m_blockSize << endl;
+static std::ostream &operator<<(std::ostream &os, const TSSNDChunk &ssndChunk) {
+  os << "name      = '" << ssndChunk.m_name << std::endl;
+  os << "length    = '" << ssndChunk.m_length << std::endl;
+  os << "offset    = '" << (unsigned int)ssndChunk.m_offset << std::endl;
+  os << "blocksize = '" << (unsigned int)ssndChunk.m_blockSize << std::endl;
 
 #ifdef PRINT_SAMPLES
-  os << " samples" << endl;
+  os << " samples" << std::endl;
   for (int i = 0; i < ((ssndChunk.m_length - 8) / 2); ++i)
-    os << i << ((short *)*(ssndChunk.m_waveData + i)) << dec << endl;
+    os << i << ((short *)*(ssndChunk.m_waveData + i)) << dec << std::endl;
 #endif
 
   return os;
@@ -311,14 +312,14 @@ TSoundTrackP TSoundTrackReaderAiff::load() {
   formType[4] = '\0';
 
   // il formType DEVE essere uguale a "AIFF"
-  if ((string(formType, 4) != "AIFF"))
+  if ((std::string(formType, 4) != "AIFF"))
     throw TException("The AIFF file doesn't contain the AIFF form");
 
   TCOMMChunk *commChunk = 0;
   TSSNDChunk *ssndChunk = 0;
 
   while (!is.eof()) {
-    string name;
+    std::string name;
     TINT32 length;
 
     bool ret = TAIFFChunk::readHeader(is, name, length);

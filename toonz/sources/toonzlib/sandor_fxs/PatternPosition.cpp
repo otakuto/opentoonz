@@ -22,8 +22,6 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-using namespace std;
-
 CPatternPosition::~CPatternPosition() { m_pos.clear(); }
 
 bool CPatternPosition::isInSet(const int nbSet, const int *set, const int val) {
@@ -55,7 +53,7 @@ void CPatternPosition::makeRandomPositions(const int nbPat, const int nbPixel,
             m_pos.push_back(xyp);
           }
         }
-  } catch (exception) {
+  } catch (std::exception) {
     char s[50];
     sprintf(s, "in Pattern Position Generation");
     throw SMemAllocError(s);
@@ -65,13 +63,13 @@ void CPatternPosition::makeRandomPositions(const int nbPat, const int nbPixel,
 void CPatternPosition::getPosAroundThis(const int lX, const int lY,
                                         const UCHAR *lSel, const int xx,
                                         const int yy, int &xPos, int &yPos) {
-  vector<SPOINT> ddc;
+  std::vector<SPOINT> ddc;
   prepareCircle(ddc, 2.0);
 
   int qx = 0, qy = 0, q = 0;
-  for (vector<SPOINT>::iterator p = ddc.begin(); p != ddc.end(); p++) {
-    int x = xx + p->x;
-    int y = yy + p->y;
+  for (auto const &p : ddc) {
+    int x = xx + p.x;
+    int y = yy + p.y;
     if (x >= 0 && y >= 0 && x < lX && y < lY)
       if (*(lSel + y * lX + x) > (UCHAR)0) {
         qx += x;
@@ -115,11 +113,11 @@ bool CPatternPosition::findEmptyPos(const int lX, const int lY,
 }
 
 void CPatternPosition::eraseCurrentArea(const int lX, const int lY, UCHAR *lSel,
-                                        vector<SPOINT> &ddc, const int xx,
+                                        std::vector<SPOINT> &ddc, const int xx,
                                         const int yy) {
-  for (vector<SPOINT>::iterator pDdc = ddc.begin(); pDdc != ddc.end(); pDdc++) {
-    int x = xx + pDdc->x;
-    int y = yy + pDdc->y;
+  for (auto const &p : ddc) {
+    int x = xx + p.x;
+    int y = yy + p.y;
     if (x >= 0 && y >= 0 && x < lX && y < lY) {
       UCHAR *pSel                      = lSel + y * lX + x;
       if (*(pSel) == (UCHAR)1) *(pSel) = (UCHAR)2;
@@ -145,7 +143,7 @@ void CPatternPosition::sel0255To01(const int lX, const int lY, UCHAR *sel,
       }
 }
 
-void CPatternPosition::prepareCircle(vector<SPOINT> &v, const double r) {
+void CPatternPosition::prepareCircle(std::vector<SPOINT> &v, const double r) {
   try {
     double r2 = r * r;
     int rr    = (int)r + 1;
@@ -155,7 +153,7 @@ void CPatternPosition::prepareCircle(vector<SPOINT> &v, const double r) {
           SPOINT sp = {x, y};
           v.push_back(sp);
         }
-  } catch (exception) {
+  } catch (std::exception) {
     char s[50];
     sprintf(s, "Position Generation");
     throw SMemAllocError(s);
@@ -165,7 +163,7 @@ void CPatternPosition::prepareCircle(vector<SPOINT> &v, const double r) {
 void CPatternPosition::makeDDPositions(const int lX, const int lY, UCHAR *sel,
                                        const double minD, const double maxD) {
   const int maxNbDDC = 20;
-  vector<SPOINT> ddc[maxNbDDC];
+  std::vector<SPOINT> ddc[maxNbDDC];
 
   // Checking parameters
   if (lX <= 0 || lY <= 0 || !sel) return;
@@ -207,7 +205,7 @@ void CPatternPosition::makeDDPositions(const int lX, const int lY, UCHAR *sel,
       int iddc = nbDDC == 1 ? 0 : rand() % nbDDC;
       eraseCurrentArea(lX, lY, lSel.get(), ddc[iddc], sp.x, sp.y);
     }
-  } catch (exception) {
+  } catch (std::exception) {
     char s[50];
     sprintf(s, "in Pattern Position Generation");
     throw SMemAllocError(s);

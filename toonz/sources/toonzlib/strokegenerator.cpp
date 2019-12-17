@@ -7,8 +7,6 @@
 #include "tstroke.h"
 #include "toonz/preferences.h"
 
-using namespace std;
-
 //-------------------------------------------------------------------
 
 void StrokeGenerator::clear() {
@@ -73,8 +71,8 @@ void StrokeGenerator::filterPoints() {
                                   //  approssimata di non-autocontenimento per
                                   //  TTQ)
     {
-      vector<TThickPoint>::iterator it1 = m_points.begin();
-      vector<TThickPoint>::iterator it2 = it1 + k + 1;
+      std::vector<TThickPoint>::iterator it1 = m_points.begin();
+      std::vector<TThickPoint>::iterator it2 = it1 + k + 1;
       m_points.erase(it1, it2);  //  cancella da m_points[0] a m_points[k]
       assert((int)m_points.size() == size1 - k - 1);
       break;
@@ -278,8 +276,8 @@ TStroke *StrokeGenerator::makeStroke(double error, UINT onlyLastPoints) const {
   if (onlyLastPoints == 0 || onlyLastPoints > m_points.size())
     return TStroke::interpolate(m_points, error);
 
-  vector<TThickPoint> lastPoints(onlyLastPoints);
-  vector<TThickPoint>::const_iterator first =
+  std::vector<TThickPoint> lastPoints(onlyLastPoints);
+  std::vector<TThickPoint>::const_iterator first =
       m_points.begin() + (m_points.size() - onlyLastPoints);
   copy(first, m_points.end(), lastPoints.begin());
 

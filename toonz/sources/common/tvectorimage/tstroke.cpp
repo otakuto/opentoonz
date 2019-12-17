@@ -22,7 +22,6 @@
 // Some using declaration
 
 using namespace TConsts;
-using namespace std;
 
 // Some useful typedefs
 
@@ -36,7 +35,7 @@ namespace {
 //---------------------------------------------------------------------------
 
 void extractStrokeControlPoints(const QuadStrokeChunkArray &curves,
-                                vector<TThickPoint> &ctrlPnts) {
+                                std::vector<TThickPoint> &ctrlPnts) {
   const TThickQuadratic *prev = curves[0];
   assert(prev);
   const TThickQuadratic *curr;
@@ -67,7 +66,7 @@ inline TThickPoint adapter(const TPointD &p) { return TThickPoint(p); }
 
 template <typename T>
 void buildChunksFromControlPoints(QuadStrokeChunkArray &tq,
-                                  const vector<T> &v) {
+                                  const std::vector<T> &v) {
   TThickQuadratic *chunk;
   T temp;
   switch (v.size()) {
@@ -111,13 +110,13 @@ inline bool pairValuesAreEqual(const DoublePair &p) {
 //  dovrebbe essere eliminata da tellipticbrush perche' qui
 //  viene usata per  eliminare le strokes a thickness negativa
 //  evitandone la gestione in tellip...
-void analyzeSolution(const vector<double> &coeff,
-                     vector<DoublePair> &interval) {
+void analyzeSolution(const std::vector<double> &coeff,
+                     std::vector<DoublePair> &interval) {
   //  risolve la disequazione  coeff[2]*t^2 + coeff[1]*t + coeff[0] >= 0  in [0,
   //  1] ritornando le soluzioni
   //  come sotto-intervalli chiusi di [0, 1] (gli intervalli degeneri [s, s]
   //  isolati vengono eliminati)
-  vector<double> sol;
+  std::vector<double> sol;
   // int numberOfIntervalSolution = 0;
 
   rootFinding(coeff, sol);
@@ -200,10 +199,10 @@ void roundNegativeThickess(QuadStrokeChunkArray &v) {
 
   int chunkCount = v.size();
 
-  vector<double> coeff;
+  std::vector<double> coeff;
   double alpha, beta, gamma;
 
-  vector<DoublePair> positiveIntervals;
+  std::vector<DoublePair> positiveIntervals;
 
   for (int i = 0; i < chunkCount; ++i) {
     const TThickQuadratic &ttq = *v[i];
@@ -275,7 +274,8 @@ void roundNegativeThickess(QuadStrokeChunkArray &v) {
         tempVectTQ[2]->setThickP1(TThickPoint(tempVectTQ[2]->getP1(), 0.0));
         tempVectTQ[2]->setThickP2(TThickPoint(tempVectTQ[2]->getP2(), 0.0));
 
-        copy(tempVectTQ.begin(), tempVectTQ.end(), back_inserter(protoStroke));
+        std::copy(tempVectTQ.begin(), tempVectTQ.end(),
+                  std::back_inserter(protoStroke));
         tempVectTQ
             .clear();  // non serve una clearPointerArray perchè il possesso
                        // va alla protoStroke
@@ -299,7 +299,8 @@ void roundNegativeThickess(QuadStrokeChunkArray &v) {
 
       floorNegativeThickness(tempVectTQ[2]);
 
-      copy(tempVectTQ.begin(), tempVectTQ.end(), back_inserter(protoStroke));
+      std::copy(tempVectTQ.begin(), tempVectTQ.end(),
+                std::back_inserter(protoStroke));
       tempVectTQ.clear();  // non serve una clearPointerArray perchè il possesso
 
       break;
@@ -410,7 +411,7 @@ TSystem::outputDebug( oss.str() );
 //---------------------------------------------------------------------------
 
 template <class T>
-void printContainer(ostream &os, const T &c, int maxRow = MAX_ROW) {
+void printContainer(std::ostream &os, const T &c, int maxRow = MAX_ROW) {
   if (maxRow <= 0) maxRow = MAX_ROW;
   typename T::const_iterator cit;
   cit = c.begin();
@@ -428,7 +429,8 @@ void printContainer(ostream &os, const T &c, int maxRow = MAX_ROW) {
 //---------------------------------------------------------------------------
 
 template <class T>
-void printContainerOfPointer(ostream &os, const T &c, int maxRow = MAX_ROW) {
+void printContainerOfPointer(std::ostream &os, const T &c,
+                             int maxRow = MAX_ROW) {
   if (maxRow <= 0) maxRow = MAX_ROW;
   typename T::const_iterator cit;
   cit = c.begin();
@@ -490,7 +492,7 @@ public:
   typedef type_ value_type;
   typedef type_ &reference;
   typedef type_ *pointer;
-  typedef output_iterator_tag iterator_category;
+  typedef std::output_iterator_tag iterator_category;
   typedef ptrdiff_t difference_type;
 #endif
   /* SIC */
@@ -596,9 +598,9 @@ struct TStroke::Imp {
 
   Imp();
 
-  Imp(const vector<TPointD> &v);
+  Imp(const std::vector<TPointD> &v);
 
-  Imp(const vector<TThickPoint> &v);
+  Imp(const std::vector<TThickPoint> &v);
 
   ~Imp() {
     delete m_prop;
@@ -696,7 +698,7 @@ Retrieve range for a chunk.
 
   //---------------------------------------------------------------------------
 
-  void print(ostream &os);
+  void print(std::ostream &os);
 
   //---------------------------------------------------------------------------
 
@@ -926,7 +928,7 @@ bool TStroke::getChunkAndTAtLength(double s, int &chunk, double &t) const {
 
 bool TStroke::Imp::retrieveChunkAndItsParamameterAtLength(double s, int &chunk,
                                                           double &t) {
-  vector<double>::iterator first;
+  std::vector<double>::iterator first;
 
   // cerco nella cache la posizione che compete alla lunghezza s
   first = std::upper_bound(m_partialLengthArray.begin(),
@@ -999,7 +1001,7 @@ bool TStroke::getChunkAndT(double w, int &chunk, double &t) const {
 
 bool TStroke::Imp::retrieveChunkAndItsParamameter(double w, int &chunk,
                                                   double &t) {
-  vector<double>::iterator first;
+  std::vector<double>::iterator first;
 
   // trova l'iteratore alla prima posizione che risulta maggiore o uguale a w
   first = std::lower_bound(m_parameterValueAtControlPoint.begin(),
@@ -1142,29 +1144,30 @@ TRectD TStroke::Imp::computeSubBBox(double w0, double w1) const {
 
 //-----------------------------------------------------------------------------
 
-void TStroke::Imp::print(ostream &os) {
+void TStroke::Imp::print(std::ostream &os) {
 #if defined(_DEBUG) || defined(DEBUG)
 
-  os << "m_isValidLength:" << m_isValidLength << endl;
+  os << "m_isValidLength:" << m_isValidLength << std::endl;
 
-  os << "m_isOutlineValid:" << m_isOutlineValid << endl;
+  os << "m_isOutlineValid:" << m_isOutlineValid << std::endl;
 
-  os << "m_areDisabledComputeOfCaches:" << m_areDisabledComputeOfCaches << endl;
+  os << "m_areDisabledComputeOfCaches:" << m_areDisabledComputeOfCaches
+     << std::endl;
 
-  os << "m_bBox:" << m_bBox << endl;
+  os << "m_bBox:" << m_bBox << std::endl;
 
   os << "m_partialLengthArray";
   printContainer(os, m_partialLengthArray);
-  os << endl;
+  os << std::endl;
 
   os << "m_parameterValueAtControlPoint";
   printContainer(os, m_parameterValueAtControlPoint);
-  os << endl;
+  os << std::endl;
 
   os << "m_centerLineArray";
   // os.setf(myIOFlags::scientific);
   printContainerOfPointer(os, m_centerLineArray);
-  os << endl;
+  os << std::endl;
 
 /*
   vector<TPixel> m_outlineColorArray;
@@ -1188,7 +1191,7 @@ DEFINE_CLASS_CODE(TStroke, 15)
 
 // Costructor
 TStroke::TStroke() : TSmartObject(m_classCode) {
-  vector<TThickPoint> p(3);
+  std::vector<TThickPoint> p(3);
   p[0] = TThickPoint(0, 0, 0);
   p[1] = p[0];
   p[2] = p[1];
@@ -1204,12 +1207,12 @@ m_imp->m_centerLineArray.push_back ( new TThickQuadratic );
 //-----------------------------------------------------------------------------
 
 // Build a stroke from a set of ThickPoint
-TStroke::TStroke(const vector<TThickPoint> &v)
+TStroke::TStroke(const std::vector<TThickPoint> &v)
     : TSmartObject(m_classCode), m_imp(new TStroke::Imp(v)) {}
 
 //-----------------------------------------------------------------------------
 
-TStroke::TStroke(const vector<TPointD> &v)
+TStroke::TStroke(const std::vector<TPointD> &v)
     : TSmartObject(m_classCode), m_imp(new TStroke::Imp(v)) {}
 
 //-----------------------------------------------------------------------------
@@ -1241,10 +1244,10 @@ TStroke::TStroke(const TStroke &other)
 
   copy(other.m_imp->m_partialLengthArray.begin(),
        other.m_imp->m_partialLengthArray.end(),
-       back_inserter<DoubleArray>(m_imp->m_partialLengthArray));
+       std::back_inserter<DoubleArray>(m_imp->m_partialLengthArray));
   copy(other.m_imp->m_parameterValueAtControlPoint.begin(),
        other.m_imp->m_parameterValueAtControlPoint.end(),
-       back_inserter<DoubleArray>(m_imp->m_parameterValueAtControlPoint));
+       std::back_inserter<DoubleArray>(m_imp->m_parameterValueAtControlPoint));
 
   m_imp->m_styleId = other.m_imp->m_styleId;
   m_imp->m_prop =
@@ -1274,7 +1277,7 @@ bool TStroke::getNearestW(const TPointD &p, double &outW, double &dist2,
 
 bool TStroke::getNearestChunk(const TPointD &p, double &outT, int &chunkIndex,
                               double &dist2, bool checkBBox) const {
-  dist2 = (numeric_limits<double>::max)();
+  dist2 = (std::numeric_limits<double>::max)();
 
   for (UINT i = 0; i < m_imp->m_centerLineArray.size(); i++) {
     if (checkBBox &&
@@ -1291,7 +1294,7 @@ bool TStroke::getNearestChunk(const TPointD &p, double &outT, int &chunkIndex,
     }
   }
 
-  return dist2 < (numeric_limits<double>::max)();
+  return dist2 < (std::numeric_limits<double>::max)();
 }
 
 //-----------------------------------------------------------------------------
@@ -1299,7 +1302,7 @@ bool TStroke::getNearestChunk(const TPointD &p, double &outT, int &chunkIndex,
 // number of such points.
 
 int TStroke::getNearChunks(const TThickPoint &p,
-                           vector<TThickPoint> &pointsOnStroke,
+                           std::vector<TThickPoint> &pointsOnStroke,
                            bool checkBBox) const {
   int currIndex    = -100;
   double currDist2 = 100000;
@@ -1336,7 +1339,7 @@ int TStroke::getNearChunks(const TThickPoint &p,
 
 //-----------------------------------------------------------------------------
 
-void TStroke::getControlPoints(vector<TThickPoint> &v) const {
+void TStroke::getControlPoints(std::vector<TThickPoint> &v) const {
   assert(v.empty());
   v.resize(m_imp->m_centerLineArray.size() * 2 + 1);
 
@@ -1386,10 +1389,9 @@ TThickPoint TStroke::getControlPointAtParameter(double w) const {
 
   if (w >= 1.0) return m_imp->m_centerLineArray.back()->getThickP2();
 
-  vector<double>::iterator it_begin =
-                               m_imp->m_parameterValueAtControlPoint.begin(),
-                           first,
-                           it_end = m_imp->m_parameterValueAtControlPoint.end();
+  std::vector<double>::iterator
+      it_begin = m_imp->m_parameterValueAtControlPoint.begin(),
+      first, it_end = m_imp->m_parameterValueAtControlPoint.end();
 
   // find iterator at position greater or equal to w
   first = std::lower_bound(it_begin, it_end, w);
@@ -1410,11 +1412,11 @@ TThickPoint TStroke::getControlPointAtParameter(double w) const {
 //-----------------------------------------------------------------------------
 
 int TStroke::getControlPointIndexAfterParameter(double w) const {
-  const vector<double>::const_iterator
+  const std::vector<double>::const_iterator
       begin = m_imp->m_parameterValueAtControlPoint.begin(),
       end   = m_imp->m_parameterValueAtControlPoint.end();
 
-  vector<double>::const_iterator it = std::upper_bound(begin, end, w);
+  std::vector<double>::const_iterator it = std::upper_bound(begin, end, w);
 
   if (it == end)
     return getControlPointCount();
@@ -1508,14 +1510,14 @@ double TStroke::getApproximateLength(double w0, double w1, double error) const {
 
   if (w0 == w1) return 0.0;
 
-  w0 = min(max(0.0, w0), 1.0);
-  w1 = min(max(0.0, w1), 1.0);
+  w0 = std::min(std::max(0.0, w0), 1.0);
+  w1 = std::min(std::max(0.0, w1), 1.0);
 
   if (w0 > w1) std::swap(w0, w1);
 
   // vede se la lunghezza e' individuabile nella cache
   if (0.0 == w0) {
-    vector<double>::iterator first;
+    std::vector<double>::iterator first;
 
     // trova l'iteratore alla prima posizione che risulta maggiore di w
     first = std::upper_bound(m_imp->m_parameterValueAtControlPoint.begin(),
@@ -1563,8 +1565,8 @@ double TStroke::getLength(double w0, double w1) const {
   if (w0 == w1) return 0.0;
 
   // If necessary, swap values
-  w0 = min(max(0.0, w0), 1.0);
-  w1 = min(max(0.0, w1), 1.0);
+  w0 = std::min(std::max(0.0, w0), 1.0);
+  w1 = std::min(std::max(0.0, w1), 1.0);
 
   if (w0 > w1) std::swap(w0, w1);
 
@@ -1726,9 +1728,9 @@ void TStroke::insertControlPoints(double w) {
 
 //-----------------------------------------------------------------------------
 
-void TStroke::reduceControlPoints(double error, vector<int> corners) {
+void TStroke::reduceControlPoints(double error, std::vector<int> corners) {
   double step, quadLen;
-  vector<TThickPoint> tempVect, controlPoints;
+  std::vector<TThickPoint> tempVect, controlPoints;
   TStroke *tempStroke = 0;
   double missedLen    = 0;
   UINT cp, nextQuad, quadI, cornI, cpSize, size;
@@ -1804,7 +1806,7 @@ void TStroke::reduceControlPoints(double error, vector<int> corners) {
 //-----------------------------------------------------------------------------
 
 void TStroke::reduceControlPoints(double error) {
-  vector<int> corners;
+  std::vector<int> corners;
   corners.push_back(0);
   detectCorners(this, 10, corners);
   corners.push_back(getChunkCount());
@@ -2029,7 +2031,8 @@ double TStroke::getW(int chunkIndex, double t) const {
 double TStroke::getW(const TPointD &p) const {
   int chunkIndex;
 
-  double tOfchunk, distance2 = (numeric_limits<double>::max)();
+  double tOfchunk;
+  double distance2 = (std::numeric_limits<double>::max)();
 
   // cerca il chunk piu' vicino senza testare la BBox
   getNearestChunk(p, tOfchunk, chunkIndex, distance2, false);
@@ -2264,19 +2267,19 @@ void TStroke::split(double w, TStroke &f, TStroke &s) const {
 
 //-----------------------------------------------------------------------------
 
-void TStroke::print(ostream &os) const {
+void TStroke::print(std::ostream &os) const {
   // m_imp->print(os);
   const TThickQuadratic *q;
 
   os << "Punti di controllo\n";
   for (int i = 0; i < getChunkCount(); ++i) {
-    os << "quad #" << i << ":" << endl;
+    os << "quad #" << i << ":" << std::endl;
     q = getChunk(i);
 
     os << "    P0:" << q->getThickP0().x << ", " << q->getThickP0().y << ", "
-       << q->getThickP0().thick << endl;
+       << q->getThickP0().thick << std::endl;
     os << "    P1:" << q->getThickP1().x << ", " << q->getThickP1().y << ", "
-       << q->getThickP1().thick << endl;
+       << q->getThickP1().thick << std::endl;
     assert(i == getChunkCount() - 1 ||
            (getChunk(i)->getThickP2() == getChunk(i + 1)->getThickP0()));
   }
@@ -2284,7 +2287,7 @@ void TStroke::print(ostream &os) const {
   q = getChunk(getChunkCount() - 1);
 
   os << "    P2:" << q->getThickP2().x << ", " << q->getThickP2().y << ", "
-     << q->getThickP2().thick << endl;
+     << q->getThickP2().thick << std::endl;
 }
 
 //-----------------------------------------------------------------------------
@@ -2522,7 +2525,7 @@ TStroke *joinStrokes(const TStroke *s0, const TStroke *s1) {
     return newStroke;
   }
   int i;
-  vector<TThickPoint> v;
+  std::vector<TThickPoint> v;
   for (i = 0; i < s0->getControlPointCount(); i++)
     v.push_back(s0->getControlPoint(i));
   if (areAlmostEqual(v.back(), s1->getControlPoint(0), 1e-3))
@@ -2694,7 +2697,7 @@ int intersect(const TStroke *s1, const TStroke *s2,
 
       if (!almostOverlaps(q1->getBBox(), q2->getBBox())) continue;
 #ifdef CHECK_DEGLI_ESTREMI
-      vector<DoublePair> quadIntersections1;
+      std::vector<DoublePair> quadIntersections1;
       if (i == 0 || i == s1->getChunkCount() - 1) && (j==0 || j==s2->getChunkCount()-1))
 				{
           TPointD pp1 = (i == 0 ? q1->getP0() : q1->getP2());
@@ -2747,7 +2750,7 @@ int intersect(const TStroke *s1, const TStroke *s2,
       }
       //  }
 
-      vector<DoublePair> quadIntersections;
+      std::vector<DoublePair> quadIntersections;
       if (intersect(*q1, *q2, quadIntersections))
         for (int h = 0; h < (int)quadIntersections.size(); h++) {
           DoublePair res(getWfromChunkAndT(s1, i, quadIntersections[h].first),
@@ -2807,7 +2810,7 @@ int intersect(const TStroke &stroke, const TSegment &segment,
 //-----------------------------------------------------------------------------
 
 int intersect(const TStroke &stroke, const TPointD &center, double radius,
-              vector<double> &intersections) {
+              std::vector<double> &intersections) {
   //            2    2    2
   // riconduco x  + y  = r  con x(t) y(t) alla forma
   //        2                2           2              2    2
@@ -2820,9 +2823,9 @@ int intersect(const TStroke &stroke, const TPointD &center, double radius,
   const int b = 1;
   const int c = 0;
 
-  vector<TPointD> bez(3);
-  vector<TPointD> pol(3);
-  vector<double> coeff(5);
+  std::vector<TPointD> bez(3);
+  std::vector<TPointD> pol(3);
+  std::vector<double> coeff(5);
 
   for (int chunk = 0; chunk < stroke.getChunkCount(); ++chunk) {
     const TThickQuadratic *tq = stroke.getChunk(chunk);
@@ -2842,7 +2845,7 @@ int intersect(const TStroke &stroke, const TPointD &center, double radius,
     coeff[1] = 2.0 * (pol[b].x * pol[c].x + pol[b].y * pol[c].y);
     coeff[0] = sq(pol[c].x) + sq(pol[c].y) - sq(radius);
 
-    vector<double> sol;
+    std::vector<double> sol;
     rootFinding(coeff, sol);
 
     sol.erase(
@@ -2861,10 +2864,10 @@ cout, " " ) );
 cout<<endl;
 */
   // assert to test intersections are not decrescent
-  vector<double> test;
+  std::vector<double> test;
 
   adjacent_difference(intersections.begin(), intersections.end(),
-                      back_inserter(test));
+                      std::back_inserter(test));
 
   while (!test.empty()) {
     assert(test.back() >= 0);
@@ -2878,13 +2881,13 @@ cout<<endl;
 
 //-----------------------------------------------------------------------------
 
-void splitStroke(const TStroke &tq, const vector<double> &pars,
+void splitStroke(const TStroke &tq, const std::vector<double> &pars,
                  std::vector<TStroke *> &v) {
   if (pars.empty()) return;
 
   UINT i, vSize = pars.size();
 
-  vector<double> length(vSize);
+  std::vector<double> length(vSize);
 
   // primo passo estraggo i parametri di lunghezza
   for (i = 0; i < vSize; ++i) length[i] = tq.getLength(pars[i]);
@@ -2949,7 +2952,7 @@ namespace {
 //! Rimuove le quadratiche nulle, cioe' i chunk in cui i TThickPoint sono quasi
 //! uguali
 bool removeNullQuadratic(TStroke *stroke, bool checkThickness = true) {
-  vector<TThickPoint> points;
+  std::vector<TThickPoint> points;
   UINT i, qCount = stroke->getChunkCount();
   const TThickQuadratic *q;
   TThickPoint p1, p2, p3;
@@ -2994,13 +2997,13 @@ inline T3DPointD thickPntTo3DPnt(const TThickPoint &p0) {
 //---------------------------------------------------------------------------
 
 //! Converte un vettore di TThickPoint from in un vettore di T3DPointD to
-void convert(const vector<TThickPoint> &from, vector<T3DPointD> &to) {
+void convert(const std::vector<TThickPoint> &from, std::vector<T3DPointD> &to) {
   to.resize(from.size());
   transform(from.begin(), from.end(), to.begin(), thickPntTo3DPnt);
 }
 
-typedef vector<TThickCubic *> TThickCubicArray;
-typedef vector<TThickQuadratic *> QuadStrokeChunkArray;
+typedef std::vector<TThickCubic *> TThickCubicArray;
+typedef std::vector<TThickQuadratic *> QuadStrokeChunkArray;
 
 //---------------------------------------------------------------------------
 
@@ -3163,7 +3166,7 @@ private:
 
 public:
   //! Puntatore a vettore di puntatori a TThickCubic
-  vector<TThickCubic *> *m_cubicChunkArray;
+  std::vector<TThickCubic *> *m_cubicChunkArray;
 
   //! Costruttore
   TCubicStroke();
@@ -3177,7 +3180,7 @@ public:
             Costruisce un TCubicStroke da un array di T3DPointD,
             in funzione dei due parametri error e doDetectCorners
             */
-  TCubicStroke(const vector<T3DPointD> &pointsArray3D, double error,
+  TCubicStroke(const std::vector<T3DPointD> &pointsArray3D, double error,
                bool doDetectCorners = true);
   /*
 TCubicStroke(       vector<TPointD> &pointsArray,
@@ -3205,7 +3208,7 @@ namespace {
       original cubic subcurve.
   */
 void doComputeQuadraticsFromCubic(const TThickCubic &cubic, int splits,
-                                  vector<TThickQuadratic *> &chunkArray) {
+                                  std::vector<TThickQuadratic *> &chunkArray) {
   TThickPoint p0r, p1r, p2r, p3r, p0l, p1l, p2l, p3l;
 
   p0l = cubic.getThickP0();
@@ -3261,7 +3264,7 @@ void doComputeQuadraticsFromCubic(const TThickCubic &cubic, int splits,
                 altrimenti richiama doComputeQuadraticsFromCubic
           */
 void computeQuadraticsFromCubic(const TThickCubic &cubic, double error,
-                                vector<TThickQuadratic *> &chunkArray) {
+                                std::vector<TThickQuadratic *> &chunkArray) {
   const double T = 0.21132486540518711775; /* 1/2 - sqrt(3)/6 */
   const double S = (1 - T);
   int splits;
@@ -3395,7 +3398,7 @@ void computeQuadraticsFromCubic(const TThickCubic &cubic, double error,
 
 //! Ricava uno stroke quadratico da uno stroke cubico
 TStroke *computeQuadStroke(const TCubicStroke &cubic) {
-  vector<TThickQuadratic *> chunkArray;
+  std::vector<TThickQuadratic *> chunkArray;
 
   for (UINT i = 0; i < cubic.m_cubicChunkArray->size(); i++) {
     TThickCubic tmp(*(*cubic.m_cubicChunkArray)[i]);
@@ -3443,7 +3446,7 @@ TStroke *computeQuadStroke(const TCubicStroke &cubic) {
 void computeQuadraticsFromCubic(const TThickPoint &p0, const TThickPoint &p1,
                                 const TThickPoint &p2, const TThickPoint &p3,
                                 double error,
-                                vector<TThickQuadratic *> &chunkArray) {
+                                std::vector<TThickQuadratic *> &chunkArray) {
   computeQuadraticsFromCubic(TThickCubic(p0, p1, p2, p3), error, chunkArray);
 }
 
@@ -3475,9 +3478,9 @@ TCubicStroke::~TCubicStroke() {
 
 //-----------------------------------------------------------------------------
 
-TCubicStroke::TCubicStroke(const vector<T3DPointD> &pointsArray3D, double error,
-                           bool doDetectCorners) {
-  vector<int> corners;
+TCubicStroke::TCubicStroke(const std::vector<T3DPointD> &pointsArray3D,
+                           double error, bool doDetectCorners) {
+  std::vector<int> corners;
   corners.push_back(0);
   if (doDetectCorners) detectCorners(pointsArray3D, 3, 3, 15, 100, corners);
   corners.push_back(pointsArray3D.size() - 1);
@@ -3486,7 +3489,7 @@ TCubicStroke::TCubicStroke(const vector<T3DPointD> &pointsArray3D, double error,
   error *= error;
 #endif
 
-  m_cubicChunkArray = new vector<TThickCubic *>();
+  m_cubicChunkArray = new std::vector<TThickCubic *>();
 
   for (int i = 1; i < (int)corners.size(); i++) {
     int size       = corners[i] - corners[i - 1] + 1;
@@ -3647,12 +3650,12 @@ TThickCubic *TCubicStroke::generateCubic3D(const T3DPointD pointsArrayBegin[],
   //
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
-  double xmin     = (numeric_limits<double>::max)();
-  double ymin     = (numeric_limits<double>::max)();
-  double xmax     = -(numeric_limits<double>::max)();
-  double ymax     = -(numeric_limits<double>::max)();
-  double thickmin = (numeric_limits<double>::max)();
-  double thickmax = -(numeric_limits<double>::max)();
+  double xmin     = (std::numeric_limits<double>::max)();
+  double ymin     = (std::numeric_limits<double>::max)();
+  double xmax     = -(std::numeric_limits<double>::max)();
+  double ymax     = -(std::numeric_limits<double>::max)();
+  double thickmin = (std::numeric_limits<double>::max)();
+  double thickmax = -(std::numeric_limits<double>::max)();
 
   for (i = 0; i < size; i++) {
     if (pointsArrayBegin[i].x < xmin) xmin         = pointsArrayBegin[i].x;
@@ -3717,9 +3720,9 @@ TThickCubic *TCubicStroke::generateCubic3D(const T3DPointD pointsArrayBegin[],
         TCubicStroke, cioe' uno stroke cubico. Da questo trova lo stroke
   quadratico.
   */
-TStroke *TStroke::interpolate(const vector<TThickPoint> &points, double error,
-                              bool findCorners) {
-  vector<T3DPointD> pointsArray3D;
+TStroke *TStroke::interpolate(const std::vector<TThickPoint> &points,
+                              double error, bool findCorners) {
+  std::vector<T3DPointD> pointsArray3D;
   convert(points, pointsArray3D);
 
   TCubicStroke cubicStroke(pointsArray3D, error, findCorners);
@@ -3750,11 +3753,11 @@ TStroke *TStroke::interpolate(const vector<TThickPoint> &points, double error,
 /*!
   Estrae dalle curve i punti di controllo e crea con questi un nuovo stroke
   */
-TStroke *TStroke::create(const vector<TThickQuadratic *> &curves) {
+TStroke *TStroke::create(const std::vector<TThickQuadratic *> &curves) {
   if (curves.empty()) return 0;
 
   // make a vector of control points
-  vector<TThickPoint> ctrlPnts;
+  std::vector<TThickPoint> ctrlPnts;
 
   extractStrokeControlPoints(curves, ctrlPnts);
 

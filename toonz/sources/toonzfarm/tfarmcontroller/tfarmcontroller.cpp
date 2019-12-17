@@ -24,7 +24,6 @@ using namespace TVER;
 
 #include <sstream>
 #include <string>
-using namespace std;
 
 #ifndef _WIN32
 #include <sys/param.h>
@@ -680,8 +679,8 @@ public:
   int m_port;
   TUserLog *m_userLog;
 
-  map<TaskId, CtrlFarmTask *> m_tasks;
-  map<QString, FarmServerProxy *> m_servers;
+  std::map<TaskId, CtrlFarmTask *> m_tasks;
+  std::map<QString, FarmServerProxy *> m_servers;
 
   TThread::Mutex m_mutex;
 
@@ -716,7 +715,7 @@ void FarmController::loadServersData(const TFilePath &globalRoot) {
     is.getline(line, 80);
 
     if (line[0] != '#' && QString(line) != "") {
-      stringstream iss(line);
+      std::stringstream iss(line);
 
       char hostName[512];
       char ipAddr[80];
@@ -725,7 +724,7 @@ void FarmController::loadServersData(const TFilePath &globalRoot) {
       iss >> hostName >> ipAddr >> port;
 
       FarmServerProxy *server = new FarmServerProxy(hostName, ipAddr, port);
-      m_servers.insert(make_pair(QString(ipAddr), server));
+      m_servers.insert(std::make_pair(QString(ipAddr), server));
 
       if (server->testConnection(500)) {
         initServer(server);
@@ -1089,7 +1088,7 @@ void FarmController::startTask(CtrlFarmTask *task, FarmServerProxy *server) {
   if (task->m_subTasks.empty()) {
     taskToBeSubmitted = task;
     if (task->m_parentId != "") {
-      map<TaskId, CtrlFarmTask *>::iterator itTaskParent =
+      std::map<TaskId, CtrlFarmTask *>::iterator itTaskParent =
           m_tasks.find(TaskId(task->m_parentId));
       if (itTaskParent != m_tasks.end()) {
         taskToBeSubmittedParent = itTaskParent->second;
@@ -1103,7 +1102,7 @@ void FarmController::startTask(CtrlFarmTask *task, FarmServerProxy *server) {
     for (; itSubTaskId != task->m_subTasks.end(); ++itSubTaskId) {
       QString subTaskId = *itSubTaskId;
 
-      map<TaskId, CtrlFarmTask *>::iterator itSubTask =
+      std::map<TaskId, CtrlFarmTask *>::iterator itSubTask =
           m_tasks.find(TaskId(subTaskId));
       if (itSubTask != m_tasks.end()) {
         CtrlFarmTask *subTask = itSubTask->second;
@@ -1151,7 +1150,7 @@ CtrlFarmTask *FarmController::getTaskToStart(FarmServerProxy *server) {
   int maxPriority         = 0;
   CtrlFarmTask *candidate = 0;
 
-  map<TaskId, CtrlFarmTask *>::iterator itTask = m_tasks.begin();
+  std::map<TaskId, CtrlFarmTask *>::iterator itTask = m_tasks.begin();
   for (; itTask != m_tasks.end(); ++itTask) {
     CtrlFarmTask *task = itTask->second;
     if ((!server || (task->m_platform == NoPlatform ||
@@ -1165,7 +1164,7 @@ CtrlFarmTask *FarmController::getTaskToStart(FarmServerProxy *server) {
         int count = task->m_dependencies->getTaskCount();
         for (int i = 0; i < count; ++i) {
           TFarmTask::Id id = task->m_dependencies->getTaskId(i);
-          map<TaskId, CtrlFarmTask *>::iterator itDepTask =
+          std::map<TaskId, CtrlFarmTask *>::iterator itDepTask =
               m_tasks.find(TaskId(id));
           if (itDepTask != m_tasks.end()) {
             CtrlFarmTask *depTask = itDepTask->second;
@@ -1199,7 +1198,7 @@ CtrlFarmTask *FarmController::getNextTaskToStart(CtrlFarmTask *except,
   int maxPriority         = 0;
   CtrlFarmTask *candidate = 0;
 
-  map<TaskId, CtrlFarmTask *>::iterator itTask = m_tasks.begin();
+  std::map<TaskId, CtrlFarmTask *>::iterator itTask = m_tasks.begin();
   for (; itTask != m_tasks.end(); ++itTask) {
     CtrlFarmTask *task = itTask->second;
     if (except == task) continue;
@@ -1212,7 +1211,7 @@ CtrlFarmTask *FarmController::getNextTaskToStart(CtrlFarmTask *except,
         int count = task->m_dependencies->getTaskCount();
         for (int i = 0; i < count; ++i) {
           TFarmTask::Id id = task->m_dependencies->getTaskId(i);
-          map<TaskId, CtrlFarmTask *>::iterator itDepTask =
+          std::map<TaskId, CtrlFarmTask *>::iterator itDepTask =
               m_tasks.find(TaskId(id));
           if (itDepTask != m_tasks.end()) {
             CtrlFarmTask *depTask = itDepTask->second;
@@ -1245,7 +1244,7 @@ bool FarmController::tryToStartTask(CtrlFarmTask *task) {
     int count = task->m_dependencies->getTaskCount();
     for (int i = 0; i < count; ++i) {
       TFarmTask::Id id = task->m_dependencies->getTaskId(i);
-      map<TaskId, CtrlFarmTask *>::iterator itDepTask =
+      std::map<TaskId, CtrlFarmTask *>::iterator itDepTask =
           m_tasks.find(TaskId(id));
       if (itDepTask != m_tasks.end()) {
         CtrlFarmTask *depTask = itDepTask->second;
@@ -1262,7 +1261,7 @@ bool FarmController::tryToStartTask(CtrlFarmTask *task) {
   if (task->m_subTasks.empty()) {
     vector<FarmServerProxy *> m_partiallyBusyServers;
 
-    map<QString, FarmServerProxy *>::iterator it = m_servers.begin();
+    std::map<QString, FarmServerProxy *>::iterator it = m_servers.begin();
     for (; it != m_servers.end(); ++it) {
       FarmServerProxy *server = it->second;
       if (server->m_attached && !server->m_offline &&
@@ -1314,7 +1313,7 @@ bool FarmController::tryToStartTask(CtrlFarmTask *task) {
     bool started                          = false;
     vector<QString>::iterator itSubTaskId = task->m_subTasks.begin();
     for (; itSubTaskId != task->m_subTasks.end(); ++itSubTaskId) {
-      map<TaskId, CtrlFarmTask *>::iterator itSubTask =
+      std::map<TaskId, CtrlFarmTask *>::iterator itSubTask =
           m_tasks.find(TaskId(*itSubTaskId));
       if (itSubTask != m_tasks.end()) {
         CtrlFarmTask *subTask = itSubTask->second;
@@ -1482,7 +1481,7 @@ QString FarmController::addTask(const TFarmTask &task, bool suspended) {
 //------------------------------------------------------------------------------
 
 void FarmController::removeTask(const QString &id) {
-  map<TaskId, CtrlFarmTask *>::iterator it = m_tasks.find(TaskId(id));
+  std::map<TaskId, CtrlFarmTask *>::iterator it = m_tasks.find(TaskId(id));
   if (it != m_tasks.end()) {
     CtrlFarmTask *task = it->second;
 
@@ -1491,7 +1490,7 @@ void FarmController::removeTask(const QString &id) {
     vector<QString>::iterator it2 = task->m_subTasks.begin();
     for (; it2 != task->m_subTasks.end();) {
       QString subTaskId = *it2;
-      map<TaskId, CtrlFarmTask *>::iterator it3 =
+      std::map<TaskId, CtrlFarmTask *>::iterator it3 =
           m_tasks.find(TaskId(subTaskId));
       if (it3 != m_tasks.end()) {
         CtrlFarmTask *subTask = it3->second;
@@ -1502,7 +1501,7 @@ void FarmController::removeTask(const QString &id) {
         } else {
           it2 = task->m_subTasks.erase(it2);
 
-          map<QString, FarmServerProxy *>::iterator itServer =
+          std::map<QString, FarmServerProxy *>::iterator itServer =
               m_servers.find(subTask->m_serverId);
 
           if (itServer != m_servers.end()) {
@@ -1536,19 +1535,19 @@ void FarmController::removeTask(const QString &id) {
 //------------------------------------------------------------------------------
 
 void FarmController::suspendTask(const QString &id) {
-  map<TaskId, CtrlFarmTask *>::iterator it = m_tasks.find(TaskId(id));
+  std::map<TaskId, CtrlFarmTask *>::iterator it = m_tasks.find(TaskId(id));
   if (it != m_tasks.end()) {
     CtrlFarmTask *task = it->second;
 
     vector<QString>::iterator it2 = task->m_subTasks.begin();
     for (; it2 != task->m_subTasks.end(); ++it2) {
       QString subTaskId = *it2;
-      map<TaskId, CtrlFarmTask *>::iterator it3 =
+      std::map<TaskId, CtrlFarmTask *>::iterator it3 =
           m_tasks.find(TaskId(subTaskId));
       if (it3 != m_tasks.end()) {
         CtrlFarmTask *subTask = it3->second;
         if (subTask->m_status == Running) {
-          map<QString, FarmServerProxy *>::iterator itServer =
+          std::map<QString, FarmServerProxy *>::iterator itServer =
               m_servers.find(subTask->m_serverId);
 
           if (itServer != m_servers.end()) {
@@ -1586,7 +1585,7 @@ void FarmController::restartTask(const QString &id) {
 
 void FarmController::doRestartTask(const QString &id, bool fromClient,
                                    FarmServerProxy *server) {
-  map<TaskId, CtrlFarmTask *>::iterator it = m_tasks.find(TaskId(id));
+  std::map<TaskId, CtrlFarmTask *>::iterator it = m_tasks.find(TaskId(id));
   if (it != m_tasks.end()) {
     CtrlFarmTask *task = it->second;
     if (task->m_status != Running) {
@@ -1604,7 +1603,7 @@ void FarmController::doRestartTask(const QString &id, bool fromClient,
       if (!task->m_subTasks.empty()) {
         vector<QString>::iterator itSubTaskId = task->m_subTasks.begin();
         for (; itSubTaskId != task->m_subTasks.end(); ++itSubTaskId) {
-          map<TaskId, CtrlFarmTask *>::iterator itSubTask =
+          std::map<TaskId, CtrlFarmTask *>::iterator itSubTask =
               m_tasks.find(TaskId(*itSubTaskId));
           if (itSubTask != m_tasks.end()) {
             CtrlFarmTask *subtask = itSubTask->second;
@@ -1631,7 +1630,7 @@ void FarmController::doRestartTask(const QString &id, bool fromClient,
 //------------------------------------------------------------------------------
 
 void FarmController::getTasks(vector<QString> &tasks) {
-  map<TaskId, CtrlFarmTask *>::iterator it = m_tasks.begin();
+  std::map<TaskId, CtrlFarmTask *>::iterator it = m_tasks.begin();
   for (; it != m_tasks.end(); ++it) {
     CtrlFarmTask *task = it->second;
     tasks.push_back(task->m_id);
@@ -1641,7 +1640,7 @@ void FarmController::getTasks(vector<QString> &tasks) {
 //------------------------------------------------------------------------------
 
 void FarmController::getTasks(const QString &parentId, vector<QString> &tasks) {
-  map<TaskId, CtrlFarmTask *>::iterator it = m_tasks.begin();
+  std::map<TaskId, CtrlFarmTask *>::iterator it = m_tasks.begin();
   for (; it != m_tasks.end(); ++it) {
     CtrlFarmTask *task = it->second;
     if (task->m_parentId == parentId) tasks.push_back(task->m_id);
@@ -1654,7 +1653,7 @@ void FarmController::getTasks(const QString &parentId,
                               vector<TaskShortInfo> &tasks) {
   tasks.clear();
 
-  map<TaskId, CtrlFarmTask *>::iterator it = m_tasks.begin();
+  std::map<TaskId, CtrlFarmTask *>::iterator it = m_tasks.begin();
   for (; it != m_tasks.end(); ++it) {
     CtrlFarmTask *task = it->second;
     if (task->m_parentId == parentId)
@@ -1665,12 +1664,12 @@ void FarmController::getTasks(const QString &parentId,
 //------------------------------------------------------------------------------
 
 void FarmController::queryTaskInfo(const QString &id, TFarmTask &task) {
-  map<TaskId, CtrlFarmTask *>::iterator it = m_tasks.find(TaskId(id));
+  std::map<TaskId, CtrlFarmTask *>::iterator it = m_tasks.find(TaskId(id));
   if (it != m_tasks.end()) {
     CtrlFarmTask *tt = it->second;
     task             = *tt;
 
-    map<QString, FarmServerProxy *>::iterator it2 =
+    std::map<QString, FarmServerProxy *>::iterator it2 =
         m_servers.find(it->second->m_serverId);
     if (it2 != m_servers.end()) {
       FarmServerProxy *server = it2->second;
@@ -1685,7 +1684,7 @@ void FarmController::queryTaskInfo(const QString &id, TFarmTask &task) {
 
 void FarmController::queryTaskShortInfo(const QString &id, QString &parentId,
                                         QString &name, TaskState &status) {
-  map<TaskId, CtrlFarmTask *>::iterator it = m_tasks.find(TaskId(id));
+  std::map<TaskId, CtrlFarmTask *>::iterator it = m_tasks.find(TaskId(id));
   if (it != m_tasks.end()) {
     CtrlFarmTask *task = it->second;
     parentId           = task->m_parentId;
@@ -1700,7 +1699,7 @@ void FarmController::queryTaskShortInfo(const QString &id, QString &parentId,
 void FarmController::attachServer(const QString &name, const QString &addr,
                                   int port) {
   FarmServerProxy *server                      = 0;
-  map<QString, FarmServerProxy *>::iterator it = m_servers.begin();
+  std::map<QString, FarmServerProxy *>::iterator it = m_servers.begin();
   for (; it != m_servers.end(); ++it) {
     FarmServerProxy *s = it->second;
 
@@ -1713,7 +1712,7 @@ void FarmController::attachServer(const QString &name, const QString &addr,
 
   if (!server) {
     server = new FarmServerProxy(name, addr, port);
-    m_servers.insert(make_pair(QString(addr), server));
+    m_servers.insert(std::make_pair(QString(addr), server));
   }
 
   initServer(server);
@@ -1723,7 +1722,7 @@ void FarmController::attachServer(const QString &name, const QString &addr,
 
 void FarmController::detachServer(const QString &name, const QString &addr,
                                   int port) {
-  map<QString, FarmServerProxy *>::iterator it = m_servers.begin();
+  std::map<QString, FarmServerProxy *>::iterator it = m_servers.begin();
   for (; it != m_servers.end(); ++it) {
     FarmServerProxy *s = it->second;
     if (STRICMP(s->getHostName(), name) == 0 ||
@@ -1739,7 +1738,8 @@ void FarmController::detachServer(const QString &name, const QString &addr,
 void FarmController::taskSubmissionError(const QString &taskId, int errCode) {
   FarmServerProxy *server = 0;
 
-  map<TaskId, CtrlFarmTask *>::iterator itTask = m_tasks.find(TaskId(taskId));
+  std::map<TaskId, CtrlFarmTask *>::iterator itTask =
+      m_tasks.find(TaskId(taskId));
   if (itTask != m_tasks.end()) {
     CtrlFarmTask *task = itTask->second;
     task->m_status     = Aborted;
@@ -1751,7 +1751,7 @@ void FarmController::taskSubmissionError(const QString &taskId, int errCode) {
     CtrlFarmTask *parentTask = 0;
 
     if (task->m_parentId != "") {
-      map<TaskId, CtrlFarmTask *>::iterator itParent =
+      std::map<TaskId, CtrlFarmTask *>::iterator itParent =
           m_tasks.find(TaskId(task->m_parentId));
       if (itParent != m_tasks.end()) {
         parentTask = itParent->second;
@@ -1761,7 +1761,7 @@ void FarmController::taskSubmissionError(const QString &taskId, int errCode) {
             parentTask->m_subTasks.begin();
         for (; itSubTaskId != parentTask->m_subTasks.end(); ++itSubTaskId) {
           QString subTaskId = *itSubTaskId;
-          map<TaskId, CtrlFarmTask *>::iterator itSubTask =
+          std::map<TaskId, CtrlFarmTask *>::iterator itSubTask =
               m_tasks.find(TaskId(subTaskId));
           if (itSubTask != m_tasks.end()) {
             CtrlFarmTask *subTask = itSubTask->second;
@@ -1781,7 +1781,7 @@ void FarmController::taskSubmissionError(const QString &taskId, int errCode) {
       }
     }
 
-    map<QString, FarmServerProxy *>::iterator itServer =
+    std::map<QString, FarmServerProxy *>::iterator itServer =
         m_servers.find(task->m_serverId);
     if (itServer != m_servers.end()) server = itServer->second;
 
@@ -1817,7 +1817,8 @@ void FarmController::taskSubmissionError(const QString &taskId, int errCode) {
 void FarmController::taskProgress(const QString &taskId, int step,
                                   int stepCount, int frameNumber,
                                   FrameState state) {
-  map<TaskId, CtrlFarmTask *>::iterator itTask = m_tasks.find(TaskId(taskId));
+  std::map<TaskId, CtrlFarmTask *>::iterator itTask =
+      m_tasks.find(TaskId(taskId));
   if (itTask != m_tasks.end()) {
     CtrlFarmTask *task = itTask->second;
     if (state == FrameDone)
@@ -1826,7 +1827,7 @@ void FarmController::taskProgress(const QString &taskId, int step,
       ++task->m_failedSteps;
 
     if (task->m_parentId != "") {
-      map<TaskId, CtrlFarmTask *>::iterator itParentTask =
+      std::map<TaskId, CtrlFarmTask *>::iterator itParentTask =
           m_tasks.find(TaskId(task->m_parentId));
       CtrlFarmTask *parentTask = itParentTask->second;
       if (state == FrameDone)
@@ -1846,7 +1847,8 @@ void FarmController::taskCompleted(const QString &taskId, int exitCode) {
 
   FarmServerProxy *server = 0;
 
-  map<TaskId, CtrlFarmTask *>::iterator itTask = m_tasks.find(TaskId(taskId));
+  std::map<TaskId, CtrlFarmTask *>::iterator itTask =
+      m_tasks.find(TaskId(taskId));
   if (itTask != m_tasks.end()) {
     CtrlFarmTask *task = itTask->second;
 
@@ -1882,7 +1884,7 @@ void FarmController::taskCompleted(const QString &taskId, int exitCode) {
     CtrlFarmTask *parentTask = 0;
 
     if (task->m_parentId != "") {
-      map<TaskId, CtrlFarmTask *>::iterator itParent =
+      std::map<TaskId, CtrlFarmTask *>::iterator itParent =
           m_tasks.find(TaskId(task->m_parentId));
       if (itParent != m_tasks.end()) {
         parentTask = itParent->second;
@@ -1897,7 +1899,7 @@ void FarmController::taskCompleted(const QString &taskId, int exitCode) {
               parentTask->m_subTasks.begin();
           for (; itSubTaskId != parentTask->m_subTasks.end(); ++itSubTaskId) {
             QString subTaskId = *itSubTaskId;
-            map<TaskId, CtrlFarmTask *>::iterator itSubTask =
+            std::map<TaskId, CtrlFarmTask *>::iterator itSubTask =
                 m_tasks.find(TaskId(subTaskId));
             if (itSubTask != m_tasks.end()) {
               CtrlFarmTask *subTask = itSubTask->second;
@@ -1928,7 +1930,7 @@ void FarmController::taskCompleted(const QString &taskId, int exitCode) {
       }
     }
 
-    map<QString, FarmServerProxy *>::iterator itServer =
+    std::map<QString, FarmServerProxy *>::iterator itServer =
         m_servers.find(task->m_serverId);
     if (itServer != m_servers.end()) server = itServer->second;
 
@@ -1993,7 +1995,7 @@ void FarmController::taskCompleted(const QString &taskId, int exitCode) {
 //------------------------------------------------------------------------------
 
 void FarmController::getServers(vector<ServerIdentity> &servers) {
-  map<QString, FarmServerProxy *>::iterator it = m_servers.begin();
+  std::map<QString, FarmServerProxy *>::iterator it = m_servers.begin();
   for (; it != m_servers.end(); ++it) {
     FarmServerProxy *server = it->second;
     servers.push_back(ServerIdentity(server->m_addr, server->m_hostName));
@@ -2005,7 +2007,7 @@ void FarmController::getServers(vector<ServerIdentity> &servers) {
 ServerState FarmController::queryServerState2(const QString &id) {
   ServerState state = ServerUnknown;
 
-  map<QString, FarmServerProxy *>::iterator it = m_servers.find(id);
+  std::map<QString, FarmServerProxy *>::iterator it = m_servers.find(id);
   if (it != m_servers.end()) {
     FarmServerProxy *server = it->second;
 
@@ -2019,7 +2021,7 @@ ServerState FarmController::queryServerState2(const QString &id) {
 //------------------------------------------------------------------------------
 
 void FarmController::queryServerInfo(const QString &id, ServerInfo &info) {
-  map<QString, FarmServerProxy *>::iterator it = m_servers.find(id);
+  std::map<QString, FarmServerProxy *>::iterator it = m_servers.find(id);
   if (it != m_servers.end()) {
     FarmServerProxy *server = it->second;
 
@@ -2044,7 +2046,7 @@ void FarmController::queryServerInfo(const QString &id, ServerInfo &info) {
 //------------------------------------------------------------------------------
 
 void FarmController::activateServer(const QString &id) {
-  map<QString, FarmServerProxy *>::iterator it = m_servers.find(id);
+  std::map<QString, FarmServerProxy *>::iterator it = m_servers.find(id);
   if (it != m_servers.end()) {
     FarmServerProxy *server = it->second;
     server->m_offline       = false;
@@ -2079,7 +2081,7 @@ void FarmController::activateServer(const QString &id) {
 
 void FarmController::deactivateServer(const QString &id,
                                       bool completeRunningTasks) {
-  map<QString, FarmServerProxy *>::iterator it = m_servers.find(id);
+  std::map<QString, FarmServerProxy *>::iterator it = m_servers.find(id);
   if (it != m_servers.end()) {
     FarmServerProxy *server = it->second;
 
@@ -2116,7 +2118,7 @@ void FarmController::load(const TFilePath &fp) {
         is >> p;
 
         CtrlFarmTask *task = dynamic_cast<CtrlFarmTask *>(p);
-        if (task) m_tasks.insert(make_pair(TaskId(task->m_id), task));
+        if (task) m_tasks.insert(std::make_pair(TaskId(task->m_id), task));
       }
 
       is.closeChild();
@@ -2125,11 +2127,11 @@ void FarmController::load(const TFilePath &fp) {
 
   is.closeChild();
 
-  map<TaskId, CtrlFarmTask *>::const_iterator it = m_tasks.begin();
+  std::map<TaskId, CtrlFarmTask *>::const_iterator it = m_tasks.begin();
   for (; it != m_tasks.end(); ++it) {
     CtrlFarmTask *task = it->second;
     if (task->m_parentId != "") {
-      map<TaskId, CtrlFarmTask *>::const_iterator it2 =
+      std::map<TaskId, CtrlFarmTask *>::const_iterator it2 =
           m_tasks.find(TaskId(task->m_parentId));
 
       if (it2 != m_tasks.end()) {
@@ -2145,12 +2147,12 @@ void FarmController::load(const TFilePath &fp) {
 void FarmController::save(const TFilePath &fp) const {
   TOStream os(fp);
 
-  map<std::string, string> attributes;
-  attributes.insert(make_pair("ver", "1.0"));
+  std::map<std::string, string> attributes;
+  attributes.insert(std::make_pair("ver", "1.0"));
   os.openChild("tfarmdata", attributes);
   os.openChild("tfarmtasks");
 
-  map<TaskId, CtrlFarmTask *>::const_iterator it = m_tasks.begin();
+  std::map<TaskId, CtrlFarmTask *>::const_iterator it = m_tasks.begin();
   for (; it != m_tasks.end(); ++it) {
     CtrlFarmTask *task = it->second;
     os << task;
@@ -2165,7 +2167,7 @@ void FarmController::save(const TFilePath &fp) const {
 void FarmController::activateReadyServers() {
   QMutexLocker sl(&m_mutex);
 
-  map<QString, FarmServerProxy *>::iterator it = m_servers.begin();
+  std::map<QString, FarmServerProxy *>::iterator it = m_servers.begin();
   for (; it != m_servers.end(); ++it) {
     FarmServerProxy *server = it->second;
 

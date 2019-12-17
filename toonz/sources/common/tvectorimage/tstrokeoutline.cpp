@@ -3,8 +3,6 @@
 #include "tstrokeoutline.h"
 #include "tcurves.h"
 
-using namespace std;
-
 //-----------------------------------------------------------------------------
 
 TStrokeOutline::TStrokeOutline(const TStrokeOutline &stroke)
@@ -27,7 +25,7 @@ void TStrokeOutline::addOutlinePoint(const TOutlinePoint &p) {
 //-----------------------------------------------------------------------------
 
 std::vector<TQuadratic> getOutlineWithQuadratic(const TStroke &s) {
-  return vector<TQuadratic>();
+  return std::vector<TQuadratic>();
 }
 
 //-----------------------------------------------------------------------------

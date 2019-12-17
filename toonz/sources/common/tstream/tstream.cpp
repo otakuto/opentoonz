@@ -16,12 +16,10 @@
 #include <sstream>
 #include <memory>
 
-using namespace std;
-
 //===============================================================
 namespace {
 
-string escape(string v) {
+std::string escape(std::string v) {
   int i = 0;
   for (;;) {
 // Removing escaping of apostrophe from Windows and OSX as it's not needed and
@@ -31,8 +29,10 @@ string escape(string v) {
 #else
     i = v.find_first_of("\\\"", i);
 #endif
-    if (i == (int)string::npos) break;
-    string h = "\\" + v[i];
+    if (i == (int)std::string::npos) {
+      break;
+    }
+    std::string h = "\\" + v[i];
     v.insert(i, "\\");
     i = i + 2;
   }
@@ -45,7 +45,7 @@ void writeCompressedFile(TFilePath dst, const std::string &str) {}
 
 //===================================================================
 
-void readCompressedFile(string &str, TFilePath src) {
+void readCompressedFile(std::string &str, TFilePath src) {
   TFileStatus status(src);
   if (!status.doesExist()) return;
 
@@ -120,8 +120,8 @@ bool lz4decompress(LZ4F_decompressionContext_t lz4dctx, char *out,
 
 class StreamTag {
 public:
-  string m_name;
-  std::map<std::string, string> m_attributes;
+  std::string m_name;
+  std::map<std::string, std::string> m_attributes;
   enum Type { BeginTag, EndTag, BeginEndTag };
   Type m_type;
   StreamTag() : m_type(BeginTag) {}
@@ -129,26 +129,25 @@ public:
   operator bool() const { return m_name != ""; }
 
   void dump() {
-    cout << "name = '" << m_name << "'" << endl;
-    cout << "type = ";
+    std::cout << "name = '" << m_name << "'" << std::endl;
+    std::cout << "type = ";
     switch (m_type) {
     case BeginTag:
-      cout << "begin Tag";
+      std::cout << "begin Tag";
       break;
     case EndTag:
-      cout << "end Tag";
+      std::cout << "end Tag";
       break;
     case BeginEndTag:
-      cout << "begin/end Tag";
+      std::cout << "begin/end Tag";
       break;
     default:
-      cout << "**bad Tag**";
+      std::cout << "**bad Tag**";
       break;
     }
-    cout << endl;
-    std::map<std::string, string>::iterator it;
-    for (it = m_attributes.begin(); it != m_attributes.end(); ++it) {
-      cout << " '" << it->first << "' = '" << it->second << "'" << endl;
+    std::cout << std::endl;
+    for (auto const &e : m_attributes) {
+      std::cout << " '" << e.first << "' = '" << e.second << "'" << std::endl;
     }
   }
 };
@@ -166,8 +165,10 @@ public:
     if (!m_factory) m_factory = new TPersistFactory;
     return m_factory;
   }
-  void add(string name, TPersistDeclaration *decl) { m_table[name] = decl; }
-  TPersist *create(string name) {
+  void add(std::string name, TPersistDeclaration *decl) {
+    m_table[name] = decl;
+  }
+  TPersist *create(std::string name) {
     Table::iterator it = m_table.find(name);
     if (it != m_table.end())
       return (it->second)->create();
@@ -198,15 +199,15 @@ TPersist *TPersist::create(const std::string &name) {
 
 class TOStream::Imp {
 public:
-  ostream *m_os;
+  std::ostream *m_os;
   bool m_chanOwner;
   bool m_compressed;
-  ostringstream m_ostringstream;
+  std::ostringstream m_ostringstream;
 
-  vector<std::string> m_tagStack;
+  std::vector<std::string> m_tagStack;
   int m_tab;
   bool m_justStarted;
-  typedef map<TPersist *, int> PersistTable;
+  typedef std::map<TPersist *, int> PersistTable;
   PersistTable m_table;
   int m_maxId;
   TFilePath m_filepath;
@@ -242,7 +243,7 @@ TOStream::TOStream(const TFilePath &fp, bool compressed) : m_imp(new Imp) {
 
 TOStream::TOStream(std::shared_ptr<Imp> imp) : m_imp(std::move(imp)) {
   assert(!m_imp->m_tagStack.empty());
-  ostream &os = *m_imp->m_os;
+  std::ostream &os = *m_imp->m_os;
   if (!m_imp->m_justStarted) cr();
   os << "<" << m_imp->m_tagStack.back() << ">";
   m_imp->m_tab++;
@@ -267,10 +268,10 @@ TOStream::~TOStream() {
   }
   try {
     if (!m_imp->m_tagStack.empty()) {
-      string tagName = m_imp->m_tagStack.back();
+      std::string tagName = m_imp->m_tagStack.back();
       m_imp->m_tagStack.pop_back();
       assert(tagName != "");
-      ostream &os = *m_imp->m_os;
+      std::ostream &os = *m_imp->m_os;
       m_imp->m_tab--;
       if (!m_imp->m_justStarted) cr();
       os << "</" << tagName << ">";
@@ -343,8 +344,8 @@ TOStream &TOStream::operator<<(double v) {
 
 //---------------------------------------------------------------
 
-TOStream &TOStream::operator<<(string v) {
-  ostream &os = *(m_imp->m_os);
+TOStream &TOStream::operator<<(std::string v) {
+  std::ostream &os = *(m_imp->m_os);
   int len     = v.length();
   if (len == 0) {
     os << "\"\""
@@ -371,9 +372,9 @@ TOStream &TOStream::operator<<(string v) {
 //---------------------------------------------------------------
 
 TOStream &TOStream::operator<<(QString _v) {
-  string v = _v.toStdString();
+  std::string v = _v.toStdString();
 
-  ostream &os = *(m_imp->m_os);
+  std::ostream &os = *(m_imp->m_os);
   int len     = v.length();
   if (len == 0) {
     os << "\"\""
@@ -449,7 +450,7 @@ TOStream &TOStream::operator<<(const TFilePath &v) {
 //---------------------------------------------------------------
 
 TOStream &TOStream::operator<<(const TPixel32 &v) {
-  ostream &os = *(m_imp->m_os);
+  std::ostream &os = *(m_imp->m_os);
   os << (int)v.r << " " << (int)v.g << " " << (int)v.b << " " << (int)v.m
      << " ";
   m_imp->m_justStarted = false;
@@ -459,7 +460,7 @@ TOStream &TOStream::operator<<(const TPixel32 &v) {
 //---------------------------------------------------------------
 
 TOStream &TOStream::operator<<(const TPixel64 &v) {
-  ostream &os = *(m_imp->m_os);
+  std::ostream &os = *(m_imp->m_os);
   os << (int)v.r << " " << (int)v.g << " " << (int)v.b << " " << (int)v.m
      << " ";
   m_imp->m_justStarted = false;
@@ -469,7 +470,7 @@ TOStream &TOStream::operator<<(const TPixel64 &v) {
 //---------------------------------------------------------------
 
 void TOStream::cr() {
-  *(m_imp->m_os) << endl;
+  *(m_imp->m_os) << std::endl;
   for (int i = 0; i < m_imp->m_tab; i++) *(m_imp->m_os) << "  ";
   m_imp->m_justStarted = false;
 }
@@ -479,7 +480,7 @@ void TOStream::cr() {
 TOStream::operator bool() const { return (m_imp->m_os && *m_imp->m_os); }
 
 //---------------------------------------------------------------
-TOStream TOStream::child(string tagName) {
+TOStream TOStream::child(std::string tagName) {
   assert(tagName != "");
   m_imp->m_tagStack.push_back(tagName);
   return TOStream(m_imp);
@@ -487,7 +488,7 @@ TOStream TOStream::child(string tagName) {
 
 //---------------------------------------------------------------
 
-void TOStream::openChild(string tagName) {
+void TOStream::openChild(std::string tagName) {
   assert(tagName != "");
   m_imp->m_tagStack.push_back(tagName);
   if (m_imp->m_justStarted == false) cr();
@@ -499,15 +500,14 @@ void TOStream::openChild(string tagName) {
 
 //---------------------------------------------------------------
 
-void TOStream::openChild(string tagName,
-                         const map<std::string, string> &attributes) {
+void TOStream::openChild(std::string tagName,
+                         const std::map<std::string, std::string> &attributes) {
   assert(tagName != "");
   m_imp->m_tagStack.push_back(tagName);
   if (m_imp->m_justStarted == false) cr();
   *(m_imp->m_os) << "<" << m_imp->m_tagStack.back();
-  for (std::map<std::string, string>::const_iterator it = attributes.begin();
-       it != attributes.end(); ++it) {
-    *(m_imp->m_os) << " " << it->first << "=\"" << escape(it->second) << "\"";
+  for (auto const &e : attributes) {
+    *(m_imp->m_os) << " " << e.first << "=\"" << escape(e.second) << "\"";
   }
   *(m_imp->m_os) << ">";
   m_imp->m_tab++;
@@ -519,7 +519,7 @@ void TOStream::openChild(string tagName,
 
 void TOStream::closeChild() {
   assert(!m_imp->m_tagStack.empty());
-  string tagName = m_imp->m_tagStack.back();
+  std::string tagName = m_imp->m_tagStack.back();
   m_imp->m_tagStack.pop_back();
   assert(tagName != "");
   // ostream &os = *m_imp->m_os; //os non e' usato
@@ -532,15 +532,14 @@ void TOStream::closeChild() {
 
 //---------------------------------------------------------------
 
-void TOStream::openCloseChild(string tagName,
-                              const map<std::string, string> &attributes) {
+void TOStream::openCloseChild(
+    std::string tagName, const std::map<std::string, std::string> &attributes) {
   assert(tagName != "");
   // m_imp->m_tagStack.push_back(tagName);
   if (m_imp->m_justStarted == false) cr();
   *(m_imp->m_os) << "<" << tagName;
-  for (std::map<std::string, string>::const_iterator it = attributes.begin();
-       it != attributes.end(); ++it) {
-    *(m_imp->m_os) << " " << it->first << "=\"" << escape(it->second) << "\"";
+  for (auto const &e : attributes) {
+    *(m_imp->m_os) << " " << e.first << "=\"" << escape(e.second) << "\"";
   }
   *(m_imp->m_os) << "/>";
   // m_imp->m_tab++;
@@ -584,7 +583,7 @@ bool TOStream::checkStatus() const {
   if (!m_imp->m_os) return false;
 
   m_imp->m_os->flush();
-  return m_imp->m_os->rdstate() == ios_base::goodbit;
+  return m_imp->m_os->rdstate() == std::ios_base::goodbit;
 }
 
 std::string TOStream::getCurrentTagName() {
@@ -598,15 +597,15 @@ std::string TOStream::getCurrentTagName() {
 */
 class TIStream::Imp {
 public:
-  istream *m_is;
+  std::istream *m_is;
   bool m_chanOwner;
   int m_line;
-  string m_strbuffer;
+  std::string m_strbuffer;
   bool m_compressed;
 
-  vector<std::string> m_tagStack;
+  std::vector<std::string> m_tagStack;
 
-  typedef map<int, TPersist *> PersistTable;
+  typedef std::map<int, TPersist *> PersistTable;
   PersistTable m_table;
 
   StreamTag m_currentTag;
@@ -628,8 +627,8 @@ public:
   inline void skipBlanks();
   bool matchTag();
   inline bool match(char c);
-  bool matchIdent(string &ident);
-  bool matchValue(string &value);
+  bool matchIdent(std::string &ident);
+  bool matchValue(std::string &value);
 
   void skipCurrentTag();
 };
@@ -658,8 +657,8 @@ int TIStream::Imp::getNextChar() {
 //---------------------------------------------------------------
 
 void TIStream::Imp::skipBlanks() {
-  istream &is = *m_is;
-  istream::int_type c;
+  std::istream &is = *m_is;
+  std::istream::int_type c;
   while (c = is.peek(), (isspace(c) || c == '\r')) getNextChar();
 }
 
@@ -675,8 +674,8 @@ bool TIStream::Imp::match(char c) {
 
 //---------------------------------------------------------------
 
-bool TIStream::Imp::matchIdent(string &ident) {
-  istream &is = *m_is;
+bool TIStream::Imp::matchIdent(std::string &ident) {
+  std::istream &is = *m_is;
   if (!isalnum(is.peek())) return false;
   ident = "";
   char c;
@@ -691,8 +690,8 @@ bool TIStream::Imp::matchIdent(string &ident) {
 
 //---------------------------------------------------------------
 
-bool TIStream::Imp::matchValue(string &str) {
-  istream &is = *m_is;
+bool TIStream::Imp::matchValue(std::string &str) {
+  std::istream &is = *m_is;
   char quote  = is.peek();
   char c;
   if (!is || (quote != '\'' && quote != '\"')) return false;
@@ -726,7 +725,7 @@ bool TIStream::Imp::matchTag() {
   if (match('!')) {
     skipBlanks();
     if (!match('-') || !match('-')) throw TException("expected '<!--' tag");
-    istream &is = *m_is;
+    std::istream &is = *m_is;
     char c;
     int status = 1;
     while (status != 0 && is.get(c)) switch (status) {
@@ -764,11 +763,11 @@ bool TIStream::Imp::matchTag() {
       if (match('>')) break;
       throw TException("expected '>'");
     }
-    string name;
+    std::string name;
     if (!matchIdent(name)) throw TException("expected identifier");
     skipBlanks();
     if (match('=')) {
-      string value;
+      std::string value;
       skipBlanks();
       if (!matchValue(value)) throw TException("expected value");
       tag.m_attributes[name] = value;
@@ -782,7 +781,7 @@ bool TIStream::Imp::matchTag() {
 
 void TIStream::Imp::skipCurrentTag() {
   if (m_currentTag.m_type == StreamTag::BeginEndTag) return;
-  istream &is = *m_is;
+  std::istream &is = *m_is;
   int level   = 1;
   int c;
   for (;;) {
@@ -835,12 +834,12 @@ TIStream::TIStream(const TFilePath &fp) : m_imp(new Imp) {
   {
     bool swapForEndianess = false;
 
-    unique_ptr<std::istream> is(m_imp->m_is);
+    std::unique_ptr<std::istream> is(m_imp->m_is);
     m_imp->m_is = 0;
 
     char magicBuffer[4];
     is->read(magicBuffer, 4);
-    string magic(magicBuffer, 4);
+    std::string magic(magicBuffer, 4);
     size_t in_len, out_len;
 
     if (magic == "TNZC") {
@@ -897,7 +896,7 @@ TIStream::TIStream(const TFilePath &fp) : m_imp(new Imp) {
 
     if (check_len != out_len) throw TException("corrupted file");
 
-    m_imp->m_is = new istringstream(std::string(out, out_len));
+    m_imp->m_is = new std::istringstream(std::string(out, out_len));
   }
 
   m_imp->m_chanOwner = true;
@@ -935,7 +934,7 @@ TIStream &TIStream::operator>>(double &v) {
 //---------------------------------------------------------------
 
 TIStream &TIStream::operator>>(std::wstring &v) {
-  string s;
+  std::string s;
   operator>>(s);
   v = ::to_wstring(s);
   return *this;
@@ -943,8 +942,8 @@ TIStream &TIStream::operator>>(std::wstring &v) {
 
 //---------------------------------------------------------------
 
-TIStream &TIStream::operator>>(string &v) {
-  istream &is = *(m_imp->m_is);
+TIStream &TIStream::operator>>(std::string &v) {
+  std::istream &is = *(m_imp->m_is);
   v           = "";
   m_imp->skipBlanks();
   char c;
@@ -984,7 +983,7 @@ TIStream &TIStream::operator>>(string &v) {
 //---------------------------------------------------------------
 
 TIStream &TIStream::operator>>(QString &v) {
-  istream &is = *(m_imp->m_is);
+  std::istream &is = *(m_imp->m_is);
   v           = "";
   m_imp->skipBlanks();
   char c;
@@ -1023,9 +1022,9 @@ TIStream &TIStream::operator>>(QString &v) {
 
 //---------------------------------------------------------------
 
-string TIStream::getString() {
-  istream &is = *(m_imp->m_is);
-  string v    = "";
+std::string TIStream::getString() {
+  std::istream &is = *(m_imp->m_is);
+  std::string v    = "";
   m_imp->skipBlanks();
   char c = is.peek();
   while (c != '<') {
@@ -1040,7 +1039,7 @@ string TIStream::getString() {
 //---------------------------------------------------------------
 
 TIStream &TIStream::operator>>(TPixel32 &v) {
-  istream &is = *(m_imp->m_is);
+  std::istream &is = *(m_imp->m_is);
   int r, g, b, m;
   is >> r;
   is >> g;
@@ -1055,7 +1054,7 @@ TIStream &TIStream::operator>>(TPixel32 &v) {
 //---------------------------------------------------------------
 
 TIStream &TIStream::operator>>(TPixel64 &v) {
-  istream &is = *(m_imp->m_is);
+  std::istream &is = *(m_imp->m_is);
   int r, g, b, m;
   is >> r;
   is >> g;
@@ -1071,8 +1070,8 @@ TIStream &TIStream::operator>>(TPixel64 &v) {
 //---------------------------------------------------------------
 
 TIStream &TIStream::operator>>(TFilePath &v) {
-  istream &is = *(m_imp->m_is);
-  string s;
+  std::istream &is = *(m_imp->m_is);
+  std::string s;
   char c;
   m_imp->skipBlanks();
   is.get(c);
@@ -1120,8 +1119,8 @@ TIStream &TIStream::operator>>(TPersist *&v) {
   }
   StreamTag tag       = m_imp->m_currentTag;
   m_imp->m_currentTag = StreamTag();
-  string tagName      = tag.m_name;
-  std::map<std::string, string>::iterator it;
+  std::string tagName = tag.m_name;
+  std::map<std::string, std::string>::iterator it;
   int id = -1;
   it     = tag.m_attributes.find("id");
   if (it != tag.m_attributes.end()) id = atoi(it->second.c_str());
@@ -1175,7 +1174,7 @@ bool TIStream::eos() {
 
 //---------------------------------------------------------------
 
-bool TIStream::matchTag(string &tagName) {
+bool TIStream::matchTag(std::string &tagName) {
   if (!m_imp->matchTag()) return false;
   if (m_imp->m_currentTag.m_type == StreamTag::EndTag) return false;
   tagName                    = m_imp->m_currentTag.m_name;
@@ -1187,9 +1186,9 @@ bool TIStream::matchTag(string &tagName) {
 
 //---------------------------------------------------------------
 
-string TIStream::getTagAttribute(string name) const {
+std::string TIStream::getTagAttribute(std::string name) const {
   StreamTag &tag = m_imp->m_currentTag;
-  std::map<std::string, string>::const_iterator it =
+  std::map<std::string, std::string>::const_iterator it =
       tag.m_attributes.find(name);
   if (it == tag.m_attributes.end())
     return "";
@@ -1199,10 +1198,10 @@ string TIStream::getTagAttribute(string name) const {
 
 //---------------------------------------------------------------
 
-bool TIStream::getTagParam(string paramName, string &value) {
+bool TIStream::getTagParam(std::string paramName, std::string &value) {
   if (m_imp->m_tagStack.empty()) return false;
   StreamTag &tag = m_imp->m_currentTag;
-  std::map<std::string, string>::const_iterator it =
+  std::map<std::string, std::string>::const_iterator it =
       tag.m_attributes.find(paramName);
   if (it == tag.m_attributes.end()) return false;
   value = it->second;
@@ -1211,10 +1210,10 @@ bool TIStream::getTagParam(string paramName, string &value) {
 
 //---------------------------------------------------------------
 
-bool TIStream::getTagParam(string paramName, int &value) {
-  string svalue;
+bool TIStream::getTagParam(std::string paramName, int &value) {
+  std::string svalue;
   if (!getTagParam(paramName, svalue)) return false;
-  istringstream is(svalue);
+  std::istringstream is(svalue);
   value = 0;
   is >> value;
   return true;
@@ -1228,7 +1227,7 @@ bool TIStream::isBeginEndTag() {
 
 //---------------------------------------------------------------
 
-bool TIStream::openChild(string &tagName) {
+bool TIStream::openChild(std::string &tagName) {
   if (!m_imp->matchTag()) return false;
   if (m_imp->m_currentTag.m_type != StreamTag::BeginTag) return false;
   tagName                    = m_imp->m_currentTag.m_name;
@@ -1241,7 +1240,7 @@ bool TIStream::openChild(string &tagName) {
 
 void TIStream::closeChild() {
   if (!matchEndTag()) {
-    string tagName;
+    std::string tagName;
     if (!m_imp->m_tagStack.empty()) tagName = m_imp->m_tagStack.back();
     if (tagName != "")
       throw TException("Expected \"" + tagName + "\" end tag");

@@ -44,7 +44,6 @@
 #include <QFrame>
 #include <QGroupBox>
 
-using namespace std;
 using namespace DVGui;
 
 namespace {

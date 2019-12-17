@@ -76,8 +76,6 @@
 
 //==================================================================================
 
-using namespace std;
-
 using namespace TCli;
 typedef ArgumentT<TFilePath> FilePathArgument;
 typedef QualifierT<TFilePath> FilePathQualifier;
@@ -115,7 +113,7 @@ const char *systemVarPrefix = "TOONZ";
 //
 //------------------------------------------------------------------------
 
-void fatalError(string msg) {
+void fatalError(std::string msg) {
 #ifdef _WIN32
   std::cout << msg << std::endl;
   // MessageBox(0,msg.c_str(),"Fatal error",MB_ICONERROR);
@@ -169,7 +167,7 @@ TFilePath setToonzFolder(const TFilePath &filename, std::string toonzVar) {
     if (q == s)
       continue;  // non dovrebbe mai succedere: prima di '=' tutti blanks
 
-    string toonzVarString(q, t);
+    std::string toonzVarString(q, t);
 
     // Confronto la stringa trovata con toonzVar, se   lei vado avanti.
     if (toonzVar != toonzVarString) continue;  // errore: stringhe diverse
@@ -182,7 +180,7 @@ TFilePath setToonzFolder(const TFilePath &filename, std::string toonzVar) {
     while (t > s && isBlank(*(t - 1))) t--;
     if (t == s) continue;
     // ATTENZIONE : tolgo le virgolette !!
-    string pathName(s + 1, t - s - 2);
+    std::string pathName(s + 1, t - s - 2);
     return TFilePath(pathName);
   }
 
@@ -210,9 +208,9 @@ QString TaskId;
 //-------------------------------------------------------------------------------
 
 void tcomposerRunOutOfContMemHandler(unsigned long size) {
-  string msg("Run out of contiguous memory: tried to allocate " +
-             std::to_string(size >> 10) + " KB");
-  cout << msg << endl;
+  std::string msg("Run out of contiguous memory: tried to allocate " +
+                  std::to_string(size >> 10) + " KB");
+  std::cout << msg << std::endl;
   m_userLog->error(msg);
 
   // The task will necessarily do something wrong. So we quit with an error
@@ -251,13 +249,13 @@ public:
 
 bool MyMovieRenderListener::onFrameCompleted(int frame) {
   TFilePath fp = m_fp.withFrame(frame + 1);
-  string msg;
+  std::string msg;
   if (m_stereo)
     msg = ::to_string(fp.withName(fp.getName() + "_l")) + " and " +
           ::to_string(fp.withName(fp.getName() + "_r")) + " computed";
   else
     msg = ::to_string(fp) + " computed";
-  cout << msg << endl;
+  std::cout << msg << std::endl;
   m_userLog->info(msg);
   DVGui::info(QString::fromStdString(msg));
   if (FarmController) {
@@ -268,7 +266,7 @@ bool MyMovieRenderListener::onFrameCompleted(int frame) {
     } catch (...) {
       msg = "Unable to connect to " + std::to_string(FarmControllerPort) + "@" +
             FarmControllerName.toStdString();
-      cout << msg;
+      std::cout << msg;
       m_userLog->error(msg);
     }
   }
@@ -282,12 +280,12 @@ bool MyMovieRenderListener::onFrameCompleted(int frame) {
 
 bool MyMovieRenderListener::onFrameFailed(int frame, TException &e) {
   TFilePath fp = m_fp.withFrame(frame + 1);
-  string msg;
+  std::string msg;
   msg = ::to_string(fp) + " failed";
 
   if (!e.getMessage().empty()) msg += ": " + ::to_string(e.getMessage());
 
-  cout << msg << endl;
+  std::cout << msg << std::endl;
   m_userLog->error(msg);
   if (FarmController) {
     try {
@@ -297,7 +295,7 @@ bool MyMovieRenderListener::onFrameFailed(int frame, TException &e) {
     } catch (...) {
       msg = "Unable to connect to " + std::to_string(FarmControllerPort) + "@" +
             FarmControllerName.toStdString();
-      cout << msg;
+      std::cout << msg;
       m_userLog->error(msg);
     }
   }
@@ -310,7 +308,7 @@ bool MyMovieRenderListener::onFrameFailed(int frame, TException &e) {
 //------------------------------------------------------------------------------
 
 void MyMovieRenderListener::onSequenceCompleted(const TFilePath &fp) {
-  cout << endl;
+  std::cout << std::endl;
   QCoreApplication::instance()->quit();
 }
 
@@ -339,9 +337,9 @@ public:
 
 bool MyMultimediaRenderListener::onFrameCompleted(int frame, int column) {
   int actualFrame = frame + 1;
-  string msg      = ::to_string(m_fp) + ", column " + std::to_string(column) +
-               ", frame " + std::to_string(actualFrame) + " computed";
-  cout << msg << endl;
+  std::string msg = ::to_string(m_fp) + ", column " + std::to_string(column) +
+                    ", frame " + std::to_string(actualFrame) + " computed";
+  std::cout << msg << std::endl;
   m_userLog->info(msg);
   if (FarmController) {
     try {
@@ -351,7 +349,7 @@ bool MyMultimediaRenderListener::onFrameCompleted(int frame, int column) {
     } catch (...) {
       msg = "Unable to connect to " + std::to_string(FarmControllerPort) + "@" +
             FarmControllerName.toStdString();
-      cout << msg;
+      std::cout << msg;
       m_userLog->error(msg);
     }
   }
@@ -365,12 +363,12 @@ bool MyMultimediaRenderListener::onFrameCompleted(int frame, int column) {
 bool MyMultimediaRenderListener::onFrameFailed(int frame, int column,
                                                TException &e) {
   int actualFrame = frame + 1;
-  string msg      = ::to_string(m_fp) + ", column " + std::to_string(column) +
-               ", frame " + std::to_string(actualFrame) + " failed";
+  std::string msg = ::to_string(m_fp) + ", column " + std::to_string(column) +
+                    ", frame " + std::to_string(actualFrame) + " failed";
 
   if (!e.getMessage().empty()) msg += ": " + ::to_string(e.getMessage());
 
-  cout << msg << endl;
+  std::cout << msg << std::endl;
   m_userLog->error(msg);
   if (FarmController) {
     try {
@@ -380,7 +378,7 @@ bool MyMultimediaRenderListener::onFrameFailed(int frame, int column,
     } catch (...) {
       msg = "Unable to connect to " + std::to_string(FarmControllerPort) + "@" +
             FarmControllerName.toStdString();
-      cout << msg;
+      std::cout << msg;
       m_userLog->error(msg);
     }
   }
@@ -402,7 +400,7 @@ static std::pair<int, int> generateMovie(ToonzScene *scene, const TFilePath &fp,
 
   if (r0 < 0) r0 = 0;
   if (r1 < 0 || r1 >= scene->getFrameCount()) r1 = scene->getFrameCount() - 1;
-  string msg;
+  std::string msg;
   assert(r1 >= r0);
   TSceneProperties *sprop          = scene->getProperties();
   TOutputProperties outputSettings = *sprop->getOutputProperties();
@@ -412,17 +410,17 @@ static std::pair<int, int> generateMovie(ToonzScene *scene, const TFilePath &fp,
   TDimension cameraSize = scene->getCurrentCamera()->getRes();
   TSystem::touchParentDir(fp);
 
-  string ext = fp.getType();
+  std::string ext = fp.getType();
 
 #ifdef _WIN32
   if (ext == "avi") {
     TPropertyGroup *props =
         scene->getProperties()->getOutputProperties()->getFileFormatProperties(
             ext);
-    string codecName = props->getProperty(0)->getValueAsString();
+    std::string codecName = props->getProperty(0)->getValueAsString();
     TDimension res   = scene->getCurrentCamera()->getRes();
     if (!AviCodecRestrictions::canWriteMovie(::to_wstring(codecName), res)) {
-      string msg(
+      std::string msg(
           "The resolution of the output camera does not fit with the options "
           "chosen for the output file format.");
       m_userLog->error(msg);
@@ -668,8 +666,8 @@ int main(int argc, char *argv[]) {
   while (argItr != argumentPathValues.constEnd()) {
     if (!TEnv::setArgPathValue(argItr.key().toStdString(),
                                argItr.value().toStdString()))
-      cerr << "The qualifier " << argItr.key().toStdString()
-           << " is not a valid key name. Skipping." << endl;
+      std::cerr << "The qualifier " << argItr.key().toStdString()
+                << " is not a valid key name. Skipping." << std::endl;
     ++argItr;
   }
 
@@ -691,16 +689,16 @@ int main(int argc, char *argv[]) {
   // controllo se la xxxroot e' definita e corrisponde ad un file esistente
   TFilePath fp = TEnv::getStuffDir();
   if (fp == TFilePath())
-    fatalError(string("Undefined: \"") + ::to_string(TEnv::getRootVarPath()) +
-               "\"");
+    fatalError(std::string("Undefined: \"") +
+               ::to_string(TEnv::getRootVarPath()) + "\"");
   if (!TFileStatus(fp).isDirectory())
-    fatalError(string("Directory \"") + ::to_string(fp) +
+    fatalError(std::string("Directory \"") + ::to_string(fp) +
                "\" not found or not readable");
 
   TFilePath lRootDir    = fp + "toonzfarm";
   TFilePath logFilePath = lRootDir + "tcomposer.log";
   m_userLog             = new TUserLogAppend(logFilePath);
-  string msg;
+  std::string msg;
 
   // Initialize measure units
   Preferences::instance();                      // Loads standard (linear) units
@@ -724,15 +722,15 @@ int main(int argc, char *argv[]) {
   // #endif
 
   TaskId       = QString::fromStdString(idq.getValue());
-  string fdata = farmData.getValue();
+  std::string fdata = farmData.getValue();
   if (fdata.empty())
     UseRenderFarm = false;
   else {
     UseRenderFarm         = true;
-    string::size_type pos = fdata.find('@');
-    if (pos == string::npos)
+    std::string::size_type pos = fdata.find('@');
+    if (pos == std::string::npos) {
       UseRenderFarm = false;
-    else {
+    } else {
       FarmControllerPort = std::stoi(fdata.substr(0, pos));
       FarmControllerName = QString::fromStdString(fdata.substr(pos + 1));
     }
@@ -772,7 +770,7 @@ int main(int argc, char *argv[]) {
 
     //---------------------------------------------------------
     msg = "Loading " + srcFilePath.getName();
-    cout << endl << msg << endl;
+    std::cout << std::endl << msg << std::endl;
     m_userLog->info(msg);
     TProjectManager *pm = TProjectManager::instance();
     // pm->enableTabMode(true);
@@ -780,12 +778,12 @@ int main(int argc, char *argv[]) {
     TProjectP project = pm->loadSceneProject(srcFilePath);
     if (!project) {
       msg = "Couldn't find the project";  //+ project->getName().getName();
-      cerr << msg << endl;
+      std::cerr << msg << std::endl;
       m_userLog->error(msg);
       return -2;
     }
     msg = "project: " + project->getName().getName();
-    cout << msg << endl;
+    std::cout << msg << std::endl;
     m_userLog->info(msg);
     // pm->setCurrentProject(project, false); // false => temporaneamente
 
@@ -801,20 +799,20 @@ int main(int argc, char *argv[]) {
       scene->load(srcFilePath);
       Sw2.stop();
     } catch (TException &e) {
-      cout << ::to_string(e.getMessage()) << endl;
+      std::cout << ::to_string(e.getMessage()) << std::endl;
       m_userLog->error(::to_string(e.getMessage()));
       return -2;
     } catch (...) {
-      string msg;
+      std::string msg;
       msg = "There were problems loading the scene " +
             ::to_string(srcFilePath) + ".\n Some files may be missing.";
-      cout << msg << endl;
+      std::cout << msg << std::endl;
       m_userLog->error(msg);
       // return false;
     }
 
     msg = "scene loaded";
-    cout << "scene loaded" << endl;
+    std::cout << "scene loaded" << std::endl;
     m_userLog->info(msg);
 
     //---------------------------------------------------------
@@ -835,7 +833,9 @@ int main(int argc, char *argv[]) {
 
     //---------------------------------------------------------
     msg = "Generating " + dstFilePath.getName();
-    cout << endl << "Generating " << dstFilePath << endl << endl;
+    std::cout << std::endl
+              << "Generating " << dstFilePath << std::endl
+              << std::endl;
     m_userLog->info(msg);
 
     TFilePath theDstFilePath = dstFilePath;
@@ -893,7 +893,7 @@ int main(int argc, char *argv[]) {
                                     : threadCountStr.toInt();
 
       if (threadCount <= 0) {
-        cout << "Qualifier 'nthreads': bad input" << endl;
+        std::cout << "Qualifier 'nthreads': bad input" << std::endl;
         exit(1);
       }
     } else {
@@ -921,7 +921,7 @@ int main(int argc, char *argv[]) {
                                           : tileSizeStr.toInt();
 
       if (maxTileSize <= 0) {
-        cout << "Qualifier 'maxtilesize': bad input" << endl;
+        std::cout << "Qualifier 'maxtilesize': bad input" << std::endl;
         exit(1);
       }
     } else {
@@ -973,24 +973,24 @@ int main(int argc, char *argv[]) {
 
     msg = "Compositing completed in " +
           ::to_string(Sw1.getTotalTime() / 1000.0, 2) + " seconds";
-    string msg2 =
+    std::string msg2 =
         "\n" + ::to_string(Sw2.getTotalTime() / 1000.0, 2) +
         " seconds spent on loading" + "\n" +
         ::to_string(TStopWatch::global(0).getTotalTime() / 1000.0, 2) +
         " seconds spent on saving" + "\n" +
         ::to_string(TStopWatch::global(8).getTotalTime() / 1000.0, 2) +
         " seconds spent on rendering" + "\n";
-    cout << msg + msg2;
+    std::cout << msg + msg2;
     m_userLog->info(msg + msg2);
     DVGui::info(QString::fromStdString(msg));
     TImageCache::instance()->clear(true);
   } catch (TException &e) {
     msg = "Untrapped exception: " + ::to_string(e.getMessage()),
-    cout << msg << endl;
+    std::cout << msg << std::endl;
     m_userLog->error(msg);
     TImageCache::instance()->clear(true);
   } catch (...) {
-    cout << "Untrapped exception" << endl;
+    std::cout << "Untrapped exception" << std::endl;
     m_userLog->error("Untrapped exception");
     TImageCache::instance()->clear(true);
   }

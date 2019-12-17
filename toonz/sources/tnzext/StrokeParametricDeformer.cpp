@@ -13,8 +13,6 @@
 
 #include <tstroke.h>
 
-using namespace std;
-
 //-----------------------------------------------------------------------------
 
 ToonzExt::StrokeParametricDeformer::StrokeParametricDeformer(
@@ -117,7 +115,7 @@ double ToonzExt::StrokeParametricDeformer::getDelta(const TStroke &stroke,
   double w1 = stroke.getParameterAtLength(tmp);
 
   /*
-  double  w1 = w + 0.01;  
+  double  w1 = w + 0.01;
   if(w1>1.0)
   {
     w0 = 1.0 - 0.01;
@@ -126,7 +124,7 @@ double ToonzExt::StrokeParametricDeformer::getDelta(const TStroke &stroke,
   */
 
   const double  dx = 1.0; //stroke.getLength(w0,w1);
-  TThickPoint pnt = this->getDisplacement(stroke,w1) - 
+  TThickPoint pnt = this->getDisplacement(stroke,w1) -
                     this->getDisplacement(stroke,w0);
 
   double  dy =  sqrt( sq(pnt.x) + sq(pnt.y) + sq(pnt.thick) );

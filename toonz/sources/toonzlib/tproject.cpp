@@ -27,8 +27,6 @@
 #include <fstream>
 #include <stdlib.h>
 
-using namespace std;
-
 //===================================================================
 
 /* Version-related strings added to project files, in reversed chronological
@@ -110,7 +108,9 @@ TEnv::StringVar currentProjectPath("CurrentProject", "");
 std::wstring getProjectSuffix(const TFilePath &path) {
   const std::wstring &name = path.getWideName();
   int idx                  = name.find_last_of(L'_');
-  if (idx == string::npos) return L"";
+  if (idx == std::string::npos) {
+    return L"";
+  }
 
   return name.substr(idx);
 }
@@ -166,7 +166,7 @@ TFilePath getLatestVersionProjectPath(const TFilePath &path) {
 */
 TFilePath searchProjectPath(TFilePath folder) {
   assert(folder.isAbsolute());
-  wstring projectName = folder.getWideName();
+  std::wstring projectName = folder.getWideName();
 
   // Search for the first available project file, starting from the most recent.
   TFilePath projectPath = getProjectFile(folder);
@@ -303,7 +303,7 @@ TProject::~TProject() { delete m_sprop; }
         Every association between names and paths is contained in a mapping.
         \note Not absolute path are thought relative to the project folder.
 */
-void TProject::setFolder(string name, TFilePath path) {
+void TProject::setFolder(std::string name, TFilePath path) {
   std::map<std::string, TFilePath>::iterator it;
   it = m_folders.find(name);
   if (it == m_folders.end()) {
@@ -321,7 +321,7 @@ void TProject::setFolder(string name, TFilePath path) {
    setFolder(TProject::Drawings, TFilePath("drawings"))\n
         The resulting is "..\\projectFolder\\drawings"
 */
-void TProject::setFolder(string name) { setFolder(name, TFilePath(name)); }
+void TProject::setFolder(std::string name) { setFolder(name, TFilePath(name)); }
 
 //-------------------------------------------------------------------
 /*! Returns the path of the folder named with \b name.\n
@@ -329,7 +329,7 @@ void TProject::setFolder(string name) { setFolder(name, TFilePath(name)); }
         \note The returned path could be a relative path if \b absolute is
    false.
 */
-TFilePath TProject::getFolder(string name, bool absolute) const {
+TFilePath TProject::getFolder(std::string name, bool absolute) const {
   std::map<std::string, TFilePath>::const_iterator it;
   it = m_folders.find(name);
   if (it != m_folders.end())
@@ -367,7 +367,7 @@ TFilePath TProject::getFolder(int index) const {
 */
 bool TProject::isConstantFolder(int index) const {
   TFilePath fp = getFolder(index);
-  return fp.getWideString().find(L"$scene") == wstring::npos;
+  return fp.getWideString().find(L"$scene") == std::wstring::npos;
 }
 
 //-------------------------------------------------------------------
@@ -376,7 +376,7 @@ int TProject::getFolderCount() const { return m_folders.size(); }
 
 //-------------------------------------------------------------------
 //! Returns the name of the folder indexed with \b index.
-string TProject::getFolderName(int index) const {
+std::string TProject::getFolderName(int index) const {
   if (0 <= index && index < (int)m_folderNames.size())
     return m_folderNames[index];
   else
@@ -388,7 +388,7 @@ string TProject::getFolderName(int index) const {
 /*! Returns the index of the folder named with \b folderName.\n
         If a folder named with \b folderName doesn't exist, return -1.
 */
-int TProject::getFolderIndex(string name) const {
+int TProject::getFolderIndex(std::string name) const {
   std::vector<std::string>::const_iterator it;
   it = std::find(m_folderNames.begin(), m_folderNames.end(), name);
   if (it == m_folderNames.end()) return -1;
@@ -424,9 +424,9 @@ void TProject::setSceneProperties(const TSceneProperties &sprop) {
 */
 TFilePath TProject::decode(TFilePath fp) const {
   for (;;) {
-    wstring fpstr = fp.getWideString();
+    std::wstring fpstr = fp.getWideString();
     int j         = fpstr.find(L"$project");
-    if (j == (int)wstring::npos) break;
+    if (j == (int)std::wstring::npos) break;
     fpstr.replace(j, 8, getName().getWideString());
     fp = TFilePath(fpstr);
   }
@@ -435,13 +435,13 @@ TFilePath TProject::decode(TFilePath fp) const {
 
 //-------------------------------------------------------------------
 
-void TProject::setUseScenePath(string folderName, bool on) {
+void TProject::setUseScenePath(std::string folderName, bool on) {
   m_useScenePathFlags[folderName] = on;
 }
 
 //-------------------------------------------------------------------
 
-bool TProject::getUseScenePath(string folderName) const {
+bool TProject::getUseScenePath(std::string folderName) const {
   std::map<std::string, bool>::const_iterator it;
   it = m_useScenePathFlags.find(folderName);
   return it != m_useScenePathFlags.end() ? it->second : false;
@@ -454,7 +454,7 @@ bool TProject::getUseScenePath(string folderName) const {
 int TProject::getFolderIndexFromPath(const TFilePath &folderDir) {
   TFilePath scenePath          = decode(getFolder(Scenes));
   bool sceneDependentScenePath = false;
-  if (scenePath.getName().find("$scene") != string::npos) {
+  if (scenePath.getName().find("$scene") != std::string::npos) {
     scenePath               = scenePath.getParentDir();
     sceneDependentScenePath = true;
   }
@@ -465,13 +465,13 @@ int TProject::getFolderIndexFromPath(const TFilePath &folderDir) {
       if (fp == folderDir) return folderIndex;
     } else {
       TFilePath fp = decode(getFolder(folderIndex));
-      wstring a    = fp.getWideString();
-      wstring b    = folderDir.getWideString();
+      std::wstring a = fp.getWideString();
+      std::wstring b = folderDir.getWideString();
       int alen     = a.length();
       int blen     = b.length();
       int i        = a.find(L"$scene");
-      assert(i != (int)wstring::npos);
-      if (i == (int)wstring::npos) continue;
+      assert(i != (int)std::wstring::npos);
+      if (i == (int)std::wstring::npos) continue;
       int j = i + 1;
       while (j < alen && isalnum(a[j])) j++;
       // a.substr(i,j-i) == "$scenexxxx"
@@ -480,7 +480,7 @@ int TProject::getFolderIndexFromPath(const TFilePath &folderDir) {
       assert(i < blen);
       if (i > 0 && a.substr(0, i) != b.substr(0, i)) continue;
       if (k < blen && (j >= alen || a.substr(j) != b.substr(k))) continue;
-      wstring v = b.substr(i, k - i);
+      std::wstring v = b.substr(i, k - i);
       TFilePath scene(v + L".tnz");
       if (sceneDependentScenePath)
         scene = scenePath + scene.getWideName() + scene;
@@ -495,7 +495,7 @@ int TProject::getFolderIndexFromPath(const TFilePath &folderDir) {
 /*! Returns the folder's name of the specified TFilePath \b folderDir.\n
         Returns the empty string if \b folderDir isn't a folder of the
    project.*/
-wstring TProject::getFolderNameFromPath(const TFilePath &folderDir) {
+std::wstring TProject::getFolderNameFromPath(const TFilePath &folderDir) {
   int index = getFolderIndexFromPath(folderDir);
   if (index < 0) return L"";
   if (getFolder(index).isAbsolute())
@@ -557,8 +557,8 @@ bool TProject::save(const TFilePath &projectPath) {
   for (i = 0; i < getFolderCount(); i++) {
     TFilePath folderRelativePath = getFolder(i);
     if (folderRelativePath == TFilePath()) continue;
-    std::map<std::string, string> attr;
-    string folderName = getFolderName(i);
+    std::map<std::string, std::string> attr;
+    std::string folderName = getFolderName(i);
     attr["name"]      = folderName;
     attr["path"]      = ::to_string(folderRelativePath);  // escape()
     if (getUseScenePath(folderName)) attr["useScenePath"] = "yes";
@@ -601,7 +601,7 @@ bool TProject::save(const TFilePath &projectPath) {
         makeRelative(folderpath, m_path.getParentDir());
 
     TOStream os2(xmlPath);
-    std::map<std::string, string> attr;
+    std::map<std::string, std::string> attr;
     attr["type"] = "projectFolder";
     os2.openChild("parentProject", attr);
     os2 << relativeProjectFolder;
@@ -645,17 +645,17 @@ void TProject::load(const TFilePath &projectPath) {
   TIStream is(inputProjectPath);
   if (!is) return;
 
-  string tagName;
+  std::string tagName;
   if (!is.matchTag(tagName) || tagName != "project") return;
 
   while (is.matchTag(tagName)) {
     if (tagName == "folders") {
       while (is.matchTag(tagName)) {
         if (tagName == "folder") {
-          string name = is.getTagAttribute("name");
+          std::string name = is.getTagAttribute("name");
           TFilePath path(is.getTagAttribute("path"));
           setFolder(name, path);
-          string useScenePath = is.getTagAttribute("useScenePath");
+          std::string useScenePath = is.getTagAttribute("useScenePath");
           setUseScenePath(name, useScenePath == "yes");
         } else
           throw TException("expected <folder>");
@@ -919,7 +919,7 @@ void TProjectManager::getFolderNames(std::vector<std::string> &names) {
         while (t > s && (t[-1] == ' ' || t[-1] == '\t'))
           t--;  // remove trailing blanks
         t[0] = '\0';
-        if (s[0]) names.push_back(string(s));
+        if (s[0]) names.push_back(std::string(s));
       }
   } catch (...) {
   }
@@ -961,8 +961,8 @@ TFilePath TProjectManager::getCurrentProjectPath() {
   if (!TFileStatus(fp).doesExist())
     fp = projectNameToProjectPath(TProject::SandboxProjectName);
   fp       = getLatestVersionProjectPath(fp);
-  string s = ::to_string(fp);
-  if (s != (string)currentProjectPath) currentProjectPath = s;
+  std::string s = ::to_string(fp);
+  if (s != (std::string)currentProjectPath) currentProjectPath = s;
   return fp;
 }
 
@@ -1010,9 +1010,9 @@ TProjectP TProjectManager::loadSceneProject(const TFilePath &scenePath) {
   if (found) {
     try {
       TIStream is(sceneDesc);
-      string tagName;
+      std::string tagName;
       is.matchTag(tagName);
-      string type = is.getTagAttribute("type");
+      std::string type = is.getTagAttribute("type");
       TFilePath projectFolderPath;
       is >> projectFolderPath;
       if (type == "") {

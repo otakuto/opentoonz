@@ -9,8 +9,6 @@
 #include "toonz/trasterimageutils.h"
 #include "toonz/stage.h"
 
-using namespace std;
-
 //=============================================================================
 namespace {
 //-----------------------------------------------------------------------------
@@ -61,7 +59,7 @@ TAffine findOffset(const TVectorImageP &srcImg, const TVectorImageP &img) {
 TStroke getStrokeByRect(TRectD r) {
   TStroke stroke;
   if (r.isEmpty()) return stroke;
-  vector<TThickPoint> points;
+  std::vector<TThickPoint> points;
   points.push_back(r.getP00());
   points.push_back((r.getP00() + r.getP01()) * 0.5);
   points.push_back(r.getP01());
@@ -89,7 +87,7 @@ void StrokesData::setImage(TVectorImageP image, const std::set<int> &indices) {
   if (indices.empty()) return;
 
   // indices e' un set; splitImage si aspetta un vector
-  vector<int> indicesV(indices.begin(), indices.end());
+  std::vector<int> indicesV(indices.begin(), indices.end());
   QMutexLocker lock(image->getMutex());
   m_image = image->splitImage(indicesV, false);
   if (m_image->getPalette() == 0) {
@@ -140,8 +138,8 @@ ToonzImageData *StrokesData::toToonzImageData(
   TToonzImageP app = ToonzImageUtils::vectorToToonzImage(
       m_image, sc, m_image->getPalette(), bbox.getP00(), size, 0, true);
 
-  vector<TRectD> rects;
-  vector<TStroke> strokes;
+  std::vector<TRectD> rects;
+  std::vector<TStroke> strokes;
   TStroke stroke = getStrokeByRect(bbox);
   strokes.push_back(stroke);
   ToonzImageData *data = new ToonzImageData();
@@ -168,8 +166,8 @@ FullColorImageData *StrokesData::toFullColorImageData(
   TRasterImageP app = TRasterImageUtils::vectorToFullColorImage(
       m_image, sc, m_image->getPalette(), bbox.getP00(), size, 0, true);
 
-  vector<TRectD> rects;
-  vector<TStroke> strokes;
+  std::vector<TRectD> rects;
+  std::vector<TStroke> strokes;
   TStroke stroke = getStrokeByRect(bbox);
   strokes.push_back(stroke);
   FullColorImageData *data = new FullColorImageData();

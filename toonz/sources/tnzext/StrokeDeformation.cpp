@@ -33,7 +33,6 @@
 #include "tthreadmessage.h"
 
 using namespace ToonzExt;
-using namespace std;
 
 /**
  * @brief Manage a mutable context.

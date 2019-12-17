@@ -25,7 +25,6 @@
 #include "traster.h"
 #include "tmathutil.h"
 #include "tvectorimage.h"
-using namespace std;
 
 //=============================================================================
 
@@ -46,7 +45,7 @@ struct TFont::Impl {
 
 //-----------------------------------------------------------------------------
 
-TFont::TFont(const wstring family, const wstring face, int size) {
+TFont::TFont(const std::wstring family, const std::wstring face, int size) {
   m_pimpl = new Impl(QString::fromStdWString(family),
                      QString::fromStdWString(face), size);
 }
@@ -134,7 +133,7 @@ TPoint TFont::drawChar(TVectorImageP &image, wchar_t charcode,
     case QPainterPath::CurveToDataElement:
       pts[nCubicPts++] = TThickPoint(e.x, e.y, 0);
       if (nCubicPts == 4) {
-        vector<TThickQuadratic *> chunkArray;
+        std::vector<TThickQuadratic *> chunkArray;
         computeQuadraticsFromCubic(pts[0], pts[1], pts[2], pts[3], 0.09,
                                    chunkArray);
 
@@ -292,8 +291,8 @@ struct TFontManager::Impl {
   bool m_loaded;
 
   TFont *m_currentFont;
-  wstring m_currentFamily;
-  wstring m_currentTypeface;
+  std::wstring m_currentFamily;
+  std::wstring m_currentTypeface;
   int m_size;
 
   // this option is set by library user when he wants to write vertically.
@@ -339,7 +338,7 @@ void TFontManager::loadFontNames() {
 
 //---------------------------------------------------------
 
-void TFontManager::setFamily(const wstring family) {
+void TFontManager::setFamily(const std::wstring family) {
   if (m_pimpl->m_currentFamily == family) return;
 
   QString qFamily      = QString::fromStdWString(family);
@@ -363,7 +362,7 @@ void TFontManager::setFamily(const wstring family) {
 
 //---------------------------------------------------------
 
-void TFontManager::setTypeface(const wstring typeface) {
+void TFontManager::setTypeface(const std::wstring typeface) {
   if (m_pimpl->m_currentTypeface == typeface) return;
 
   QString qTypeface  = QString::fromStdWString(typeface);
@@ -392,13 +391,13 @@ void TFontManager::setSize(int size) {
 
 //---------------------------------------------------------
 
-wstring TFontManager::getCurrentFamily() const {
+std::wstring TFontManager::getCurrentFamily() const {
   return m_pimpl->m_currentFamily;
 }
 
 //---------------------------------------------------------
 
-wstring TFontManager::getCurrentTypeface() const {
+std::wstring TFontManager::getCurrentTypeface() const {
   return m_pimpl->m_currentTypeface;
 }
 
@@ -421,7 +420,7 @@ TFont *TFontManager::getCurrentFont() {
 
 //---------------------------------------------------------
 
-void TFontManager::getAllFamilies(vector<wstring> &families) const {
+void TFontManager::getAllFamilies(std::vector<std::wstring> &families) const {
   QStringList qFamilies = m_pimpl->m_qfontdb->families();
 
   families.clear();
@@ -436,7 +435,7 @@ void TFontManager::getAllFamilies(vector<wstring> &families) const {
 
 //---------------------------------------------------------
 
-void TFontManager::getAllTypefaces(vector<wstring> &typefaces) const {
+void TFontManager::getAllTypefaces(std::vector<std::wstring> &typefaces) const {
   typefaces.clear();
 
   QStringList qStyles = m_pimpl->m_qfontdb->styles(

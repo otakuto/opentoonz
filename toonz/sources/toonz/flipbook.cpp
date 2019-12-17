@@ -853,7 +853,7 @@ FlipBookPool *FlipBookPool::instance() {
 //-----------------------------------------------------------------------------
 
 void FlipBookPool::push(FlipBook *flipbook) {
-  m_pool.insert(pair<int, FlipBook *>(flipbook->getPoolIndex(), flipbook));
+  m_pool.insert(std::pair<int, FlipBook *>(flipbook->getPoolIndex(), flipbook));
 }
 
 //-----------------------------------------------------------------------------
@@ -956,7 +956,7 @@ void FlipBookPool::load(const TFilePath &historyPath) {
     QVariant geom = history.value("geometry");
 
     // Insert geometry
-    m_geometryPool.insert(pair<int, QRect>(it->toInt(), geom.toRect()));
+    m_geometryPool.insert(std::pair<int, QRect>(it->toInt(), geom.toRect()));
 
     history.endGroup();
   }

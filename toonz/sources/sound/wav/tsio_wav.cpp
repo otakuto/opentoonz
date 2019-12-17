@@ -5,8 +5,6 @@
 #include "tsystem.h"
 #include "tfilepath_io.h"
 
-using namespace std;
-
 #if !defined(TNZ_LITTLE_ENDIAN)
 TNZ_LITTLE_ENDIAN undefined !!
 #endif
@@ -24,10 +22,10 @@ class TWAVChunk {
 public:
   static TINT32 HDR_LENGTH;
 
-  string m_name;
+  std::string m_name;
   TINT32 m_length;  // lunghezza del chunk in byte
 
-  TWAVChunk(string name, TINT32 length) : m_name(name), m_length(length) {}
+  TWAVChunk(std::string name, TINT32 length) : m_name(name), m_length(length) {}
 
   virtual ~TWAVChunk() {}
 
@@ -36,9 +34,9 @@ public:
     return true;
   }
 
-  void skip(Tifstream &is) { is.seekg(m_length, ios::cur); }
+  void skip(Tifstream &is) { is.seekg(m_length, std::ios::cur); }
 
-  static bool readHeader(Tifstream &is, string &name, TINT32 &length) {
+  static bool readHeader(Tifstream &is, std::string &name, TINT32 &length) {
     char cName[5];
     TINT32 len = 0;
     memset(cName, 0, sizeof(cName));
@@ -54,7 +52,7 @@ public:
     // se la piattaforma non e' little-endian bisogna scambiare i byte
     if (!TNZ_LITTLE_ENDIAN) len = swapTINT32(len);
 
-    name   = string(cName);
+    name   = std::string(cName);
     length = len;
     return true;
   }
@@ -101,7 +99,7 @@ public:
     return true;
   }
 
-  bool write(ofstream &os) {
+  bool write(std::ofstream &os) {
     TUINT32 length         = m_length;
     USHORT type            = m_encodingType;
     USHORT chans           = m_chans;
@@ -153,7 +151,7 @@ public:
     return true;
   }
 
-  bool write(ofstream &os) {
+  bool write(std::ofstream &os) {
     TINT32 length = m_length;
 
     if (!TNZ_LITTLE_ENDIAN) {
@@ -197,14 +195,14 @@ TSoundTrackP TSoundTrackReaderWav::load() {
   RIFFType[4] = '\0';
 
   // per i .wav il RIFFType DEVE essere uguale a "WAVE"
-  if ((string(RIFFType, 4) != "WAVE"))
+  if ((std::string(RIFFType, 4) != "WAVE"))
     throw TException("The WAV file doesn't contain the WAVE form");
 
   TFMTChunk *fmtChunk   = 0;
   TDATAChunk *dataChunk = 0;
 
   while (!is.eof()) {
-    string name   = "";
+    std::string name = "";
     TINT32 length = 0;
 
     bool ret = TWAVChunk::readHeader(is, name, length);

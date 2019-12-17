@@ -35,15 +35,13 @@
 
 #include "toonz/txsheet.h"
 
-using namespace std;
-
 DEFINE_CLASS_CODE(TXsheet, 18)
 
 //-----------------------------------------------------------------------------
 namespace {
 //-----------------------------------------------------------------------------
 
-string getColumnDefaultName(TXsheet *xsh, int col, QString oldName) {
+std::string getColumnDefaultName(TXsheet *xsh, int col, QString oldName) {
   TXshColumn *column = xsh->getColumn(col);
   if (column) {
     TXshLevelColumn *lc = column->getLevelColumn();
@@ -72,7 +70,7 @@ string getColumnDefaultName(TXsheet *xsh, int col, QString oldName) {
 void setColumnName(TXsheet *xsh, int col) {
   TStageObject *obj = xsh->getStageObject(TStageObjectId::ColumnId(col));
   QString oldName   = QString::fromStdString(obj->getName());
-  string name       = getColumnDefaultName(xsh, col, oldName);
+  std::string name  = getColumnDefaultName(xsh, col, oldName);
   if (!name.empty()) obj->setName(name);
 }
 
@@ -1176,7 +1174,7 @@ void TXsheet::loadData(TIStream &is) {
   m_imp->m_pegTree->removeStageObject(cameraId);
 
   int col = 0;
-  string tagName;
+  std::string tagName;
   while (is.openChild(tagName)) {
     if (tagName == "columns") {
       while (!is.eos()) {

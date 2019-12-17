@@ -36,8 +36,6 @@
 #include <fstream>
 #include <set>
 
-using namespace std;
-
 //
 // Per un problema su alcune macchine, solo Release.
 // il problema si verifica ruotando gli oggetti sul camera stand
@@ -124,7 +122,7 @@ TStageObjectParams *TStageObjectParams::clone() {
 // Utility Functions
 //---------------------------------------------------------------------------
 
-TStageObjectId toStageObjectId(string s) {
+TStageObjectId toStageObjectId(std::string s) {
   if (s == "None")
     return TStageObjectId::NoneId;
   else if (s == "Table")
@@ -146,7 +144,7 @@ TStageObjectId toStageObjectId(string s) {
 
 //-----------------------------------------------------------------------------
 
-ostream &operator<<(ostream &out, const TStageObjectId &id) {
+std::ostream &operator<<(std::ostream &out, const TStageObjectId &id) {
   return out << id.toString();
 }
 
@@ -215,9 +213,9 @@ const TStageObjectId TStageObjectId::ColumnId(int index) {
 
 //-----------------------------------------------------------------------------
 
-string TStageObjectId::toString() const {
+std::string TStageObjectId::toString() const {
   int index = m_id & StageObjectIndexMask;
-  string shortName;
+  std::string shortName;
   switch (m_id >> StageObjectTypeShift) {
   case NONE:
     shortName = "None";
@@ -288,12 +286,12 @@ void updateUnit(TDoubleParam *param) {
 
 //-----------------------------------------------------------------------------
 
-string convertTo4InchCenterUnits(string handle) {
+std::string convertTo4InchCenterUnits(std::string handle) {
   // per convenzione un handle del tipo 'a'..'z' utilizza
   // la vecchia convenzione per i centri (4 inch invece di 8)
   if (handle.length() == 1 && 'A' <= handle[0] && handle[0] <= 'Z' &&
       handle[0] != 'B')
-    return string(1, handle[0] + 'a' - 'A');
+    return std::string(1, handle[0] + 'a' - 'A');
   else
     return handle;
 }
@@ -551,7 +549,7 @@ void TStageObject::setName(const std::string &name) {
 
 //-----------------------------------------------------------------------------
 
-string TStageObject::getName() const {
+std::string TStageObject::getName() const {
   if (m_name != "") return m_name;
   if (!m_id.isColumn()) return m_id.toString();
   return "Col" + std::to_string(m_id.getIndex() + 1);
@@ -559,11 +557,11 @@ string TStageObject::getName() const {
 
 //-----------------------------------------------------------------------------
 
-string TStageObject::getFullName() const {
-  string name = getName();
+std::string TStageObject::getFullName() const {
+  std::string name = getName();
   if (m_id.isColumn()) {
     if (name.find("Col") == 0 && name.length() > 3 &&
-        name.find_first_not_of("0123456789", 3) == string::npos)
+        name.find_first_not_of("0123456789", 3) == std::string::npos)
       return name;
     else
       return name + " (" + std::to_string(m_id.getIndex() + 1) + ")";
@@ -794,7 +792,7 @@ void TStageObject::setParentHandle(const std::string &s) {
 
 //-----------------------------------------------------------------------------
 
-TPointD TStageObject::getHandlePos(string handle, int row) const {
+TPointD TStageObject::getHandlePos(std::string handle, int row) const {
   double unit = 8;
   if (handle == "")
     return TPointD();
@@ -1218,7 +1216,7 @@ TStageObject *TStageObject::clone() {
 
   std::map<int, TStageObject::Keyframe>::iterator itKf = keyframes.begin();
   for (; itKf != keyframes.end(); ++itKf) {
-    clonedKeyframes.insert(make_pair(itKf->first, itKf->second));
+    clonedKeyframes.insert(std::make_pair(itKf->first, itKf->second));
   }
   cloned->m_cycleEnabled    = m_cycleEnabled;
   cloned->lazyData().m_time = lazyData().m_time;
@@ -1276,7 +1274,7 @@ TStageObject *TStageObject::findRoot(double frame) const {
 
 TStageObject *TStageObject::getPinnedDescendant(int frame) {
   if (getPinnedRangeSet()->isPinned(frame)) return this;
-  for (list<TStageObject *>::iterator it = m_children.begin();
+  for (std::list<TStageObject *>::iterator it = m_children.begin();
        it != m_children.end(); ++it) {
     TStageObject *child = *it;
     if (child->getPinnedRangeSet()->isPinned(frame)) return child;
@@ -1609,7 +1607,7 @@ void TStageObject::updateKeyframes() {
 
 void TStageObject::saveData(TOStream &os) {
   TStageObjectId parentId = getParent();
-  std::map<std::string, string> attr;
+  std::map<std::string, std::string> attr;
   attr["id"]           = parentId.toString();
   attr["handle"]       = m_handle;
   attr["parentHandle"] = m_parentHandle;
@@ -1670,17 +1668,17 @@ os.child("xPrevalence") << (int)isXPrevalence;*/
 
 void TStageObject::loadData(TIStream &is) {
   VersionNumber tnzVersion = is.getVersion();
-  string tagName;
+  std::string tagName;
   QList<int> groupIds;
-  QList<wstring> groupNames;
+  QList<std::wstring> groupNames;
 
   KeyframeMap &keyframes = lazyData().m_keyframes;
 
   while (is.matchTag(tagName)) {
     if (tagName == "parent") {
-      string parentIdStr  = is.getTagAttribute("id");
-      string handle       = is.getTagAttribute("handle");
-      string parentHandle = is.getTagAttribute("parentHandle");
+      std::string parentIdStr  = is.getTagAttribute("id");
+      std::string handle       = is.getTagAttribute("handle");
+      std::string parentHandle = is.getTagAttribute("parentHandle");
       if (tnzVersion < VersionNumber(1, 15)) {
         handle       = convertTo4InchCenterUnits(handle);
         parentHandle = convertTo4InchCenterUnits(parentHandle);
@@ -1782,7 +1780,7 @@ void TStageObject::loadData(TIStream &is) {
         groupIds.push_back(groupId);
       }
     } else if (tagName == "groupNames") {
-      wstring groupName;
+      std::wstring groupName;
       while (!is.eos()) {
         is >> groupName;
         groupNames.push_back(groupName);
@@ -2028,7 +2026,7 @@ bool TStageObject::isContainedInGroup(int groupId) {
 
 //-----------------------------------------------------------------------------
 
-void TStageObject::setGroupName(const wstring &name, int position) {
+void TStageObject::setGroupName(const std::wstring &name, int position) {
   int groupSelector = position < 0 ? m_groupSelector : position;
   assert(groupSelector >= 0 && groupSelector <= m_groupName.size());
   m_groupName.insert(groupSelector, name);
@@ -2036,7 +2034,7 @@ void TStageObject::setGroupName(const wstring &name, int position) {
 
 //-----------------------------------------------------------------------------
 
-wstring TStageObject::getGroupName(bool fromEditor) {
+std::wstring TStageObject::getGroupName(bool fromEditor) {
   int groupSelector = fromEditor ? m_groupSelector + 1 : m_groupSelector;
   return m_groupName.isEmpty() || groupSelector < 0 ||
                  groupSelector >= m_groupName.size()
@@ -2046,7 +2044,7 @@ wstring TStageObject::getGroupName(bool fromEditor) {
 
 //-----------------------------------------------------------------------------
 
-QStack<wstring> TStageObject::getGroupNameStack() { return m_groupName; }
+QStack<std::wstring> TStageObject::getGroupNameStack() { return m_groupName; }
 
 //-----------------------------------------------------------------------------
 
@@ -2103,7 +2101,7 @@ int TStageObject::getEditingGroupId() {
 
 //-----------------------------------------------------------------------------
 
-wstring TStageObject::getEditingGroupName() {
+std::wstring TStageObject::getEditingGroupName() {
   if (!isGrouped() || m_groupSelector + 1 >= m_groupName.size()) return L"";
   return m_groupName[m_groupSelector + 1];
 }

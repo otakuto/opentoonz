@@ -5,12 +5,10 @@
 #include <tmathutil.h>
 #include <algorithm>
 
-using namespace std;
-
 //-----------------------------------------------------------------------------
 
 namespace {
-typedef unary_function<double, double> unary_functionDD;
+typedef std::unary_function<double, double> unary_functionDD;
 
 //---------------------------------------------------------------------------
 
@@ -69,11 +67,12 @@ void ToonzExt::NotSymmetricExpPotential::setParameters_(const TStroke *ref,
   lengthAtParam_ = ref->getLength(par);
 
   // lunghezza dal pto di click all'inizio della curva
-  leftFactor_ = min(lengthAtParam_,
-                    actionLength_ * 0.5);  // lengthAtParam_ / strokeLength_;
+  leftFactor_ =
+      std::min(lengthAtParam_,
+               actionLength_ * 0.5);  // lengthAtParam_ / strokeLength_;
 
   // lunghezza dal pto di click alla fine
-  rightFactor_ = min(strokeLength_ - lengthAtParam_, actionLength_ * 0.5);
+  rightFactor_ = std::min(strokeLength_ - lengthAtParam_, actionLength_ * 0.5);
 
   // considero come intervallo di mapping [-range,range].
   //  4 ha come valore c.a. 10exp-6
@@ -136,8 +135,8 @@ double ToonzExt::NotSymmetricExpPotential::compute_value(
 
   const double tolerance = 2.0;  // need to be pixel based
   // if is an extreme
-  if (max(lengthAtParam_, 0.0) < tolerance ||
-      max(strokeLength_ - lengthAtParam_, 0.0) < tolerance) {
+  if (std::max(lengthAtParam_, 0.0) < tolerance ||
+      std::max(strokeLength_ - lengthAtParam_, 0.0) < tolerance) {
     double tmp_al = actionLength_ * 0.5;
 
     // compute correct parameter considering offset

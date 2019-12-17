@@ -22,8 +22,6 @@ HistoryRec(const QDateTime&date QString&user, const QString&machine)
 };
 */
 
-using namespace std;
-
 //-------------------------------------------------------
 
 TContentHistory::TContentHistory(bool isLevel)
@@ -84,7 +82,7 @@ inline QString getStr(const TFrameId &id) {
 const QString Fmt = "dd MMM yy   hh:mm";
 
 static QString getLine(int counter, const QDateTime &date,
-                       const set<TFrameId> &frames) {
+                       const std::set<TFrameId> &frames) {
   static QString user;
   static QString machine;
   if (user == "") {
@@ -105,7 +103,7 @@ static QString getLine(int counter, const QDateTime &date,
 
   QString framesStr;
 
-  set<TFrameId>::const_iterator it = frames.begin();
+  std::set<TFrameId>::const_iterator it = frames.begin();
   TFrameId first, last;
   while (it != frames.end()) {
     first = last = *it;
@@ -149,20 +147,20 @@ const QString TContentHistory::currentToString() const {
 
   if (!m_isLevel) {
     assert(m_records.size() == 1);
-    return getLine(++counter, m_records.begin()->second, set<TFrameId>());
+    return getLine(++counter, m_records.begin()->second, std::set<TFrameId>());
   }
 
   QString out;
   std::multimap<QDateTime, TFrameId> dateSorted;
   std::map<TFrameId, QDateTime>::const_iterator it;
   for (it = m_records.begin(); it != m_records.end(); ++it)
-    dateSorted.insert(pair<QDateTime, TFrameId>(it->second, it->first));
+    dateSorted.insert(std::pair<QDateTime, TFrameId>(it->second, it->first));
 
   std::multimap<QDateTime, TFrameId>::const_iterator it1 = dateSorted.begin();
   QDateTime currDate = it1->first;
 
   while (it1 != dateSorted.end()) {
-    set<TFrameId> frames;
+    std::set<TFrameId> frames;
     while (it1 != dateSorted.end() && currDate == it1->first) {
       frames.insert(it1->second);
       ++it1;

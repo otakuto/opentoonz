@@ -5,8 +5,6 @@
 #include <vector>
 #include <tcurves.h>
 
-using namespace std;
-
 namespace {
 
 //=====================================================================================
@@ -464,7 +462,7 @@ void makeLittleSegment(const TRasterCM32P &ras, const Disk &disk1,
 // Preso un vettore di punti, disegna una pennelata che li approssima in un
 // raster trasparente
 void rasterBrush(const TRasterCM32P &rasBuffer,
-                 const vector<TThickPoint> &points, int styleId,
+                 const std::vector<TThickPoint> &points, int styleId,
                  bool doAntialias) {
   int i, n = points.size();
   if (n == 0)

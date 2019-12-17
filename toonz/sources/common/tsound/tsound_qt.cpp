@@ -16,8 +16,6 @@
 #include <QIODevice>
 #include <QAudioOutput>
 
-using namespace std;
-
 //==============================================================================
 
 class TSoundOutputDeviceImp: public std::enable_shared_from_this<TSoundOutputDeviceImp> {
@@ -254,9 +252,9 @@ void TSoundOutputDevice::play(const TSoundTrackP &st, TINT32 s0, TINT32 s1,
 
   if (s0 > s1) {
 #ifdef DEBUG
-    cout << "s0 > s1; reorder" << endl;
+    std::cout << "s0 > s1; reorder" << std::endl;
 #endif
-    swap(s0, s1);
+    std::swap(s0, s1);
   }
 
   m_imp->play(st, s0, s1, loop, scrubbing);

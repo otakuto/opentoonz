@@ -44,8 +44,6 @@
 #undef checkErrorsByGL
 #define checkErrorsByGL /**/
 
-using namespace std;
-
 TGLContextManager *currentContextManager = 0;
 
 void TOfflineGL::setContextManager(TGLContextManager *contextManager) {
@@ -877,7 +875,7 @@ delete it->second;
     if (it == m_table.end()) {
       TOfflineGL *glContext;
       glContext = new TOfflineGL(d);
-      pair<ContextMap::iterator, bool> result =
+      std::pair<ContextMap::iterator, bool> result =
           m_table.insert(ContextMap::value_type(d, glContext));
       assert(result.second);
       assert(m_table.size() < 15);

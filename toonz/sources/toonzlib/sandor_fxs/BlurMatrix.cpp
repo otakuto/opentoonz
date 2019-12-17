@@ -32,15 +32,13 @@ int nanosleep(const struct timespec *rqtp, struct timespec *rmtp);
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-using namespace std;
-
 CBlurMatrix::CBlurMatrix(const CBlurMatrix &m)
     :  // throw(SBlurMatrixError) :
     m_isSAC(m.m_isSAC)
     , m_isRS(m.m_isRS) {
   try {
     for (int i = 0; i < NBRS; i++) m_m[i] = m.m_m[i];
-  } catch (exception) {
+  } catch (std::exception) {
     throw SBlurMatrixError();
   }
 }
@@ -66,9 +64,11 @@ CBlurMatrix::CBlurMatrix(const double d, const int nb, const bool isSAC,
   }
 }
 
-bool CBlurMatrix::isIn(const vector<BLURSECTION> &m, const SXYD &xyd) const {
-  for (vector<BLURSECTION>::const_iterator p = m.begin(); p != m.end(); ++p) {
-    vector<SXYD>::const_iterator pp = p->begin();
+bool CBlurMatrix::isIn(const std::vector<BLURSECTION> &m,
+                       const SXYD &xyd) const {
+  for (std::vector<BLURSECTION>::const_iterator p = m.begin(); p != m.end();
+       ++p) {
+    std::vector<SXYD>::const_iterator pp = p->begin();
     if (pp->x == xyd.x && pp->y == xyd.y) return true;
   }
   return false;
@@ -113,7 +113,7 @@ void CBlurMatrix::createRandom(const double d, const int nb)
         }
       }
     }
-  } catch (exception) {
+  } catch (std::exception) {
     throw SBlurMatrixError();
   }
 }
@@ -180,12 +180,12 @@ void CBlurMatrix::createEqual(const double d, const int nb)
       yd += b;
       y = I_ROUND(yd);
     }
-  } catch (exception) {
+  } catch (std::exception) {
     throw SBlurMatrixError();
   }
 }
 
-void CBlurMatrix::addPath(vector<BLURSECTION>::iterator pBS)
+void CBlurMatrix::addPath(std::vector<BLURSECTION>::iterator pBS)
 // throw(exception)
 {
   try {
@@ -204,7 +204,7 @@ void CBlurMatrix::addPath(vector<BLURSECTION>::iterator pBS)
         pBS->push_back(xyd1);
       }
     }
-  } catch (exception) {
+  } catch (std::exception) {
     throw;
   }
 }
@@ -213,12 +213,12 @@ void CBlurMatrix::addPath()  // throw(SBlurMatrixError)
 {
   try {
     for (int i = 0; i < (m_isRS ? NBRS : 1); i++) {
-      for (vector<BLURSECTION>::iterator pBS = m_m[i].begin();
+      for (std::vector<BLURSECTION>::iterator pBS = m_m[i].begin();
            pBS != m_m[i].end(); ++pBS) {
         addPath(pBS);
       }
     }
-  } catch (exception) {
+  } catch (std::exception) {
     throw SBlurMatrixError();
   }
 }

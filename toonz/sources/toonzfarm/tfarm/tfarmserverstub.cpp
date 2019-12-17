@@ -7,7 +7,6 @@
 #include "tconvert.h"
 
 #include <vector>
-using namespace std;
 
 //------------------------------------------------------------------------------
 

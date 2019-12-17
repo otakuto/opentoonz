@@ -7,7 +7,6 @@
 #include "tversion.h"
 using namespace TVER;
 
-using namespace std;
 using namespace TCli;
 
 //=========================================================
@@ -19,16 +18,16 @@ namespace {
 
 //---------------------------------------------------------
 
-void printToonzRelease(ostream &out) {
+void printToonzRelease(std::ostream &out) {
   TVER::ToonzVersion tver;
-  out << tver.getAppVersionInfo("") << endl;
+  out << tver.getAppVersionInfo("") << std::endl;
 }
 
 //---------------------------------------------------------
 
-void printLibRelease(ostream &out) {
+void printLibRelease(std::ostream &out) {
   TVER::ToonzVersion tver;
-  out << tver.getAppVersionInfo("") << " - " __DATE__ << endl;
+  out << tver.getAppVersionInfo("") << " - " __DATE__ << std::endl;
 }
 //---------------------------------------------------------
 
@@ -49,7 +48,7 @@ void printLibRelease(ostream &out) {
 class SpecialUsageElement final : public UsageElement {
 public:
   SpecialUsageElement(std::string name) : UsageElement(name, " "){};
-  void dumpValue(ostream &) const override{};
+  void dumpValue(std::ostream &) const override{};
   void resetValue() override{};
 };
 
@@ -81,7 +80,7 @@ void fetchElement(int index, int &argc, char *argv[]) {
 //---------------------------------------------------------
 
 void fetchElement(int &dst, int index, int &argc, char *argv[]) {
-  string s = argv[index];
+  std::string s = argv[index];
   if (isInt(s))
     dst = std::stoi(s);
   else
@@ -91,11 +90,11 @@ void fetchElement(int &dst, int index, int &argc, char *argv[]) {
 
 //---------------------------------------------------------
 
-void fetchElement(string &dst, int index, int &argc, char *argv[]) {
+void fetchElement(std::string &dst, int index, int &argc, char *argv[]) {
   char *s = argv[index];
   fetchElement(index, argc, argv);
   if (*s == '-') throw UsageError("expected argument");
-  dst = string(s);
+  dst = std::string(s);
 }
 
 //---------------------------------------------------------
@@ -108,18 +107,18 @@ void fetchElement(string &dst, int index, int &argc, char *argv[]) {
 //
 //---------------------------------------------------------
 
-UsageElement::UsageElement(string name, string help)
+UsageElement::UsageElement(std::string name, std::string help)
     : m_name(name), m_help(help), m_selected(false) {}
 
 //---------------------------------------------------------
 
-void UsageElement::print(ostream &out) const { out << m_name; }
+void UsageElement::print(std::ostream &out) const { out << m_name; }
 
 //---------------------------------------------------------
 
-void UsageElement::printHelpLine(ostream &out) const {
-  out << "  " << m_name << endl;
-  out << "       " << m_help << endl;
+void UsageElement::printHelpLine(std::ostream &out) const {
+  out << "  " << m_name << std::endl;
+  out << "       " << m_help << std::endl;
 }
 
 //=========================================================
@@ -128,7 +127,7 @@ void UsageElement::printHelpLine(ostream &out) const {
 //
 //---------------------------------------------------------
 
-void Qualifier::print(ostream &out) const {
+void Qualifier::print(std::ostream &out) const {
   if (isSwitcher())
     out << m_name;
   else
@@ -143,8 +142,8 @@ void SimpleQualifier::fetch(int index, int &argc, char *argv[]) {
 
 //---------------------------------------------------------
 
-void SimpleQualifier::dumpValue(ostream &out) const {
-  out << m_name << " = " << (isSelected() ? "on" : "off") << endl;
+void SimpleQualifier::dumpValue(std::ostream &out) const {
+  out << m_name << " = " << (isSelected() ? "on" : "off") << std::endl;
 }
 
 //---------------------------------------------------------
@@ -160,7 +159,7 @@ void SimpleQualifier::resetValue() { m_selected = false; }
 void Argument::fetch(int index, int &argc, char *argv[]) {
   if (index >= argc) throw UsageError("missing argument");
   if (!assign(argv[index]))
-    throw UsageError(string("bad argument type :") + argv[index]);
+    throw UsageError(std::string("bad argument type :") + argv[index]);
   for (int i = index; i < argc - 1; i++) argv[i] = argv[i + 1];
   argc--;
 }
@@ -172,7 +171,8 @@ void MultiArgument::fetch(int index, int &argc, char *argv[]) {
   allocate(argc - index);
   for (m_index = 0; m_index < m_count; m_index++)
     if (!assign(argv[index + m_index]))
-      throw UsageError(string("bad argument type :") + argv[index + m_index]);
+      throw UsageError(std::string("bad argument type :") +
+                       argv[index + m_index]);
   argc -= m_count;
 }
 
@@ -281,31 +281,31 @@ Optional::Optional(const UsageLine &ul) : UsageLine(ul.getCount() + 2) {
 //---------------------------------------------------------
 
 class TCli::UsageImp {
-  string m_progName;
-  vector<UsageLine> m_usageLines;
+  std::string m_progName;
+  std::vector<UsageLine> m_usageLines;
   std::map<std::string, Qualifier *> m_qtable;
-  vector<Qualifier *> m_qlist;
-  vector<Argument *> m_args;
+  std::vector<Qualifier *> m_qlist;
+  std::vector<Argument *> m_args;
   typedef std::map<std::string, Qualifier *>::iterator qiterator;
   typedef std::map<std::string, Qualifier *>::const_iterator const_qiterator;
 
   UsageLine *m_selectedUsageLine;
 
 public:
-  UsageImp(string progName);
+  UsageImp(std::string progName);
   ~UsageImp(){};
   void add(const UsageLine &);
   void addStandardUsages();
 
   void registerQualifier(Qualifier *q);
-  void registerQualifier(string name, Qualifier *q);
+  void registerQualifier(std::string name, Qualifier *q);
 
   void registerArgument(Argument *arg);
 
-  void printUsageLine(ostream &out, const UsageLine &ul) const;
-  void printUsageLines(ostream &out) const;
+  void printUsageLine(std::ostream &out, const UsageLine &ul) const;
+  void printUsageLines(std::ostream &out) const;
 
-  void print(ostream &out) const;
+  void print(std::ostream &out) const;
 
   void resetValues();
   void clear();
@@ -315,7 +315,7 @@ public:
   bool hasSwitcher(const UsageLine &ul) const;
   bool matchArgCount(const UsageLine &ul, int a, int b, int argc) const;
 
-  void dumpValues(ostream &out) const;
+  void dumpValues(std::ostream &out) const;
 
   void getArgCountRange(const UsageLine &ul, int a, int b, int &min,
                         int &max) const;
@@ -329,7 +329,7 @@ const int UsageImp::InfiniteArgCount = 2048;
 
 //---------------------------------------------------------
 
-UsageImp::UsageImp(string progName)
+UsageImp::UsageImp(std::string progName)
     : m_progName(progName), m_selectedUsageLine(0) {
   addStandardUsages();
 }
@@ -365,7 +365,7 @@ void UsageImp::registerArgument(Argument *arg) {
 
 //---------------------------------------------------------
 
-void UsageImp::registerQualifier(string name, Qualifier *q) {
+void UsageImp::registerQualifier(std::string name, Qualifier *q) {
   m_qtable[name] = q;
   unsigned int i;
   for (i = 0; i < m_qlist.size() && m_qlist[i] != q; i++) {
@@ -376,7 +376,7 @@ void UsageImp::registerQualifier(string name, Qualifier *q) {
 //---------------------------------------------------------
 
 void UsageImp::registerQualifier(Qualifier *q) {
-  string str     = q->getName();
+  std::string str = q->getName();
   const char *s0 = str.c_str();
   while (*s0 == ' ') s0++;
   const char *s = s0;
@@ -422,14 +422,14 @@ void UsageImp::add(const UsageLine &ul) {
 
 //---------------------------------------------------------
 
-void UsageImp::printUsageLine(ostream &out, const UsageLine &ul) const {
+void UsageImp::printUsageLine(std::ostream &out, const UsageLine &ul) const {
   out << m_progName;
   for (int j = 0; j < ul.getCount(); j++)
     if (!ul[j]->isHidden()) {
       out << " ";
       ul[j]->print(out);
     }
-  out << endl;
+  out << std::endl;
 }
 
 //---------------------------------------------------------
@@ -446,19 +446,19 @@ void UsageImp::printUsageLines(std::ostream &out) const {
     printUsageLine(out, ul);
     first = false;
   }
-  out << endl;
+  out << std::endl;
 }
 
 //---------------------------------------------------------
 
 void UsageImp::print(std::ostream &out) const {
   printUsageLines(out);
-  out << endl;
+  out << std::endl;
   unsigned int i;
   for (i = 0; i < m_qlist.size(); i++)
     if (!m_qlist[i]->isHidden()) m_qlist[i]->printHelpLine(out);
   for (i = 0; i < m_args.size(); i++) m_args[i]->printHelpLine(out);
-  out << endl;
+  out << std::endl;
 }
 
 //---------------------------------------------------------
@@ -466,14 +466,14 @@ void UsageImp::print(std::ostream &out) const {
 void UsageImp::parse(int argc, char *argv[]) {
   resetValues();
   if (argc == 0 || argv[0] == 0) throw UsageError("missing program name");
-  m_progName = string(argv[0]);
+  m_progName = std::string(argv[0]);
   unsigned int i;
   for (i = 1; i < (unsigned int)argc;)
     if (argv[i][0] == '-') {
-      string qname(argv[i]);
+      std::string qname(argv[i]);
       qiterator qit = m_qtable.find(qname);
       if (qit == m_qtable.end()) {
-        string msg = "unknown qualifier '" + qname + "'";
+        std::string msg = "unknown qualifier '" + qname + "'";
         throw UsageError(msg);
       }
       Qualifier *qualifier = qit->second;
@@ -482,7 +482,7 @@ void UsageImp::parse(int argc, char *argv[]) {
     } else
       i++;
 
-  vector<UsageLine *> usages;
+  std::vector<UsageLine *> usages;
 
   for (i = 0; i < m_usageLines.size(); i++)
     if (hasSwitcher(m_usageLines[i]) && matchSwitcher(m_usageLines[i]))
@@ -657,12 +657,12 @@ void UsageImp::getArgCountRange(const UsageLine &ul, int a, int b, int &min,
 
 void UsageImp::dumpValues(std::ostream &out) const {
   if (m_selectedUsageLine == 0) return;
-  cout << "selected usage: ";
+  std::cout << "selected usage: ";
   printUsageLine(out, *m_selectedUsageLine);
   unsigned int i;
   for (i = 0; i < m_qlist.size(); i++) m_qlist[i]->dumpValue(out);
   for (i = 0; i < m_args.size(); i++) m_args[i]->dumpValue(out);
-  out << endl << endl;
+  out << std::endl << std::endl;
 }
 
 //---------------------------------------------------------
@@ -679,7 +679,7 @@ void UsageImp::resetValues() {
 //
 //---------------------------------------------------------
 
-Usage::Usage(string progName) : m_imp(new UsageImp(progName)) {}
+Usage::Usage(std::string progName) : m_imp(new UsageImp(progName)) {}
 
 Usage::~Usage() {}
 
@@ -692,7 +692,7 @@ void Usage::dumpValues(std::ostream &out) const { m_imp->dumpValues(out); }
 void Usage::clear() { m_imp->clear(); }
 
 bool Usage::parse(const char *argvString, std::ostream &err) {
-  string s = string(argvString);
+  std::string s = std::string(argvString);
   std::vector<char *> argv;
   int len = s.size();
   for (int i = 0; i < len;) {
@@ -721,7 +721,7 @@ bool Usage::parse(int argc, char *argv[], std::ostream &err) {
     }
     return true;
   } catch (UsageError e) {
-    err << "Usage error: " << e.getError() << endl;
+    err << "Usage error: " << e.getError() << std::endl;
     m_imp->printUsageLines(err);
     return false;
   }
@@ -742,7 +742,7 @@ RangeQualifier::RangeQualifier()
 
 void RangeQualifier::fetch(int index, int &argc, char *argv[]) {
   assert(index < argc);
-  string qname(argv[index]);
+  std::string qname(argv[index]);
   fetchElement(index, argc, argv);
   if (qname == "-range") {
     fetchElement(m_from, index, argc, argv);
@@ -768,7 +768,7 @@ void RangeQualifier::dumpValue(std::ostream &out) const {
     out << m_from << ", " << m_to;
   else
     out << "undefined";
-  out << endl;
+  out << std::endl;
 }
 
 //---------------------------------------------------------

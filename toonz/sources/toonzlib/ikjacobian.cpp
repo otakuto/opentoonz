@@ -8,7 +8,6 @@
 #include <iostream>
 
 #include "tstopwatch.h"
-using namespace std;
 
 inline bool NearZero(double x, double tolerance) {
   return (fabs(x) <= tolerance);
@@ -1081,7 +1080,7 @@ Jacobian::Jacobian(IKSkeleton *skeleton, std::vector<TPointD> &targetPos) {
   Jtarget.SetZero();
 
   U.SetSize(nRow, nRow);  // matrice U per il calcolo SVD
-  w.SetLength(min(nRow, nCol));
+  w.SetLength(std::min(nRow, nCol));
   V.SetSize(nCol, nCol);  // matrice V per il calcolo SVD
 
   dS.SetLength(nRow);      // (Posizione Target ) - (posizione End effector)
@@ -1230,7 +1229,7 @@ void Jacobian::CalcDeltaThetasTranspose() {
   // Also scale back to be have max angle change less than MaxAngleJtranspose
   double maxChange = dTheta.MaxAbs();
   double beta      = MaxAngleJtranspose / maxChange;
-  dTheta *= min(alpha, beta);
+  dTheta *= std::min(alpha, beta);
 }
 
 void Jacobian::CalcDeltaThetasPseudoinverse() {
@@ -1253,7 +1252,7 @@ void Jacobian::CalcDeltaThetasPseudoinverse() {
   VectorRn w;
 
   U.SetSize(J1.getNumRows(), J1.getNumRows());
-  w.SetLength(min(J1.getNumRows(), J1.getNumColumns()));
+  w.SetLength(std::min(J1.getNumRows(), J1.getNumColumns()));
   V.SetSize(J1.getNumColumns(), J1.getNumColumns());
 
   J1.ComputeSVD(U, w, V);
@@ -1332,7 +1331,7 @@ void Jacobian::CalcDeltaThetasPseudoinverse() {
     // Calcolo la pseudoinversa di Jdst
     MatrixRmn UU(Jdst.getNumRows(), Jdst.getNumRows()),
         VV(Jdst.getNumColumns(), Jdst.getNumColumns());
-    VectorRn ww(min(Jdst.getNumRows(), Jdst.getNumColumns()));
+    VectorRn ww(std::min(Jdst.getNumRows(), Jdst.getNumColumns()));
 
     Jdst.ComputeSVD(UU, ww, VV);
     assert(Jdst.DebugCheckSVD(UU, ww, VV));

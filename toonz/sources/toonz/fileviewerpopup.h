@@ -12,8 +12,6 @@
 class TSoundTrack;
 class TSoundOutputDevice;
 
-using namespace std;
-
 //=============================================================================
 // FileViewer
 //-----------------------------------------------------------------------------
@@ -29,7 +27,7 @@ class FileViewer : public QWidget {
   TPaletteP m_palette;
   int m_fileSize;
   std::string m_fileDate;
-  wstring m_levelName;
+  std::wstring m_levelName;
   TSoundOutputDevice *m_player;
   TSoundTrack *m_snd;
   bool m_soundOn;

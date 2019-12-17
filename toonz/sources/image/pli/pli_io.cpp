@@ -21,8 +21,6 @@
 #include <io.h>
 #endif
 
-using namespace std;
-
 typedef TVectorImage::IntersectionBranch IntersectionBranch;
 
 #if !defined(TNZ_LITTLE_ENDIAN)
@@ -160,7 +158,7 @@ public:
   }
   void setEndianess(bool isIrixEndian) { m_isIrixEndian = isIrixEndian; }
   MyIfstream &operator>>(TUINT32 &un);
-  MyIfstream &operator>>(string &un);
+  MyIfstream &operator>>(std::string &un);
   MyIfstream &operator>>(USHORT &un);
   MyIfstream &operator>>(UCHAR &un);
   MyIfstream &operator>>(char &un);
@@ -190,9 +188,9 @@ void MyIfstream::open(const TFilePath &filename) {
 /*=====================================================================*/
 
 void MyIfstream::seekg(TUINT32 pos, int type) {
-  if (type == ios_base::beg)
+  if (type == std::ios_base::beg)
     fseek(m_fp, pos, SEEK_SET);
-  else if (type == ios_base::cur)
+  else if (type == std::ios_base::cur)
     fseek(m_fp, pos, SEEK_CUR);
   else
     assert(false);
@@ -242,8 +240,8 @@ inline MyIfstream &MyIfstream::operator>>(TUINT32 &un) {
 
 /*=====================================================================*/
 
-inline MyIfstream &MyIfstream::operator>>(string &un) {
-  string s = "";
+inline MyIfstream &MyIfstream::operator>>(std::string &un) {
+  std::string s = "";
   USHORT length;
   (*this) >> length;
   for (UINT i = 0; i < length; i++) {
@@ -395,7 +393,7 @@ public:
   };
 
   errorType m_lastError;
-  string m_creator;
+  std::string m_creator;
 
   TagElem *m_firstTag;
   TagElem *m_lastTag;
@@ -677,15 +675,15 @@ void ParsedPliImp::loadInfo(bool readPlt, TPalette *&palette,
       m_frameOffsInFile[TFrameId(frame, letter)] = m_iChan.tellg();
 
       // m_iChan.seekg(m_tagLength, ios::cur);
-      m_iChan.seekg(m_tagLength - 2, ios::cur);
+      m_iChan.seekg(m_tagLength - 2, std::ios::cur);
     } else if (type == PliTag::STYLE_NGOBJ) {
-      m_iChan.seekg(pos, ios::beg);
+      m_iChan.seekg(pos, std::ios::beg);
       TagElem *tagElem = readTag();
       addTag(*tagElem);
       tagElem->m_tag = 0;
       delete tagElem;
     } else if (type == PliTag::TEXT) {
-      m_iChan.seekg(pos, ios::beg);
+      m_iChan.seekg(pos, std::ios::beg);
       TagElem *tagElem = readTag();
       TextTag *textTag = (TextTag *)tagElem->m_tag;
       history          = new TContentHistory(true);
@@ -695,7 +693,7 @@ void ParsedPliImp::loadInfo(bool readPlt, TPalette *&palette,
 
     else if (type == PliTag::GROUP_GOBJ && readPlt)  // la paletta!!!
     {
-      m_iChan.seekg(pos, ios::beg);
+      m_iChan.seekg(pos, std::ios::beg);
       TagElem *tagElem   = readTag();
       GroupTag *grouptag = (GroupTag *)tagElem->m_tag;
       if (grouptag->m_type == (UCHAR)GroupTag::PALETTE) {
@@ -706,7 +704,7 @@ void ParsedPliImp::loadInfo(bool readPlt, TPalette *&palette,
         assert(grouptag->m_type == (UCHAR)GroupTag::STROKE);
       delete tagElem;
     } else {
-      m_iChan.seekg(m_tagLength, ios::cur);
+      m_iChan.seekg(m_tagLength, std::ios::cur);
       switch (type) {
       case PliTag::SET_DATA_8_CNTRL:
         m_currDinamicTypeBytesNum = 1;
@@ -807,7 +805,7 @@ ImageTag *ParsedPliImp::loadFrame(const TFrameId &frameNumber) {
   it = m_frameOffsInFile.find(frameNumber);
 
   if (it != m_frameOffsInFile.end()) {
-    m_iChan.seekg(it->second, ios::beg);
+    m_iChan.seekg(it->second, std::ios::beg);
     frameId = it->first;
   } else
     while ((type = readTagHeader()) != PliTag::END_CNTRL) {
@@ -823,7 +821,7 @@ ImageTag *ParsedPliImp::loadFrame(const TFrameId &frameNumber) {
         m_frameOffsInFile[frameId] = m_iChan.tellg();
         if (frameId == frameNumber) break;
       } else
-        m_iChan.seekg(m_tagLength, ios::cur);
+        m_iChan.seekg(m_tagLength, std::ios::cur);
     }
 
   if (type == PliTag::END_CNTRL) {
@@ -1086,7 +1084,7 @@ inline bool ParsedPliImp::readDinamicData(TINT32 &val, TUINT32 &bufOffs) {
 PliTag *ParsedPliImp::readTextTag() {
   if (m_tagLength == 0) return new TextTag("");
 
-  return new TextTag(string((char *)m_buf.get(), m_tagLength));
+  return new TextTag(std::string((char *)m_buf.get(), m_tagLength));
 }
 
 /*=====================================================================*/

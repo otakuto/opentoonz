@@ -29,8 +29,6 @@
 #include "calligraph.h"
 //#include "tmsg.h"
 
-using namespace std;
-
 #ifdef __cplusplus
 
 extern "C" {

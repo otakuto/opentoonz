@@ -21,8 +21,6 @@ Luigi Sgaglione
 #include <ios>
 #include <algorithm>
 
-using namespace std;
-
 #define MEANSHIFT_ITERATION_NO 15
 #define ALPHA 0.98
 #define EDGE_DETECT_THRESHOLD 32
@@ -1148,24 +1146,24 @@ void CObjectTracker::SetPositionByNeighbours(void) {
 //--------------------------------------------------------------------------------------------------------
 // Write on output file
 void CObjectTracker::WriteOnOutputFile(char *filename) {
-  ofstream output;
-  output.open(filename, ios_base::app);
-  output << m_sTrackingObject.X << " " << m_sTrackingObject.Y << endl;
-  output << m_sTrackingObject.W << " " << m_sTrackingObject.H << endl;
+  std::ofstream output;
+  output.open(filename, std::ios_base::app);
+  output << m_sTrackingObject.X << " " << m_sTrackingObject.Y << std::endl;
+  output << m_sTrackingObject.W << " " << m_sTrackingObject.H << std::endl;
   output << m_sTrackingObject.half_pixelx << " "
-         << m_sTrackingObject.half_pixely << endl;
-  output << m_visible << endl;
+         << m_sTrackingObject.half_pixely << std::endl;
+  output << m_visible << std::endl;
   output.close();
-  output.open("output_center.txt", ios_base::app);
+  output.open("output_center.txt", std::ios_base::app);
   output << "Coordinate del punto - X : "
          << m_sTrackingObject.X - ((m_nImageWidth - 1) / 2)
          << " - Y : " << m_sTrackingObject.Y - ((m_nImageHeight - 1) / 2)
-         << endl;
+         << std::endl;
   output << "Larghezza dell'area : " << m_sTrackingObject.W
-         << " - Altezza dell'aera : " << m_sTrackingObject.H << endl;
+         << " - Altezza dell'aera : " << m_sTrackingObject.H << std::endl;
   output << "Mezzo pixel : " << m_sTrackingObject.half_pixelx << " "
-         << m_sTrackingObject.half_pixely << endl;
-  output << "Visibilità : " << m_visible << endl;
+         << m_sTrackingObject.half_pixely << std::endl;
+  output << "Visibilità : " << m_visible << std::endl;
   output.close();
 }
 
@@ -1225,7 +1223,7 @@ bool CObjectTracker::GetInit() { return m_initialized; }
 
 std::string CObjectTracker::GetVisibility() { return m_visible; }
 
-void CObjectTracker::SetVisibility(string visibility) {
+void CObjectTracker::SetVisibility(std::string visibility) {
   m_visible = visibility;
 }
 

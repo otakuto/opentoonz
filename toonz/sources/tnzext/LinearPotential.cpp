@@ -5,8 +5,6 @@
 #include <algorithm>
 #include "tstroke.h"
 
-using namespace std;
-
 //-----------------------------------------------------------------------------
 
 void ToonzExt::LinearPotential::setParameters_(const TStroke *ref, double par,

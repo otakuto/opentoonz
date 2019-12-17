@@ -51,7 +51,6 @@
 #include <QMainWindow>
 
 using namespace DVGui;
-using namespace std;
 
 //=============================================================================
 namespace {
@@ -214,7 +213,7 @@ bool TrackerPopup::apply() {
       framesNumber = range.m_r1 - range.m_r0 + 1;
     }
   } else if (filmstripSelection) {
-    set<TFrameId> frameIds = filmstripSelection->getSelectedFids();
+    std::set<TFrameId> frameIds = filmstripSelection->getSelectedFids();
     if (!frameIds.empty()) {
       frameStart   = frameIds.begin()->getNumber();
       framesNumber = frameIds.size();

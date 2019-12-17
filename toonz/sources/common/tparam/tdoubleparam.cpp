@@ -20,8 +20,6 @@
 
 #include "tdoubleparam.h"
 
-using namespace std;
-
 //===============================
 
 class TActualDoubleKeyframe final : public TDoubleKeyframe {
@@ -83,7 +81,7 @@ private:
   mutable const TUnit *m_unit;
 };
 
-typedef vector<TActualDoubleKeyframe> DoubleKeyframeVector;
+typedef std::vector<TActualDoubleKeyframe> DoubleKeyframeVector;
 
 //===================================================================
 
@@ -298,7 +296,7 @@ inline double getSimilarShapeValue(const TActualDoubleKeyframe &k0,
 class TDoubleParam::Imp {
 public:
   const TSyntax::Grammar *m_grammar;
-  string m_measureName;
+  std::string m_measureName;
   TMeasure *m_measure;
   double m_defaultValue, m_minValue, m_maxValue;
   DoubleKeyframeVector m_keyframes;
@@ -585,7 +583,7 @@ double TDoubleParam::getValue(double frame, bool leftmost) const {
 
     int kIndex = std::distance(keyframes.begin(), a);
 
-    vector<TActualDoubleKeyframe> tmpKeyframe(3);
+    std::vector<TActualDoubleKeyframe> tmpKeyframe(3);
 
     // if segment is keyframe based ....
     if (TDoubleKeyframe::isKeyframeBased(a->m_type)) {
@@ -1016,7 +1014,7 @@ const std::set<TParamObserver *> &TDoubleParam::observers() const {
 //---------------------------------------------------------
 
 void TDoubleParam::loadData(TIStream &is) {
-  string tagName;
+  std::string tagName;
   /*
 if(is.matchTag(tagName))
 {
@@ -1053,7 +1051,7 @@ is >> m_imp->m_defaultValue;
     } else if (tagName == "default") {
       is >> m_imp->m_defaultValue;
     } else if (tagName == "cycle") {
-      string dummy;
+      std::string dummy;
       is >> dummy;
       m_imp->m_cycleEnabled = true;
       // setExtrapolationAfter(Loop);
@@ -1083,8 +1081,8 @@ is >> m_imp->m_defaultValue;
     } else if (tagName == "expr") {
       // vecchio formato
       if (oldType != 1) continue;
-      string text    = is.getTagAttribute("text");
-      string enabled = is.getTagAttribute("enabled");
+      std::string text    = is.getTagAttribute("text");
+      std::string enabled = is.getTagAttribute("enabled");
       TDoubleKeyframe kk1, kk2;
       kk1.m_frame          = -1000;
       kk2.m_frame          = 1000;
@@ -1195,11 +1193,11 @@ void TDoubleParam::saveData(TOStream &os) {
 
 //---------------------------------------------------------
 
-string TDoubleParam::getStreamTag() const { return "doubleParam"; }
+std::string TDoubleParam::getStreamTag() const { return "doubleParam"; }
 
 //-------------------------------------------------------------------
 
-string TDoubleParam::getValueAlias(double frame, int precision) {
+std::string TDoubleParam::getValueAlias(double frame, int precision) {
   return ::to_string(getValue(frame), precision);
 }
 
@@ -1228,11 +1226,13 @@ void TDoubleParam::accept(TSyntax::CalculatorNodeVisitor &visitor) {
 
 //-------------------------------------------------------------------
 
-string TDoubleParam::getMeasureName() const { return m_imp->m_measureName; }
+std::string TDoubleParam::getMeasureName() const {
+  return m_imp->m_measureName;
+}
 
 //-------------------------------------------------------------------
 
-void TDoubleParam::setMeasureName(string name) {
+void TDoubleParam::setMeasureName(std::string name) {
   m_imp->m_measureName = name;
   m_imp->m_measure     = TMeasureManager::instance()->get(name);
 }

@@ -6,14 +6,11 @@
 
 #include <algorithm>
 
-using namespace std;
-
-using namespace std;
 using namespace ToonzExt;
 //-----------------------------------------------------------------------------
 
 namespace {
-typedef unary_function<double, double> unary_functionDD;
+typedef std::unary_function<double, double> unary_functionDD;
 
 //---------------------------------------------------------------------------
 
@@ -56,11 +53,12 @@ void ToonzExt::NotSymmetricBezierPotential::setParameters_(const TStroke *ref,
   lengthAtParam_ = ref->getLength(par_);
 
   // lunghezza dal pto di click all'inizio della curva
-  leftFactor_ = min(lengthAtParam_,
-                    actionLength_ * 0.5);  // lengthAtParam_ / strokeLength_;
+  leftFactor_ =
+      std::min(lengthAtParam_,
+               actionLength_ * 0.5);  // lengthAtParam_ / strokeLength_;
 
   // lunghezza dal pto di click alla fine
-  rightFactor_ = min(strokeLength_ - lengthAtParam_, actionLength_ * 0.5);
+  rightFactor_ = std::min(strokeLength_ - lengthAtParam_, actionLength_ * 0.5);
 }
 
 //-----------------------------------------------------------------------------
@@ -103,8 +101,8 @@ double ToonzExt::NotSymmetricBezierPotential::compute_value(
   const double tolerance = 0.0;  // need to be pixel based
 
   // if is an extreme
-  if (max(lengthAtParam_, 0.0) < tolerance ||
-      max(strokeLength_ - lengthAtParam_, 0.0) < tolerance) {
+  if (std::max(lengthAtParam_, 0.0) < tolerance ||
+      std::max(strokeLength_ - lengthAtParam_, 0.0) < tolerance) {
     double tmp_al = actionLength_ * 0.5;
 
     // compute correct parameter considering offset

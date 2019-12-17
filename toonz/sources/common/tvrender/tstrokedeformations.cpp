@@ -12,8 +12,6 @@
 #include "tmathutil.h"
 #include "tstroke.h"
 
-using namespace std;
-
 //=============================================================================
 
 namespace {
@@ -779,7 +777,7 @@ double TPointDeformation::getCPDensity(double s) const {
 //-----------------------------------------------------------------------------
 
 double TPointDeformation::getCPCountInRange(double s0, double s1) const {
-  if (s1 < s0) swap(s1, s0);
+  if (s1 < s0) std::swap(s1, s0);
 
   double step = (s1 - s0) * 0.1;
 

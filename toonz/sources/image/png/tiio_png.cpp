@@ -16,7 +16,6 @@
 #include "tpixel.h"
 #include "tpixelutils.h"
 
-using namespace std;
 //------------------------------------------------------------
 
 extern "C" {
@@ -809,7 +808,7 @@ void PngWriter::open(FILE *file, const TImageInfo &info) {
   TPointerProperty *colormap =
       (TPointerProperty *)(m_properties->getProperty("Colormap"));
   m_matte = (alphaProp && alphaProp->getValue()) ? true : false;
-  if (colormap) m_colormap = (vector<TPixel> *)colormap->getValue();
+  if (colormap) m_colormap = (std::vector<TPixel> *)colormap->getValue();
 
   TUINT32 x_pixels_per_meter = tround(m_info.m_dpix / 0.0254);
   TUINT32 y_pixels_per_meter = tround(m_info.m_dpiy / 0.0254);

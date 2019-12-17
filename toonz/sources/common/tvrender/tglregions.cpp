@@ -39,8 +39,6 @@
 #undef checkErrorsByGL
 #define checkErrorsByGL
 
-using namespace std;
-
 //-----------------------------------------------------------------------------
 /*
 DV_EXPORT_API void mylog(std::string s)

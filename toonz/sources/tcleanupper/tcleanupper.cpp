@@ -45,17 +45,16 @@
 #include <QApplication>
 
 using namespace TCli;
-using namespace std;
 
 //------------------------------------------------------------------------
 
-inline ostream &operator<<(ostream &out, const wstring &w) {
+inline std::ostream &operator<<(std::ostream &out, const std::wstring &w) {
   return out << ::to_string(w);
 }
 
 //------------------------------------------------------------------------
 
-inline ostream &operator<<(ostream &out, const TFilePath &fp) {
+inline std::ostream &operator<<(std::ostream &out, const TFilePath &fp) {
   return out << fp.getWideString();
 }
 
@@ -81,7 +80,7 @@ void loadSettings(const TFilePath &settingsFile, CleanupParameters *cp) {
 
   TIStream *is = new TIStream(settingsFile);
   int minor, major;
-  string tagName;
+  std::string tagName;
 
   // Extract file version if any
   is->matchTag(tagName);
@@ -116,7 +115,7 @@ void restoreGlobalSettings(CleanupParameters *cp) {
 //
 //------------------------------------------------------------------------
 
-void fatalError(string msg) {
+void fatalError(std::string msg) {
 #ifdef _WIN32
   msg = "Application can't start:\n" + msg;
   DVGui::error(QString::fromStdString(msg));
@@ -168,7 +167,7 @@ TFilePath setToonzFolder(const TFilePath &filename, std::string toonzVar) {
     if (q == s)
       continue;  // non dovrebbe mai succedere: prima di '=' tutti blanks
 
-    string toonzVarString(q, t);
+    std::string toonzVarString(q, t);
 
     // Confronto la stringa trovata con toonzVar, se   lei vado avanti.
     if (toonzVar != toonzVarString) continue;  // errore: stringhe diverse
@@ -181,7 +180,7 @@ TFilePath setToonzFolder(const TFilePath &filename, std::string toonzVar) {
     while (t > s && isBlank(*(t - 1))) t--;
     if (t == s) continue;
     // ATTENZIONE : tolgo le virgolette !!
-    string pathName(s + 1, t - s - 2);
+    std::string pathName(s + 1, t - s - 2);
     return TFilePath(pathName);
   }
 
@@ -218,12 +217,12 @@ TStopWatch Sw1;
 TStopWatch Sw2;
 
 bool UseRenderFarm = false;
-string FarmControllerName;
+std::string FarmControllerName;
 int FarmControllerPort;
 
 TFarmController *FarmController = 0;
 
-string TaskId;
+std::string TaskId;
 }  // namespace
 //========================================================================
 //
@@ -241,8 +240,8 @@ string TaskId;
 static void searchLevelsToCleanup(
     std::vector<std::pair<TXshSimpleLevel *, std::set<TFrameId>>> &levels,
     TXsheet *xsh, bool selectedOnly) {
-  std::map<wstring, TXshSimpleLevel *> levelTable;
-  std::map<wstring, std::set<TFrameId>> framesTable;
+  std::map<std::wstring, TXshSimpleLevel *> levelTable;
+  std::map<std::wstring, std::set<TFrameId>> framesTable;
 
   std::set<TXsheet *> visited;
   std::vector<TXsheet *> xsheets;
@@ -277,7 +276,7 @@ static void searchLevelsToCleanup(
           int ltype = sl->getType();
           if (ltype == TZP_XSHLEVEL && sl->getScannedPath() != TFilePath() ||
               ltype == OVL_XSHLEVEL || ltype == TZI_XSHLEVEL) {
-            wstring levelName     = sl->getName();
+            std::wstring levelName = sl->getName();
             levelTable[levelName] = sl;
             framesTable[levelName].insert(cell.m_frameId);
           }
@@ -312,24 +311,26 @@ static void addCleanupDefaultPalette(TXshSimpleLevel *sl) {
   TFileStatus pfs(palettePath);
 
   if (!pfs.doesExist() || !pfs.isReadable()) {
-    wcout << L"CleanupDefaultPalette file: " << palettePath.getWideString()
-          << L" is not found!" << endl;
+    std::wcout << L"CleanupDefaultPalette file: " << palettePath.getWideString()
+               << L" is not found!" << std::endl;
     return;
   }
 
   TIStream is(palettePath);
   if (!is) {
-    cout << "CleanupDefaultPalette file: failed to get TIStream" << endl;
+    std::cout << "CleanupDefaultPalette file: failed to get TIStream"
+              << std::endl;
     return;
   }
 
-  string tagName;
+  std::string tagName;
   if (!is.matchTag(tagName) || tagName != "palette") {
-    cout << "CleanupDefaultPalette file: This is not palette file" << endl;
+    std::cout << "CleanupDefaultPalette file: This is not palette file"
+              << std::endl;
     return;
   }
 
-  string gname;
+  std::string gname;
   is.getTagParam("name", gname);
   TPalette *defaultPalette = new TPalette();
   defaultPalette->loadData(is);
@@ -392,20 +393,20 @@ static void cleanupLevel(TXshSimpleLevel *xl, std::set<TFrameId> fidsInXsheet,
 
   TFilePath fp = scene->decodeFilePath(xl->getPath());
   TSystem::touchParentDir(fp);
-  cout << "cleanupping " << xl->getName() << " path=" << fp << endl;
-  string info = "cleanupping " + ::to_string(xl->getPath());
+  std::cout << "cleanupping " << xl->getName() << " path=" << fp << std::endl;
+  std::string info = "cleanupping " + ::to_string(xl->getPath());
   LevelUpdater updater(xl);
   m_userLog.info(info);
   DVGui::info(QString::fromStdString(info));
   bool firstImage = true;
   for (auto const &fid : fidsInXsheet) {
-    cout << "  " << fid << endl;
+    std::cout << "  " << fid << std::endl;
     info = "  " + fid.expand();
     m_userLog.info(info);
     int status = xl->getFrameStatus(fid);
 
     if (0 != (status & TXshSimpleLevel::Cleanupped) && !overwrite) {
-      cout << "  skipped" << endl;
+      std::cout << "  skipped" << std::endl;
       m_userLog.info("  skipped");
       DVGui::info(QString("--skipped frame ") +
                   QString::fromStdString(fid.expand()));
@@ -413,9 +414,9 @@ static void cleanupLevel(TXshSimpleLevel *xl, std::set<TFrameId> fidsInXsheet,
     }
     TRasterImageP original = xl->getFrameToCleanup(fid);
     if (!original) {
-      string err = "    *error* missed frame";
+      std::string err = "    *error* missed frame";
       m_userLog.error(err);
-      cout << err << endl;
+      std::cout << err << std::endl;
       continue;
     }
 
@@ -430,7 +431,8 @@ static void cleanupLevel(TXshSimpleLevel *xl, std::set<TFrameId> fidsInXsheet,
         ri = cl->autocenterOnly(original, false, autocentered);
         if (!autocentered) {
           m_userLog.error("The autocentering failed on the current drawing.");
-          cout << "The autocentering failed on the current drawing." << endl;
+          std::cout << "The autocentering failed on the current drawing."
+                    << std::endl;
         }
       }
       updater.update(fid, ri);
@@ -513,10 +515,10 @@ int main(int argc, char *argv[]) {
 
   TFilePath fproot = TEnv::getStuffDir();
   if (fproot == TFilePath())
-    fatalError(string("Undefined: \"") + ::to_string(TEnv::getRootVarPath()) +
-               "\"");
+    fatalError(std::string("Undefined: \"") +
+               ::to_string(TEnv::getRootVarPath()) + "\"");
   if (!TFileStatus(fproot).isDirectory())
-    fatalError(string("Directory \"") + ::to_string(fproot) +
+    fatalError(std::string("Directory \"") + ::to_string(fproot) +
                "\" not found or not readable");
 
   TFilePath lRootDir    = TEnv::getStuffDir() + "toonzfarm";
@@ -555,13 +557,13 @@ int main(int argc, char *argv[]) {
   if (!usage.parse(argc, argv)) exit(1);
 
   TaskId       = idq.getValue();
-  string fdata = farmData.getValue();
+  std::string fdata = farmData.getValue();
   if (fdata.empty())
     UseRenderFarm = false;
   else {
     UseRenderFarm         = true;
-    string::size_type pos = fdata.find('@');
-    if (pos == string::npos)
+    std::string::size_type pos = fdata.find('@');
+    if (pos == std::string::npos)
       UseRenderFarm = false;
     else {
       FarmControllerPort = std::stoi(fdata.substr(0, pos));
@@ -584,13 +586,14 @@ int main(int argc, char *argv[]) {
   TProjectP project   = pm->loadSceneProject(srcName);
 
   if (!project) {
-    string err = "Couldn't find the project" + project->getName().getName();
+    std::string err =
+        "Couldn't find the project" + project->getName().getName();
     m_userLog.error(err);
-    cerr << err << endl;
+    std::cerr << err << std::endl;
     return -2;
   }
 
-  cout << "project:" << project->getName() << endl;
+  std::cout << "project:" << project->getName() << std::endl;
 
   TFilePath fp = srcName;
 
@@ -608,9 +611,9 @@ int main(int argc, char *argv[]) {
     try {
       scene->loadNoResources(fp);
     } catch (...) {
-      string err = "can't read " + fp.getName();
+      std::string err = "can't read " + fp.getName();
       m_userLog.error(err);
-      cerr << "can't read " << fp << endl;
+      std::cerr << "can't read " << fp << std::endl;
       TImageCache::instance()->clear(true);
       return -3;
     }
@@ -621,7 +624,7 @@ int main(int argc, char *argv[]) {
       TProjectManager *pm    = TProjectManager::instance();
       TProjectP sceneProject = pm->loadSceneProject(fp);
       if (!sceneProject) {
-        cerr << "can't open project." << endl;
+        std::cerr << "can't open project." << std::endl;
         return -3;
       }
       scene->setProject(sceneProject.getPointer());
@@ -652,7 +655,7 @@ int main(int argc, char *argv[]) {
       int frameLength = scene->getXsheet()->exposeLevel(0, 0, xl, dummy);
       std::cout << "expose done. frameLength : " << frameLength << std::endl;
     } catch (...) {
-      cerr << "can't read Cleanup Settings file " << fp << endl;
+      std::cerr << "can't read Cleanup Settings file " << fp << std::endl;
       TImageCache::instance()->clear(true);
       return -3;
     }
@@ -773,9 +776,9 @@ int main(int argc, char *argv[]) {
         try {
           TSystem::mkDir(nopaintDir);
         } catch (...) {
-          string err = "Can't make directory  " + nopaintDir.getName();
+          std::string err = "Can't make directory  " + nopaintDir.getName();
           m_userLog.error(err);
-          cerr << "Can't make directory" << endl;
+          std::cerr << "Can't make directory" << std::endl;
         }
       }
 
@@ -821,21 +824,21 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  wstring wInfo  = L"updating scene " + scene->getSceneName();
+  std::wstring wInfo = L"updating scene " + scene->getSceneName();
   QString qInfo_ = QString::fromStdWString(wInfo);
-  string info    = qInfo_.toStdString();
+  std::string info   = qInfo_.toStdString();
   m_userLog.info(info);
-  cout << "updating scene " << scene->getSceneName() << endl;
+  std::cout << "updating scene " << scene->getSceneName() << std::endl;
   /*- シーンを上書き保存 -*/
   try {
     scene->save(fp);
     TImageCache::instance()->clear(true);
   } catch (...) {
-    wstring wErr = L"Can't save scene  " + fp.getWideName();
+    std::wstring wErr = L"Can't save scene  " + fp.getWideName();
     QString qErr = QString::fromStdWString(wErr);
-    string err   = qErr.toStdString();
+    std::string err   = qErr.toStdString();
     m_userLog.error(err);
-    cerr << "Can't save scene" << endl;
+    std::cerr << "Can't save scene" << std::endl;
     TImageCache::instance()->clear(true);
   }
 
@@ -848,4 +851,4 @@ namespace {
 const char *toonzVersion = "Toonz 7.1";
 }  // namespace
 
-static string getToonzVersion() { return toonzVersion; }
+static std::string getToonzVersion() { return toonzVersion; }

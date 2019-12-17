@@ -24,7 +24,6 @@
 #endif
 
 #include <string>
-using namespace std;
 
 #define MAXHOSTNAME 1024
 
@@ -81,12 +80,12 @@ int TTcpIpServerImp::readData(int sock, QString &data) {
   cout << buff << endl << endl;
 #endif
 
-  string aa(buff);
+  std::string aa(buff);
   int x1 = aa.find("#$#THS01.00");
   x1 += sizeof("#$#THS01.00") - 1;
   int x2 = aa.find("#$#THE");
 
-  string ssize;
+  std::string ssize;
   for (int i = x1; i < x2; ++i) ssize.push_back(buff[i]);
 
   int dataSize = std::stoi(ssize);
@@ -187,7 +186,7 @@ int TTcpIpServerImp::readData(int sock, string &data)
 
 #ifdef PRIMA
 
-int TTcpIpServerImp::readData(int sock, string &data) {
+int TTcpIpServerImp::readData(int sock, std::string &data) {
   int cnt = 0;
   char buff[1024];
 
@@ -211,10 +210,10 @@ int TTcpIpServerImp::readData(int sock, string &data) {
     else if (cnt == 0) {
       break;  // break out of loop
     } else if (cnt < sizeof(buff)) {
-      data += string(buff);
+      data += std::string(buff);
       // break;  // break out of loop
     } else {
-      data += string(buff);
+      data += std::string(buff);
     }
   } while (cnt != 0);  // do loop condition
 
@@ -412,13 +411,13 @@ int TTcpIpServer::getExitCode() const { return m_exitCode; }
 //---------------------------------------------------------------------
 
 void TTcpIpServer::sendReply(int socket, const QString &reply) {
-  string replyUtf8 = reply.toStdString();
+  std::string replyUtf8 = reply.toStdString();
 
   QString header("#$#THS01.00");
   header += QString::number((int)replyUtf8.size());
   header += QString("#$#THE");
 
-  string packet = header.toStdString() + replyUtf8;
+  std::string packet = header.toStdString() + replyUtf8;
 
   //  string packet = reply;;
 

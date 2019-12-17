@@ -6,7 +6,6 @@
 #include "DeformationSelector.h"
 
 using namespace ToonzExt;
-using namespace std;
 
 //-----------------------------------------------------------------------------
 
@@ -46,14 +45,15 @@ StrokeDeformationImpl *DeformationSelector::getDeformation(
   Deformation default_def((StrokeDeformationImpl *)0, -1);
   if (!ref_.empty()) default_def = ref_[0];
 
-  vector<Deformation>::iterator it, end = ref_.end();
-  for (it = ref_.begin(); it != end; ++it) {
-    StrokeDeformationImpl *tmp = it->first;
+  for (auto const &e : ref_) {
+    StrokeDeformationImpl *tmp = e.first;
 
     if (tmp->check(status)) {
-      if (it->second > candidate.second) {
-        candidate                                        = *it;
-        if (it->second < default_def.second) default_def = *it;
+      if (e.second > candidate.second) {
+        candidate = e;
+        if (e.second < default_def.second) {
+          default_def = e;
+        }
       }
     }
     if (tmp->getShortcutKey() == status->key_event_) {

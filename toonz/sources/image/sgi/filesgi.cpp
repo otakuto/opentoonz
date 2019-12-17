@@ -44,7 +44,6 @@
 #endif
 #include <stdarg.h>
 
-using namespace std;
 //
 // IMAGERGB:
 // header file per le immagini sgi
@@ -235,14 +234,14 @@ static IMAGERGB *iopen(int fd, OpenMode openMode, unsigned int type,
     image->wastebytes = 0;
     image->dorev      = dorev;
     if (do_rgb_write_header(image, f) != IMAGERGB_HEADER_SIZE) {
-      cout << "iopen: error on write of image header\n" << endl;
+      std::cout << "iopen: error on write of image header\n" << std::endl;
       return NULL;
     }
     image->flags = _IOWRT;
   } else {
     // READ
     if (do_rgb_read_header(image, f) != IMAGERGB_HEADER_SIZE) {
-      cout << "iopen: error on read of image header" << endl;
+      std::cout << "iopen: error on read of image header" << std::endl;
       return NULL;
     }
 
@@ -253,7 +252,8 @@ static IMAGERGB *iopen(int fd, OpenMode openMode, unsigned int type,
       image->dorev = 0;
 
     if (image->imagic != IMAGIC) {
-      cout << "iopen: bad magic in image file " << image->imagic << endl;
+      std::cout << "iopen: bad magic in image file " << image->imagic
+                << std::endl;
       return NULL;
     }
     image->flags = _IOREAD;
@@ -265,7 +265,7 @@ static IMAGERGB *iopen(int fd, OpenMode openMode, unsigned int type,
     image->rowsize  = (TINT32 *)malloc(tablesize);
 
     if (image->rowstart == 0 || image->rowsize == 0) {
-      cout << "iopen: error on table alloc" << endl;
+      std::cout << "iopen: error on table alloc" << std::endl;
       return NULL;
     }
 
@@ -313,7 +313,7 @@ static IMAGERGB *iopen(int fd, OpenMode openMode, unsigned int type,
     char xs[1024];
     sprintf(xs, "%d", image->xsize);
 
-    TSystem::outputDebug(string("iopen: error on tmpbuf alloc %d\n") + xs);
+    TSystem::outputDebug(std::string("iopen: error on tmpbuf alloc %d\n") + xs);
     return NULL;
   }
 
@@ -422,7 +422,7 @@ static void img_rle_expand(unsigned short *rlebuf, int ibpp,
 
     EXPAND_CODE(unsigned short);
   } else
-    cout << "rle_expand: bad bpp: " << ibpp << obpp << endl;
+    std::cout << "rle_expand: bad bpp: " << ibpp << obpp << std::endl;
 }
 
 /*-----------------------------------------------------------------------------*/
@@ -497,7 +497,7 @@ static int img_badrow(IMAGERGB *image, int y, int z) {
 static TUINT32 img_seek(IMAGERGB *image, unsigned int y, unsigned int z,
                         unsigned int offs) {
   if (img_badrow(image, y, z)) {
-    cout << "imglib: row number out of range" << endl;
+    std::cout << "imglib: row number out of range" << std::endl;
     return (TUINT32)EOF;
   }
   image->x = 0;
@@ -516,7 +516,7 @@ static TUINT32 img_seek(IMAGERGB *image, unsigned int y, unsigned int z,
                      (y * image->xsize + z * image->xsize * image->ysize) *
                          BPP(image->type));
     default:
-      cout << "img_seek: wierd dim" << endl;
+      std::cout << "img_seek: wierd dim" << std::endl;
       break;
     }
   } else if (ISRLE(image->type)) {
@@ -528,11 +528,11 @@ static TUINT32 img_seek(IMAGERGB *image, unsigned int y, unsigned int z,
     case 3:
       return img_optseek(image, offs + image->rowstart[y + z * image->ysize]);
     default:
-      cout << "img_seek: wierd dim" << endl;
+      std::cout << "img_seek: wierd dim" << std::endl;
       break;
     }
   } else
-    cout << "img_seek: wierd image type" << endl;
+    std::cout << "img_seek: wierd image type" << std::endl;
   return 0;
 }
 
@@ -568,7 +568,7 @@ static int new_getrow(IMAGERGB *image, void *buffer, UINT y, UINT z) {
         return image->xsize;
       }
     default:
-      cout << "getrow: wierd bpp" << endl;
+      std::cout << "getrow: wierd bpp" << std::endl;
       break;
     }
   } else if (ISRLE(image->type)) {
@@ -591,11 +591,11 @@ static int new_getrow(IMAGERGB *image, void *buffer, UINT y, UINT z) {
         return image->xsize;
       }
     default:
-      cout << "getrow: weird bpp" << endl;
+      std::cout << "getrow: weird bpp" << std::endl;
       break;
     }
   } else
-    cout << "getrow: weird image type" << endl;
+    std::cout << "getrow: weird image type" << std::endl;
   return -1;
 }
 
@@ -715,7 +715,7 @@ static TINT32 img_rle_compact(unsigned short *expbuf, int ibpp,
     COMPACT_CODE(unsigned short);
     return optr - rlebuf;
   } else {
-    cout << "rle_compact: bad bpp: %d %d" << ibpp << obpp;
+    std::cout << "rle_compact: bad bpp: %d %d" << ibpp << obpp;
     return 0;
   }
 }
@@ -867,7 +867,7 @@ void SgiReader::open(FILE *file) {
   m_header = iopen(fileno(file), OpenRead, 0, 0, 0, 0, 0, 0);
 
   if (!m_header) {
-    string str("Can't open file");
+    std::string str("Can't open file");
     throw(str);
   }
 
@@ -880,7 +880,7 @@ void SgiReader::open(FILE *file) {
   prop->m_endianess.setValue(m_header->dorev == 1 ? L"Big Endian"
                                                   : L"Little Endian");
   prop->m_compressed.setValue(ISRLE(m_header->type) ? true : false);
-  wstring pixelSize;
+  std::wstring pixelSize;
   int ps = m_info.m_bitsPerSample * m_info.m_samplePerPixel;
   if (ps == 8)
     pixelSize = L"8 bits (Greyscale)";
@@ -1101,7 +1101,7 @@ void SgiWriter::open(FILE *file, const TImageInfo &info) {
   TEnumProperty *p =
       (TEnumProperty *)(m_properties->getProperty("Bits Per Pixel"));
   assert(p);
-  string str          = ::to_string(p->getValue());
+  std::string str     = ::to_string(p->getValue());
   int bitPerPixel     = atoi(str.c_str());
   int channelBytesNum = 1;
   int dim             = 3;

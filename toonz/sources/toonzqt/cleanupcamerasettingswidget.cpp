@@ -18,7 +18,6 @@
 #include "toonzqt/dvdialog.h"
 #include "toonzqt/doublefield.h"
 
-using namespace std;
 using namespace DVGui;
 
 CleanupCameraSettingsWidget::CleanupCameraSettingsWidget() {

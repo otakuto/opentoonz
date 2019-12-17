@@ -73,7 +73,6 @@
 #include <boost/range/adaptor/transformed.hpp>
 
 namespace ba = boost::adaptors;
-using namespace std;  // Please, remove
 
 //*****************************************************************************
 //    Local Namespace  stuff
@@ -1772,7 +1771,7 @@ public:
 namespace {
 int columnsPerPage = 10000;
 int rowsPerPage    = 10000;
-std::vector<std::pair<std::string, string>> infos;
+std::vector<std::pair<std::string, std::string>> infos;
 
 void readParameters() {
   infos.clear();
@@ -1872,14 +1871,14 @@ public:
   void buildNumericColumns();
   void buildChildTable(ToonzScene *scene);
 
-  void tableCaption(ostream &os);
+  void tableCaption(std::ostream &os);
 
-  void columnHeader(ostream &os, int c);
-  void numericColumnHeader(ostream &os, int c);
-  void cell(ostream &os, int r, int c);
-  void numericCell(ostream &os, int r, int c);
+  void columnHeader(std::ostream &os, int c);
+  void numericColumnHeader(std::ostream &os, int c);
+  void cell(std::ostream &os, int r, int c);
+  void numericCell(std::ostream &os, int r, int c);
 
-  void write(ostream &os);
+  void write(std::ostream &os);
 };
 
 XsheetWriter::XsheetWriter(ToonzScene *scene) : m_xsh(0) {
@@ -1925,13 +1924,13 @@ void XsheetWriter::buildChildTable(ToonzScene *scene) {
   for (i = 0; i < (int)levels.size(); i++) m_childTable[levels[i]] = k++;
 }
 
-void XsheetWriter::tableCaption(ostream &os) { os << "<p>&nbsp;</p>\n"; }
+void XsheetWriter::tableCaption(std::ostream &os) { os << "<p>&nbsp;</p>\n"; }
 
-void XsheetWriter::columnHeader(ostream &os, int c) {
-  os << "  <th>" << (c + 1) << "</th>" << endl;
+void XsheetWriter::columnHeader(std::ostream &os, int c) {
+  os << "  <th>" << (c + 1) << "</th>" << std::endl;
 }
 
-void XsheetWriter::numericColumnHeader(ostream &os, int c) {
+void XsheetWriter::numericColumnHeader(std::ostream &os, int c) {
   std::string pegbarName = m_numericColumns[c].m_pegbar->getName();
   std::string curveName =
       m_numericColumns[c]
@@ -1939,10 +1938,10 @@ void XsheetWriter::numericColumnHeader(ostream &os, int c) {
           ->getName();  // toString(TStringTable::translate(m_numericColumns[c].m_curve->getName()));
   os << "  <th class='" << (c > 0 ? "numeric" : "first_numeric") << "'>";
   os << pegbarName << "<br>" << curveName;
-  os << "</th>" << endl;
+  os << "</th>" << std::endl;
 }
 
-void XsheetWriter::cell(ostream &os, int r, int c) {
+void XsheetWriter::cell(std::ostream &os, int r, int c) {
   TXshCell prevCell;
   if (r > 0) prevCell = m_xsh->getCell(r - 1, c);
   TXshCell cell = m_xsh->getCell(r, c);
@@ -1979,11 +1978,11 @@ void XsheetWriter::cell(ostream &os, int r, int c) {
         levelName = ::to_string(level->getName());
       os << levelName << " " << cell.m_frameId.getNumber();
     }
-    os << "</td>" << endl;
+    os << "</td>" << std::endl;
   }
 }
 
-void XsheetWriter::numericCell(ostream &os, int r, int c) {
+void XsheetWriter::numericCell(std::ostream &os, int r, int c) {
   TDoubleParamP curve = m_numericColumns[c].m_curve;
 
   double v          = curve->getValue(r);
@@ -1994,10 +1993,10 @@ void XsheetWriter::numericCell(ostream &os, int r, int c) {
   }
 
   os << "<td class='" << (c > 0 ? "numeric" : "first_numeric") << "'>";
-  os << v << "</td>" << endl;
+  os << v << "</td>" << std::endl;
 }
 
-void XsheetWriter::write(ostream &os) {
+void XsheetWriter::write(std::ostream &os) {
   int rowCount    = m_xsh->getFrameCount();
   int colCount    = m_xsh->getColumnCount();
   int totColCount = colCount + (int)m_numericColumns.size();
@@ -2020,24 +2019,24 @@ void XsheetWriter::write(ostream &os) {
     for (;;) {
       r1 = std::min(rowCount, r0 + rowsPerPage) - 1;
       tableCaption(os);
-      os << "<table>" << endl << "<tr>" << endl;
-      if (c0 == 0) os << "  <th>&nbsp;</th>" << endl;
+      os << "<table>" << std::endl << "<tr>" << std::endl;
+      if (c0 == 0) os << "  <th>&nbsp;</th>" << std::endl;
       for (c = c0; c <= c1; c++) {
         if (c < colCount)
           columnHeader(os, c);
         else
           numericColumnHeader(os, c - colCount);
       }
-      os << "</tr>" << endl;
+      os << "</tr>" << std::endl;
       for (r = r0; r <= r1; r++) {
-        os << "<tr>" << endl;
-        os << "  <th class='frame'>" << r + 1 << "</th>" << endl;
+        os << "<tr>" << std::endl;
+        os << "  <th class='frame'>" << r + 1 << "</th>" << std::endl;
 
         for (c = ca0; c <= ca1; c++) cell(os, r, c);
         for (c = cb0; c <= cb1; c++) numericCell(os, r, c - colCount);
-        os << "</tr>" << endl;
+        os << "</tr>" << std::endl;
       }
-      os << "</table>" << endl;
+      os << "</table>" << std::endl;
       r0 = r1 + 1;
       if (r0 >= rowCount) break;
     }
@@ -2055,25 +2054,26 @@ static void makeHtml(TFilePath fp) {
 
   Tofstream os(fp);
 
-  os << "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" " << endl;
-  os << "  \"http://www.w3.org/TR/html4/strict.dtd\">" << endl;
-  os << "<html><head>" << endl;
-  os << "<title>" << sceneName << "</title>" << endl;
+  os << "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" " << std::endl;
+  os << "  \"http://www.w3.org/TR/html4/strict.dtd\">" << std::endl;
+  os << "<html><head>" << std::endl;
+  os << "<title>" << sceneName << "</title>" << std::endl;
   os << "<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">"
-     << endl;
-  os << "<meta http-equiv=\"Content-Style-Type\" content=\"text/css\">" << endl;
-  os << "<meta name=\"Generator\" content=\"Toonz 5.2\">" << endl;
+     << std::endl;
+  os << "<meta http-equiv=\"Content-Style-Type\" content=\"text/css\">"
+     << std::endl;
+  os << "<meta name=\"Generator\" content=\"Toonz 5.2\">" << std::endl;
   os << "<link rel=\"stylesheet\" type=\"text/css\" href=\"xsheet.css\">"
-     << endl;
-  os << "</head><body>" << endl;
-  os << "<table class='header'>" << endl;
+     << std::endl;
+  os << "</head><body>" << std::endl;
+  os << "<table class='header'>" << std::endl;
   for (int k = 0; k < (int)infos.size(); k++)
     os << "<tr><th>" << infos[k].first << ":</th><td>" << infos[k].second
-       << "</td></tr>" << endl;
-  os << "<tr><th>Project:</th><td>" << projectName << "</td></tr>" << endl;
-  os << "<tr><th>Scene:</th><td>" << sceneName << "</td></tr>" << endl;
+       << "</td></tr>" << std::endl;
+  os << "<tr><th>Project:</th><td>" << projectName << "</td></tr>" << std::endl;
+  os << "<tr><th>Scene:</th><td>" << sceneName << "</td></tr>" << std::endl;
   os << "<tr><th>Frames:</th><td>" << scene->getFrameCount() << "</td></tr>"
-     << endl;
+     << std::endl;
   os << "</table>\n";
   os << "<p>&nbsp;</p>\n";
 
@@ -2094,20 +2094,20 @@ static void makeHtml(TFilePath fp) {
   os << "<h2>Levels</h2>\n";
   std::vector<TXshLevel *> levels;
   scene->getLevelSet()->listLevels(levels);
-  os << "<dl>" << endl;
+  os << "<dl>" << std::endl;
   for (i = 0; i < (int)levels.size(); i++) {
     TXshLevel *level = levels[i];
     if (!level->getSimpleLevel()) continue;
-    os << "<dt>" << ::to_string(level->getName()) << "</dt>" << endl;
-    os << "<dd>" << endl;
+    os << "<dt>" << ::to_string(level->getName()) << "</dt>" << std::endl;
+    os << "<dd>" << std::endl;
     TFilePath fp = level->getPath();
     os << ::to_string(fp);
     TFilePath fp2 = scene->decodeFilePath(fp);
     if (fp != fp2) os << "<br>" << ::to_string(fp2);
-    os << "</dd>" << endl;
+    os << "</dd>" << std::endl;
   }
-  os << "</dl>" << endl;
-  os << "</body></html>" << endl;
+  os << "</dl>" << std::endl;
+  os << "</body></html>" << std::endl;
 }
 
 class PrintXsheetCommand final : public MenuItemHandler {

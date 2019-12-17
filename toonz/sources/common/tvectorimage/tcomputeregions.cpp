@@ -28,12 +28,10 @@ TNZ_LITTLE_ENDIAN undefined !!
 //-----------------------------------------------------------------------------
 
 #ifdef IS_DOTNET
-#define NULL_ITER list<IntersectedStroke>::iterator()
+#define NULL_ITER std::list<IntersectedStroke>::iterator()
 #else
 #define NULL_ITER 0
 #endif
-
-    using namespace std;
 
 typedef TVectorImage::IntersectionBranch IntersectionBranch;
 //-----------------------------------------------------------------------------
@@ -127,7 +125,7 @@ public:
 class IntersectedStrokeEdges {
 public:
   int m_index;
-  list<TEdge *> m_edgeList;
+  std::list<TEdge *> m_edgeList;
   IntersectedStrokeEdges(int index) : m_index(index), m_edgeList() {}
   ~IntersectedStrokeEdges() {
     assert(m_index >= 0); /*clearPointerContainer(m_edgeList);*/
@@ -140,8 +138,8 @@ class IntersectionData {
 public:
   UINT maxAutocloseId;
   VIList<Intersection> m_intList;
-  map<int, VIStroke *> m_autocloseMap;
-  vector<IntersectedStrokeEdges> m_intersectedStrokeArray;
+  std::map<int, VIStroke *> m_autocloseMap;
+  std::vector<IntersectedStrokeEdges> m_intersectedStrokeArray;
 
   IntersectionData() : maxAutocloseId(1), m_intList() {}
 
@@ -292,28 +290,28 @@ int VIList<T>::getPosOf(T *elem) {
 
 #ifdef LEVO
 
-void print(list<Intersection> &intersectionList, char *str) {
-  ofstream of(str);
+void print(std::list<Intersection> &intersectionList, char *str) {
+  std::ofstream of(str);
 
-  of << "***************************" << endl;
+  of << "***************************" << std::endl;
 
-  list<Intersection>::const_iterator it;
-  list<IntersectedStroke>::const_iterator it1;
+  std::list<Intersection>::const_iterator it;
+  std::list<IntersectedStroke>::const_iterator it1;
   int i, j;
   for (i = 0, it = intersectionList.begin(); it != intersectionList.end();
        it++, i++) {
-    of << "***************************" << endl;
+    of << "***************************" << std::endl;
     of << "Intersection#" << i << ": " << it->m_intersection
-       << "numBranches: " << it->m_numInter << endl;
-    of << endl;
+       << "numBranches: " << it->m_numInter << std::endl;
+    of << std::endl;
 
     for (j = 0, it1 = it->m_strokeList.begin(); it1 != it->m_strokeList.end();
          it1++, j++) {
       of << "----Branch #" << j;
       if (it1->m_edge.m_index < 0) of << "(AUTOCLOSE)";
       of << "Intersection at " << it1->m_edge.m_w0 << ": "
-         << ": " << endl;
-      of << "ColorId: " << it1->m_edge.m_styleId << endl;
+         << ": " << std::endl;
+      of << "ColorId: " << it1->m_edge.m_styleId << std::endl;
       /*
 TColorStyle* fs = it1->m_edge.m_fillStyle;
 if (fs==0)
@@ -331,7 +329,7 @@ of<<"Color: ("<< colorStyle->getColor().r<<", "<< colorStyle->getColor().g<<",
 */
 
       of << "----Stroke " << (it1->m_gettingOut ? "OUT" : "IN") << " #"
-         << it1->m_edge.m_index << ": " << endl;
+         << it1->m_edge.m_index << ": " << std::endl;
       // if (it1->m_dead)
       // of<<"---- DEAD Intersection.";
       // else
@@ -341,7 +339,7 @@ of<<"Color: ("<< colorStyle->getColor().r<<", "<< colorStyle->getColor().g<<",
           int dist =
               std::distance(intersectionList.begin(), it1->m_nextIntersection);
           of << dist;
-          list<Intersection>::iterator iit = intersectionList.begin();
+          std::list<Intersection>::iterator iit = intersectionList.begin();
           std::advance(iit, dist);
           of << " "
              << std::distance(iit->m_strokeList.begin(), it1->m_nextStroke);
@@ -355,23 +353,23 @@ of<<"Color: ("<< colorStyle->getColor().r<<", "<< colorStyle->getColor().g<<",
         else
           of << "NULL!!";
       }
-      of << endl << endl;
+      of << std::endl << std::endl;
     }
   }
 }
 
 #endif
 
-void findNearestIntersection(list<Intersection> &interList,
-                             const list<Intersection>::iterator &i1,
-                             const list<IntersectedStroke>::iterator &i2);
+void findNearestIntersection(std::list<Intersection> &interList,
+                             const std::list<Intersection>::iterator &i1,
+                             const std::list<IntersectedStroke>::iterator &i2);
 
 //-----------------------------------------------------------------------------
 
 #ifdef _TOLGO
-void checkInterList(list<Intersection> &intersectionList) {
-  list<Intersection>::iterator it;
-  list<IntersectedStroke>::iterator it1;
+void checkInterList(std::list<Intersection> &intersectionList) {
+  std::list<Intersection>::iterator it;
+  std::list<IntersectedStroke>::iterator it1;
 
   for (it = intersectionList.begin(); it != intersectionList.end(); it++) {
     int count = 0;
@@ -402,12 +400,13 @@ void checkInterList(list<Intersection> &intersectionList) {
 // UINT ii, double w);
 
 void addIntersections(IntersectionData &intersectionData,
-                      const vector<VIStroke *> &s, int ii, int jj,
-                      const vector<DoublePair> &intersections, int numStrokes,
-                      bool isVectorized);
+                      const std::vector<VIStroke *> &s, int ii, int jj,
+                      const std::vector<DoublePair> &intersections,
+                      int numStrokes, bool isVectorized);
 
-void addIntersection(IntersectionData &intData, const vector<VIStroke *> &s,
-                     int ii, int jj, DoublePair intersections, int strokeSize,
+void addIntersection(IntersectionData &intData,
+                     const std::vector<VIStroke *> &s, int ii, int jj,
+                     DoublePair intersections, int strokeSize,
                      bool isVectorized);
 
 //-----------------------------------------------------------------------------
@@ -464,8 +463,8 @@ void TVectorImage::Imp::eraseEdgeFromStroke(IntersectedStroke *is) {
     VIStroke *s;
     s = m_strokes[is->m_edge.m_index];
     assert(s->m_s == is->m_edge.m_s);
-    list<TEdge *>::iterator iit  = s->m_edgeList.begin(),
-                            it_e = s->m_edgeList.end();
+    std::list<TEdge *>::iterator iit  = s->m_edgeList.begin(),
+                                 it_e = s->m_edgeList.end();
 
     for (; iit != it_e; ++iit)
       if ((*iit)->m_w0 == is->m_edge.m_w0 && (*iit)->m_w1 == is->m_edge.m_w1) {
@@ -564,7 +563,7 @@ void TVectorImage::Imp::eraseDeadIntersections() {
 //-----------------------------------------------------------------------------
 
 void TVectorImage::Imp::doEraseIntersection(int index,
-                                            vector<int> *toBeDeleted) {
+                                            std::vector<int> *toBeDeleted) {
   Intersection *p1  = m_intersectionData->m_intList.first();
   TStroke *deleteIt = 0;
 
@@ -621,7 +620,7 @@ UINT TVectorImage::Imp::getFillData(std::unique_ptr<IntersectionBranch[]> &v) {
   Intersection *p1;
   IntersectedStroke *p2;
   UINT currInt = 0;
-  vector<UINT> branchesBefore(m_intersectionData->m_intList.size() + 1);
+  std::vector<UINT> branchesBefore(m_intersectionData->m_intList.size() + 1);
 
   branchesBefore[0] = 0;
   UINT count = 0, size = 0;
@@ -708,7 +707,7 @@ TStroke *reconstructAutocloseStroke(Intersection *p1, IntersectedStroke *p2)
         if ((pp2->m_edge.m_w0 == 1 && p2->m_edge.m_w0 == 0) ||
             (pp2->m_edge.m_w0 == 0 && p2->m_edge.m_w0 == 1)) {
           found = true;
-          vector<TPointD> v;
+          std::vector<TPointD> v;
           if (p2->m_edge.m_w0 == 0) {
             v.push_back(p1->m_intersection);
             v.push_back(pp1->m_intersection);
@@ -766,7 +765,7 @@ for (UINT ii=0; ii<branchCount; ii++)
   IntersectedStroke *currBranch;
 
   UINT size = v[branchCount - 1].m_currInter + 1;
-  vector<UINT> branchesBefore(size);
+  std::vector<UINT> branchesBefore(size);
 
   UINT i = 0;
   for (; i < branchCount; i++) {
@@ -856,7 +855,7 @@ assert(v[b.m_nextBranch].m_nextBranch==i);
   Intersection *p1;
   IntersectedStroke *p2;
 
-  vector<UINT> toBeDeleted;
+  std::vector<UINT> toBeDeleted;
 
   for (p1 = intList.first(); p1; p1 = p1->next())
     for (p2 = p1->m_strokeList.first(); p2; p2 = p2->next()) {
@@ -897,7 +896,7 @@ assert(v[b.m_nextBranch].m_nextBranch==i);
 //-----------------------------------------------------------------------------
 
 void TVectorImage::Imp::eraseIntersection(int index) {
-  vector<int> autocloseStrokes;
+  std::vector<int> autocloseStrokes;
   doEraseIntersection(index, &autocloseStrokes);
 
   for (UINT i = 0; i < autocloseStrokes.size(); i++) {
@@ -1094,7 +1093,7 @@ static double getNearAngle(const TStroke *s1, double w1, bool out1,
   double ltot2 = s2->getLength();
   double l1    = s1->getLength(w1);
   double l2    = s2->getLength(w2);
-  double dl    = min(ltot1, ltot2) / 1000;
+  double dl    = std::min(ltot1, ltot2) / 1000;
   double dl1   = verse1 ? dl : -dl;
   double dl2   = verse2 ? dl : -dl;
 
@@ -1224,7 +1223,7 @@ static bool makeEdgeIntersection(Intersection &interList,
 //-----------------------------------------------------------------------------
 
 static bool makeIntersection(IntersectionData &intData,
-                             const vector<VIStroke *> &s, int ii, int jj,
+                             const std::vector<VIStroke *> &s, int ii, int jj,
                              DoublePair inter, int strokeSize,
                              Intersection &interList) {
   IntersectedStroke item1, item2;
@@ -1346,7 +1345,7 @@ areAlmostEqual(q->getP2(), p->getP0(), 1e-2))
 //-----------------------------------------------------------------------------
 
 static bool addAutocloseIntersection(IntersectionData &intData,
-                                     vector<VIStroke *> &s, int ii, int jj,
+                                     std::vector<VIStroke *> &s, int ii, int jj,
                                      double w0, double w1, int strokeSize,
                                      bool isVectorized) {
   assert(s[ii]->m_groupId == s[jj]->m_groupId);
@@ -1383,7 +1382,7 @@ static bool addAutocloseIntersection(IntersectionData &intData,
       return false;
   }
 
-  vector<TPointD> v;
+  std::vector<TPointD> v;
   v.push_back(s[ii]->m_s->getPoint(w0));
   v.push_back(s[jj]->m_s->getPoint(w1));
   if (v[0] == v[1])  // le stroke si intersecano , ma la fottuta funzione
@@ -1690,7 +1689,7 @@ if (isCloseEnoughP2L(factor, s1, w1,  s2, w))
 namespace {
 
 inline bool isSegment(const TStroke &s) {
-  vector<TThickPoint> v;
+  std::vector<TThickPoint> v;
   s.getControlPoints(v);
   UINT n = v.size();
   if (areAlmostEqual(v[n - 1].x, v[0].x, 1e-4)) {
@@ -1763,8 +1762,8 @@ return false;
 
 void getClosingSegments(TL2LAutocloser &l2lautocloser, double facMin,
                         double facMax, TStroke *s1, TStroke *s2,
-                        vector<DoublePair> *intersections,
-                        vector<std::pair<double, double>> &segments) {
+                        std::vector<DoublePair> *intersections,
+                        std::vector<std::pair<double, double>> &segments) {
   bool ret1 = false, ret2 = false, ret3 = false, ret4 = false;
 #define L2LAUTOCLOSE
 #ifdef L2LAUTOCLOSE
@@ -1837,8 +1836,8 @@ void getClosingSegments(TL2LAutocloser &l2lautocloser, double facMin,
 //---------------------------------------------------------------------------------
 
 void getClosingPoints(const TRectD &rect, double fac, const TVectorImageP &vi,
-                      vector<pair<int, double>> &startPoints,
-                      vector<pair<int, double>> &endPoints) {
+                      std::vector<std::pair<int, double>> &startPoints,
+                      std::vector<std::pair<int, double>> &endPoints) {
   UINT strokeCount = vi->getStrokeCount();
   TL2LAutocloser l2lautocloser;
 
@@ -1873,7 +1872,7 @@ void getClosingPoints(const TRectD &rect, double fac, const TVectorImageP &vi,
               s2->getBBox().enlarge(enlarge2)))
         continue;
 
-      vector<std::pair<double, double>> segments;
+      std::vector<std::pair<double, double>> segments;
       getClosingSegments(l2lautocloser, autoTol, autoTol + fac, s1, s2, 0,
                          segments);
       for (UINT k = 0; k < segments.size(); k++) {
@@ -1881,8 +1880,8 @@ void getClosingPoints(const TRectD &rect, double fac, const TVectorImageP &vi,
         TPointD p2 = s2->getPoint(segments[k].second);
         if (rect.contains(p1) && rect.contains(p2)) {
           if (segmentAlreadyPresent(vi, p1, p2)) continue;
-          startPoints.push_back(pair<int, double>(i, segments[k].first));
-          endPoints.push_back(pair<int, double>(j, segments[k].second));
+          startPoints.push_back(std::pair<int, double>(i, segments[k].first));
+          endPoints.push_back(std::pair<int, double>(j, segments[k].second));
         }
       }
     }
@@ -1891,11 +1890,12 @@ void getClosingPoints(const TRectD &rect, double fac, const TVectorImageP &vi,
 
 //-------------------------------------------------------------------------------------------------------
 
-static void autoclose(double factor, vector<VIStroke *> &s, int ii, int jj,
+static void autoclose(double factor, std::vector<VIStroke *> &s, int ii, int jj,
                       IntersectionData &IntData, int strokeSize,
                       TL2LAutocloser &l2lautocloser,
-                      vector<DoublePair> *intersections, bool isVectorized) {
-  vector<std::pair<double, double>> segments;
+                      std::vector<DoublePair> *intersections,
+                      bool isVectorized) {
+  std::vector<std::pair<double, double>> segments;
   getClosingSegments(l2lautocloser, 0, factor, s[ii]->m_s, s[jj]->m_s,
                      intersections, segments);
 
@@ -1906,7 +1906,7 @@ static void autoclose(double factor, vector<VIStroke *> &s, int ii, int jj,
 
 //------------------------------------------------------------------------------------------------------
 #ifdef LEVO
-void autoclose(double factor, vector<VIStroke *> &s, int ii, int jj,
+void autoclose(double factor, std::vector<VIStroke *> &s, int ii, int jj,
                IntersectionData &IntData, int strokeSize) {
   bool ret1 = false, ret2 = false, ret3 = false, ret4 = false;
 
@@ -1951,7 +1951,7 @@ TPointD inline getTangent(const IntersectedStroke &item) {
 
 static void addBranch(IntersectionData &intData,
                       VIList<IntersectedStroke> &strokeList,
-                      const vector<VIStroke *> &s, int ii, double w,
+                      const std::vector<VIStroke *> &s, int ii, double w,
                       int strokeSize, bool gettingOut) {
   IntersectedStroke *p1, *p2;
   TPointD tanRef, lastTan;
@@ -2068,7 +2068,7 @@ return;
 //-----------------------------------------------------------------------------
 
 static void addBranches(IntersectionData &intData, Intersection &intersection,
-                        const vector<VIStroke *> &s, int ii, int jj,
+                        const std::vector<VIStroke *> &s, int ii, int jj,
                         DoublePair intersectionPair, int strokeSize) {
   bool foundS1 = false, foundS2 = false;
   IntersectedStroke *p;
@@ -2140,9 +2140,9 @@ IntersectedStroke app;
 //-----------------------------------------------------------------------------
 
 static void addIntersections(IntersectionData &intData,
-                             const vector<VIStroke *> &s, int ii, int jj,
-                             vector<DoublePair> &intersections, int strokeSize,
-                             bool isVectorized) {
+                             const std::vector<VIStroke *> &s, int ii, int jj,
+                             std::vector<DoublePair> &intersections,
+                             int strokeSize, bool isVectorized) {
   for (int k = 0; k < (int)intersections.size(); k++) {
     if (ii >= strokeSize && (areAlmostEqual(intersections[k].first, 0.0) ||
                              areAlmostEqual(intersections[k].first, 1.0)))
@@ -2173,8 +2173,9 @@ inline double truncate(double x) {
 
 //-----------------------------------------------------------------------------
 
-void addIntersection(IntersectionData &intData, const vector<VIStroke *> &s,
-                     int ii, int jj, DoublePair intersection, int strokeSize,
+void addIntersection(IntersectionData &intData,
+                     const std::vector<VIStroke *> &s, int ii, int jj,
+                     DoublePair intersection, int strokeSize,
                      bool isVectorized) {
   Intersection *p;
   TPointD point;
@@ -2222,7 +2223,7 @@ void addIntersection(IntersectionData &intData, const vector<VIStroke *> &s,
 //-----------------------------------------------------------------------------
 
 void TVectorImage::Imp::findIntersections() {
-  vector<VIStroke *> &strokeArray = m_strokes;
+  std::vector<VIStroke *> &strokeArray = m_strokes;
   IntersectionData &intData       = *m_intersectionData;
   int strokeSize                  = (int)strokeArray.size();
   int i, j;
@@ -2232,9 +2233,6 @@ void TVectorImage::Imp::findIntersections() {
 #define AUTOCLOSE_ATTIVO
 #ifdef AUTOCLOSE_ATTIVO
   intData.maxAutocloseId++;
-
-  map<int, VIStroke *>::iterator it, it_b = intData.m_autocloseMap.begin();
-  map<int, VIStroke *>::iterator it_e = intData.m_autocloseMap.end();
 
   // prima cerco le intersezioni tra nuove strokes e vecchi autoclose
   for (i = 0; i < strokeSize; i++) {
@@ -2251,22 +2249,24 @@ void TVectorImage::Imp::findIntersections() {
 
     roundStroke(s1);
 
-    for (it = it_b; it != it_e; ++it) {
-      if (!it->second || it->second->m_groupId != strokeArray[i]->m_groupId)
+    for (auto const &e : intData.m_autocloseMap) {
+      if (!e.second || e.second->m_groupId != strokeArray[i]->m_groupId) {
         continue;
+      }
 
-      TStroke *s2 = it->second->m_s;
-      vector<DoublePair> parIntersections;
-      if (intersect(s1, s2, parIntersections, true))
-        addIntersections(intData, strokeArray, i, it->first, parIntersections,
+      TStroke *s2 = e.second->m_s;
+      std::vector<DoublePair> parIntersections;
+      if (intersect(s1, s2, parIntersections, true)) {
+        addIntersections(intData, strokeArray, i, e.first, parIntersections,
                          strokeSize, isVectorized);
+      }
     }
   }
 #endif
 
   // poi,  intersezioni tra stroke, in cui almeno uno dei due deve essere nuovo
 
-  map<pair<int, int>, vector<DoublePair>> intersectionMap;
+  std::map<std::pair<int, int>, std::vector<DoublePair>> intersectionMap;
 
   for (i = 0; i < strokeSize; i++) {
     TStroke *s1 = strokeArray[i]->m_s;
@@ -2282,29 +2282,29 @@ void TVectorImage::Imp::findIntersections() {
         continue;
       if (strokeArray[i]->m_groupId != strokeArray[j]->m_groupId) continue;
 
-      vector<DoublePair> parIntersections;
+      std::vector<DoublePair> parIntersections;
       if (s1->getBBox().overlaps(s2->getBBox())) {
         UINT size = intData.m_intList.size();
 
         if (intersect(s1, s2, parIntersections, false)) {
           // if (i==0 && j==1) parIntersections.erase(parIntersections.begin());
-          intersectionMap[pair<int, int>(i, j)] = parIntersections;
+          intersectionMap[std::pair<int, int>(i, j)] = parIntersections;
           addIntersections(intData, strokeArray, i, j, parIntersections,
                            strokeSize, isVectorized);
         } else
-          intersectionMap[pair<int, int>(i, j)] = vector<DoublePair>();
+          intersectionMap[std::pair<int, int>(i, j)] =
+              std::vector<DoublePair>();
 
         if (!strokeArray[i]->m_isNewForFill &&
             size != intData.m_intList.size() &&
             !strokeArray[i]->m_edgeList.empty())  // aggiunte nuove intersezioni
         {
           intData.m_intersectedStrokeArray.push_back(IntersectedStrokeEdges(i));
-          list<TEdge *> &_list =
+          std::list<TEdge *> &_list =
               intData.m_intersectedStrokeArray.back().m_edgeList;
-          list<TEdge *>::const_iterator it;
-          for (it = strokeArray[i]->m_edgeList.begin();
-               it != strokeArray[i]->m_edgeList.end(); ++it)
-            _list.push_back(new TEdge(**it, false));
+          for (auto const &e : strokeArray[i]->m_edgeList) {
+            _list.push_back(new TEdge(*e, false));
+          }
         }
       }
     }
@@ -2333,8 +2333,8 @@ void TVectorImage::Imp::findIntersections() {
 
       if (s1->getBBox().enlarge(enlarge1).overlaps(
               s2->getBBox().enlarge(enlarge2))) {
-        map<pair<int, int>, vector<DoublePair>>::iterator it =
-            intersectionMap.find(pair<int, int>(i, j));
+        std::map<std::pair<int, int>, std::vector<DoublePair>>::iterator it =
+            intersectionMap.find(std::pair<int, int>(i, j));
         if (it == intersectionMap.end())
           autoclose(m_autocloseTolerance, strokeArray, i, j, intData,
                     strokeSize, l2lautocloser, 0, isVectorized);
@@ -2348,8 +2348,8 @@ void TVectorImage::Imp::findIntersections() {
 #endif
 
   for (i = 0; i < strokeSize; i++) {
-    list<TEdge *>::iterator it, it_b = strokeArray[i]->m_edgeList.begin(),
-                                it_e = strokeArray[i]->m_edgeList.end();
+    std::list<TEdge *>::iterator it, it_b = strokeArray[i]->m_edgeList.begin(),
+                                     it_e = strokeArray[i]->m_edgeList.end();
     for (it = it_b; it != it_e; ++it)
       if ((*it)->m_toBeDeleted == 1) delete *it;
 
@@ -2367,7 +2367,7 @@ void TVectorImage::Imp::findIntersections() {
       if (strokeArray[i]->m_groupId != strokeArray[j]->m_groupId) continue;
 
       TStroke *s2 = strokeArray[j]->m_s;
-      vector<DoublePair> parIntersections;
+      std::vector<DoublePair> parIntersections;
       if (intersect(s1, s2, parIntersections, true))
         addIntersections(intData, strokeArray, i, j, parIntersections,
                          strokeSize, isVectorized);
@@ -2378,7 +2378,7 @@ void TVectorImage::Imp::findIntersections() {
       if (strokeArray[i]->m_groupId != strokeArray[j]->m_groupId) continue;
 
       TStroke *s2 = strokeArray[j]->m_s;
-      vector<DoublePair> parIntersections;
+      std::vector<DoublePair> parIntersections;
       if (intersect(s1, s2, parIntersections, true))
         addIntersections(intData, strokeArray, i, j, parIntersections,
                          strokeSize, isVectorized);
@@ -2683,7 +2683,7 @@ static bool isValidArea(const TRegion &r) {
 
 #ifdef LEVO
 
-bool isValidArea(const vector<TRegion *> &regions, const TRegion &r) {
+bool isValidArea(const std::vector<TRegion *> &regions, const TRegion &r) {
   double area = 0.0;
   TPointD p, pOld /*, pAux*/;
   int pointAdded = 0;
@@ -2768,38 +2768,39 @@ bool isValidArea(const vector<TRegion *> &regions, const TRegion &r) {
 
 //-----------------------------------------------------------------------------
 
-void transferColors(const list<TEdge *> &oldList, const list<TEdge *> &newList,
-                    bool isStrokeChanged, bool isFlipped, bool overwriteColor);
+void transferColors(const std::list<TEdge *> &oldList,
+                    const std::list<TEdge *> &newList, bool isStrokeChanged,
+                    bool isFlipped, bool overwriteColor);
 
 //-----------------------------------------------------------------------------
-static void printStrokes1(vector<VIStroke *> &v, int size) {
+static void printStrokes1(std::vector<VIStroke *> &v, int size) {
   UINT i = 0;
-  ofstream of("C:\\temp\\strokes.txt");
+  std::ofstream of("C:\\temp\\strokes.txt");
 
   for (i = 0; i < (UINT)size; i++) {
     TStroke *s = v[i]->m_s;
-    of << "***stroke " << i << endl;
+    of << "***stroke " << i << std::endl;
     for (UINT j = 0; j < (UINT)s->getChunkCount(); j++) {
       const TThickQuadratic *q = s->getChunk(j);
 
-      of << "   s0 " << q->getP0() << endl;
-      of << "   s1 " << q->getP1() << endl;
-      of << "   s2 " << q->getP2() << endl;
-      of << "****** " << endl;
+      of << "   s0 " << q->getP0() << std::endl;
+      of << "   s1 " << q->getP1() << std::endl;
+      of << "   s2 " << q->getP2() << std::endl;
+      of << "****** " << std::endl;
     }
-    of << endl;
+    of << std::endl;
   }
   for (i = size; i < v.size(); i++) {
     TStroke *s = v[i]->m_s;
-    of << "***Autostroke " << i << endl;
-    of << "s0 " << s->getPoint(0.0) << endl;
-    of << "s1 " << s->getPoint(1.0) << endl;
-    of << endl;
+    of << "***Autostroke " << i << std::endl;
+    of << "s0 " << s->getPoint(0.0) << std::endl;
+    of << "s1 " << s->getPoint(1.0) << std::endl;
+    of << std::endl;
   }
 }
 
 //-----------------------------------------------------------------------------
-void printStrokes1(vector<VIStroke *> &v, int size);
+void printStrokes1(std::vector<VIStroke *> &v, int size);
 
 // void testHistory();
 
@@ -2917,8 +2918,8 @@ return true;
   assert(m_intersectionData->m_intersectedStrokeArray.empty());
 
   // tolgo i segmenti aggiunti con l'autoclose
-  vector<VIStroke *>::iterator it = m_strokes.begin();
-  advance(it, strokeSize);
+  std::vector<VIStroke *>::iterator it = m_strokes.begin();
+  std::advance(it, strokeSize);
   m_strokes.erase(it, m_strokes.end());
 
   m_areValidRegions = true;
@@ -3087,9 +3088,9 @@ void TVectorImage::Imp::moveStroke(int fromIndex, int moveBefore) {
 
   std::vector<VIStroke *>::iterator it = m_strokes.begin();
   if (fromIndex < moveBefore)
-    advance(it, moveBefore - 1);
+    std::advance(it, moveBefore - 1);
   else
-    advance(it, moveBefore);
+    std::advance(it, moveBefore);
 
   m_strokes.insert(it, vi);
 
@@ -3134,7 +3135,7 @@ void TVectorImage::Imp::reindexEdges(UINT strokeIndex) {
 
 //-----------------------------------------------------------------------------
 
-void TVectorImage::Imp::reindexEdges(const vector<int> &indexes,
+void TVectorImage::Imp::reindexEdges(const std::vector<int> &indexes,
                                      bool areAdded) {
   int i;
   int size = indexes.size();
@@ -3179,7 +3180,8 @@ void TVectorImage::Imp::reindexEdges(const vector<int> &indexes,
 
 void TVectorImage::Imp::insertStrokeAt(VIStroke *vs, int strokeIndex,
                                        bool recomputeRegions) {
-  list<TEdge *> oldEdgeList, emptyList;
+  std::list<TEdge *> oldEdgeList;
+  std::list<TEdge *> emptyList;
 
   if (m_computedAlmostOnce && recomputeRegions) {
     oldEdgeList = vs->m_edgeList;
@@ -3188,8 +3190,8 @@ void TVectorImage::Imp::insertStrokeAt(VIStroke *vs, int strokeIndex,
 
   assert(strokeIndex >= 0 && strokeIndex <= (int)m_strokes.size());
 
-  vector<VIStroke *>::iterator it = m_strokes.begin();
-  advance(it, strokeIndex);
+  std::vector<VIStroke *>::iterator it = m_strokes.begin();
+  std::advance(it, strokeIndex);
 
   vs->m_isNewForFill = true;
   m_strokes.insert(it, vs);
@@ -3231,10 +3233,9 @@ void TVectorImage::transform(const TAffine &aff, bool doChangeThickness) {
   for (i = 0; i < m_imp->m_strokes.size(); ++i)
     m_imp->m_strokes[i]->m_s->transform(aff, doChangeThickness);
 
-  map<int, VIStroke *>::iterator it =
-      m_imp->m_intersectionData->m_autocloseMap.begin();
-  for (; it != m_imp->m_intersectionData->m_autocloseMap.end(); ++it)
-    it->second->m_s->transform(aff, false);
+  for (auto const &e : m_imp->m_intersectionData->m_autocloseMap) {
+    e.second->m_s->transform(aff, false);
+  }
 
   for (i = 0; i < m_imp->m_regions.size(); ++i)
     invalidateRegionPropAndBBox(m_imp->m_regions[i]);
@@ -3280,7 +3281,7 @@ void TVectorImage::drawAutocloses(const TVectorRenderData &rd) const {
 
 //-----------------------------------------------------------------------------
 
-void TVectorImage::reassignStyles(map<int, int> &table) {
+void TVectorImage::reassignStyles(std::map<int, int> &table) {
   UINT i;
   UINT strokeCount = getStrokeCount();
   // UINT regionCount = getRegionCount();
@@ -3288,7 +3289,7 @@ void TVectorImage::reassignStyles(map<int, int> &table) {
     TStroke *stroke = getStroke(i);
     int styleId     = stroke->getStyle();
     if (styleId != 0) {
-      map<int, int>::iterator it = table.find(styleId);
+      std::map<int, int>::iterator it = table.find(styleId);
       if (it != table.end()) stroke->setStyle(it->second);
     }
   }
@@ -3299,7 +3300,7 @@ void TVectorImage::reassignStyles(map<int, int> &table) {
   for (p1 = m_imp->m_intersectionData->m_intList.first(); p1; p1 = p1->next())
     for (p2 = (*p1).m_strokeList.first(); p2; p2 = p2->next())
       if (p2->m_edge.m_styleId != 0) {
-        map<int, int>::iterator it = table.find(p2->m_edge.m_styleId);
+        std::map<int, int>::iterator it = table.find(p2->m_edge.m_styleId);
         if (it != table.end()) p2->m_edge.m_styleId = it->second;
         // assert(it->second<100);
       }
@@ -3308,7 +3309,7 @@ void TVectorImage::reassignStyles(map<int, int> &table) {
 //-----------------------------------------------------------------------------
 
 struct TDeleteMapFunctor {
-  void operator()(pair<int, VIStroke *> ptr) { delete ptr.second; }
+  void operator()(std::pair<int, VIStroke *> ptr) { delete ptr.second; }
 };
 
 IntersectionData::~IntersectionData() {
@@ -3348,8 +3349,8 @@ void TVectorImage::Imp::checkIntersections() {
 
   for (i = 0; i < m_strokes.size(); i++) {
     VIStroke *vs                       = m_strokes[i];
-    list<TEdge *>::const_iterator it   = vs->m_edgeList.begin(),
-                                  it_e = vs->m_edgeList.end();
+    std::list<TEdge *>::const_iterator it   = vs->m_edgeList.begin(),
+                                       it_e = vs->m_edgeList.end();
     for (; it != it_e; ++it) {
       TEdge *e = *it;
       assert(e->getStyle() >= 0 && e->getStyle() <= 1000);
@@ -3381,13 +3382,11 @@ TStroke *TVectorImage::Imp::removeEndpoints(int strokeIndex) {
   if (vs->m_s->isSelfLoop()) return 0;
   if (vs->m_edgeList.empty()) return 0;
 
-  list<TEdge *>::iterator it = vs->m_edgeList.begin();
-
   double minW = 1.0;
   double maxW = 0.0;
-  for (; it != vs->m_edgeList.end(); ++it) {
-    minW = std::min({minW - 0.00002, (*it)->m_w0, (*it)->m_w1});
-    maxW = std::max({maxW + 0.00002, (*it)->m_w0, (*it)->m_w1});
+  for (auto const &e : vs->m_edgeList) {
+    minW = std::min({minW - 0.00002, e->m_w0, e->m_w1});
+    maxW = std::max({maxW + 0.00002, e->m_w0, e->m_w1});
   }
 
   if (areAlmostEqual(minW, 0.0, 0.001) && areAlmostEqual(maxW, 1.0, 0.001))
@@ -3415,12 +3414,10 @@ TStroke *TVectorImage::Imp::removeEndpoints(int strokeIndex) {
   vs->m_s = new TStroke(final);
   vs->m_s->setStyle(oldS->getStyle());
 
-  for (it = vs->m_edgeList.begin(); it != vs->m_edgeList.end(); ++it) {
-    (*it)->m_w0 =
-        vs->m_s->getParameterAtLength(s->getLength((*it)->m_w0) - offs);
-    (*it)->m_w1 =
-        vs->m_s->getParameterAtLength(s->getLength((*it)->m_w1) - offs);
-    (*it)->m_s = vs->m_s;
+  for (auto const &e : vs->m_edgeList) {
+    e->m_w0 = vs->m_s->getParameterAtLength(s->getLength(e->m_w0) - offs);
+    e->m_w1 = vs->m_s->getParameterAtLength(s->getLength(e->m_w1) - offs);
+    e->m_s  = vs->m_s;
   }
 
   Intersection *p1;
@@ -3460,13 +3457,10 @@ void TVectorImage::Imp::restoreEndpoints(int index, TStroke *oldStroke) {
 
   vs->m_s = oldStroke;
 
-  list<TEdge *>::iterator it = vs->m_edgeList.begin();
-  for (; it != vs->m_edgeList.end(); ++it) {
-    (*it)->m_w0 =
-        vs->m_s->getParameterAtLength(s->getLength((*it)->m_w0) + offs);
-    (*it)->m_w1 =
-        vs->m_s->getParameterAtLength(s->getLength((*it)->m_w1) + offs);
-    (*it)->m_s = vs->m_s;
+  for (auto const &e : vs->m_edgeList) {
+    e->m_w0 = vs->m_s->getParameterAtLength(s->getLength(e->m_w0) + offs);
+    e->m_w1 = vs->m_s->getParameterAtLength(s->getLength(e->m_w1) + offs);
+    e->m_s  = vs->m_s;
   }
 
   Intersection *p1;
