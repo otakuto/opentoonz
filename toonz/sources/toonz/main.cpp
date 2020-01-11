@@ -449,9 +449,9 @@ int main(int argc, char *argv[]) {
 
 // seems this function should be called at all systems
 // pheraps in some GLUT-implementations initalization is mere formality
-#if defined(LINUX) || (defined(_WIN32) && defined(__GNUC__))
+//#if defined(LINUX) || (defined(_WIN32) && defined(__GNUC__))
   glutInit(&argc, argv);
-#endif
+//#endif
 
   splash.showMessage(offsetStr + "Initializing Toonz environment ...",
                      Qt::AlignCenter, Qt::white);
