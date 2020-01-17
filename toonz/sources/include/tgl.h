@@ -9,22 +9,14 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <cstdlib>
-
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glut.h>
 #endif
 
 #ifdef MACOSX
-#include <GLUT/glut.h>
-#define GLUT_NO_LIB_PRAGMA
-#define GLUT_NO_WARNING_DISABLE
-#endif
-
-#ifdef LINUX
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#else
 #include <GL/gl.h>
 #include <GL/glu.h>
-#include <GL/glut.h>
 #endif
 
 //#include "tcurves.h"

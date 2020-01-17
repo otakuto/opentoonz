@@ -119,7 +119,6 @@ To run the program with stop motion support, you will need to copy the .dll file
     - `/platforms/qwindows.dll`
 
 3. Copy the following files to the same folder as `OpenToonz.exe`
-  - `$opentoonz/thirdparty/glut/3.7.6/lib/glut64.dll`
   - `$opentoonz/thirdparty/glew/glew-1.9.0/bin/64bit/glew32.dll`
 
 4. Copy the `srv` folder from the previous OpenToonz installation to the same folder as `OpenToonz.exe`
@@ -172,7 +171,6 @@ OpenToonz utilizes the QuickTime SDK's `mov` and associated file formats.  Since
   - From the 32-bit version of Qt
     - Qt5Core.dll
     - Qt5Network.dll
-  - `$opentoonz/thirdparty/glut/3.7.6/lib/glut32.dll`
 
 ## Creating Translation Files
 Qt translation files are generated first from the source code to .ts files, then from .ts files to a .qm file.  These files can be created in Visual Studio if the `translation_` project and `Build translation_??? only` (`translation_???`のみをビルド」) is used.  These files are not created in the default `Build Project Solution`.

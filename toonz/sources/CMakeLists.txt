@@ -262,12 +262,8 @@ unset(QT_MINIMUM_VERSION)
 if(BUILD_ENV_MSVC AND NOT WITH_STOPMOTION)
     include_directories(
         SYSTEM
-        ${SDKROOT}/glut/3.7.6/include
         ${SDKROOT}/zlib-1.2.8
         ${SDKROOT}/LibJPEG/jpeg-9
-    )
-    add_definitions(
-        -DGLUT_NO_LIB_PRAGMA
     )
 endif()
 
@@ -275,15 +271,11 @@ if(BUILD_ENV_MSVC AND WITH_STOPMOTION)
     find_package(OpenCV 4.1 REQUIRED)
     include_directories(
         SYSTEM
-        ${SDKROOT}/glut/3.7.6/include
         ${SDKROOT}/zlib-1.2.8
         ${SDKROOT}/LibJPEG/jpeg-9
         ${SDKROOT}/canon/Header
         ${SDKROOT}/libjpeg-turbo64/include
         ${OpenCV_INCLUDE_DIRS}
-    )
-    add_definitions(
-        -DGLUT_NO_LIB_PRAGMA
     )
 endif()
 
@@ -326,7 +318,6 @@ if(BUILD_ENV_MSVC)
         set(MSVC_LIB_VERSION 2013)
     endif()
 
-    set(GLUT_LIB ${SDKROOT}/glut/3.7.6/lib/glut${PLATFORM}.lib)
     set(GL_LIB opengl32.lib)
     set(Z_LIB
         optimized ${SDKROOT}/zlib-1.2.8/lib/zlib-1.2.8_${MSVC_LIB_VERSION}${PLATFORM2}.lib
@@ -357,7 +348,6 @@ if(BUILD_ENV_MSVC)
     set(MYPAINT_LIB_INCLUDE_DIRS ${SDKROOT}/libmypaint/dist/${PLATFORM}/include/libmypaint)
     set(MYPAINT_LIB_LDFLAGS ${SDKROOT}/libmypaint/dist/${PLATFORM}/libmypaint.lib)
 elseif(BUILD_ENV_APPLE)
-    find_library(GLUT_LIB GLUT)
     find_library(GL_LIB OpenGL)
     find_library(Z_LIB z)
 
@@ -411,11 +401,9 @@ elseif(BUILD_ENV_UNIXLIKE)
         endif()
         find_library(GL_LIB opengl32)
         find_library(GLU_LIB glu32)
-        find_library(GLUT_LIB NAMES glut freeglut)
     else()
         find_library(GL_LIB GL)
         find_library(GLU_LIB GLU)
-        find_library(GLUT_LIB glut)
     endif()
     find_library(Z_LIB z)
 

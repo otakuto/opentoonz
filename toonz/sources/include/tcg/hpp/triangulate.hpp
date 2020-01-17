@@ -13,9 +13,11 @@
 #include "windows.h"
 #include <GL/glu.h>
 #elif defined(MACOSX)
-#include <GLUT/glut.h>
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
 #elif defined(LINUX)
-#include <GL/glut.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
 #include <cstring>
 #endif
 

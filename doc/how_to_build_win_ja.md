@@ -78,7 +78,6 @@ CMake上で、`WITH_STOPMOTION` オプションをONにします。CMake上、�
 2. `OpenToonz.exe` のパスを引数にして Qt に付属の `windeployqt.exe` を実行します
   - 必要な Qt のライブラリなどが `OpenToonz.exe` と同じフォルダに集められます
 3. 下記のファイルを `OpenToonz.exe` と同じフォルダにコピーします
-  - `$opentoonz/thirdparty/glut/3.7.6/lib/glut64.dll`
   - `$opentoonz/thirdparty/glew/glew-1.9.0/bin/64bit/glew32.dll`
 4. バイナリ版の OpenToonz のインストール先にある `srv` フォルダを `OpenToonz.exe` と同じフォルダにコピーします
   - `srv` が無くても OpenToonz は動作しますが、 mov 形式などに対応できません
@@ -126,7 +125,6 @@ OpenToonz は QuickTime SDK を用いて mov 形式などへ対応していま�
   - Qt の 32ビット版のインストール先から
     - Qt5Core.dll
     - Qt5Network.dll
-  - `$opentoonz/thirdparty/glut/3.7.6/lib/glut32.dll`
 
 ## 翻訳ファイルの生成
 Qt の翻訳ファイルは、ソースコードから `.ts` ファイルを生成して、 `.ts` ファイルに対して翻訳作業を行い、 `.ts` ファイルから `.qm` ファイルを生成します。Visual Studioソリューション中の`translation_`から始まるプロジェクトに対して「 `translation_???` のみをビルド」を実行すると、 `.ts` ファイルと `.qm` ファイルの生成が行われます。これらのプロジェクトはソリューションのビルドではビルドされないようになっています。

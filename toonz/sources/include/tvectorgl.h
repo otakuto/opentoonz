@@ -9,11 +9,6 @@
 
 #include <GL/gl.h>
 #include <GL/glu.h>
-#include <GL/glut.h>
-#endif
-
-#ifdef MACOSX
-#include <GLUT/glut.h>
 #endif
 
 //#include "tgeometry.h"

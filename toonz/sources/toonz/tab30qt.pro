@@ -20,7 +20,6 @@ LIBS += -L"$(BINROOT)/bin" \
     -ltnzext \
     -L/depot/sdk/boost/boost_1_33_1/lib_toonz/darwin/$(processor)/ \
     -lboost_thread-1_33_1 \
-    -framework GLUT \
     -framework Quicktime \
     /depot/sdk/cryptopp/cryptopp5.5.1/libcryptopp_$(processor).a
 DEPENDPATH += .

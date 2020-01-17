@@ -267,10 +267,7 @@ install_name_tool -change QtSvg.framework/Versions/4/QtSvg @executable_path/../F
 install_name_tool -change QtXml.framework/Versions/4/QtXml @executable_path/../Frameworks/QtXml.framework/Versions/4/QtXml $BINROOT/bin/Toonz\ 7.1.app/Contents/MacOS/imageformats/libqsvg.dylib
 
 
-# GLUT forse non serve
 
-#install_name_tool -id @executable_path/../Frameworks/libglut.3.dylib Toonz\ 7.1.app/Contents/Frameworks/libglut.3.dylib 
-#install_name_tool -change /sw/lib/libglut.3.dylib @executable_path/../Frameworks/libglut.3.dylib Toonz\ 7.1.app/Contents/MacOS/Toonz\ 7.1
 
 
 
