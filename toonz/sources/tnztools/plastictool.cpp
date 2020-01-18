@@ -1754,8 +1754,7 @@ static void drawText(const TPointD &pos, const QString &text,
   glLoadIdentity();
   glScaled(fontScale, fontScale, 1.0);
 
-  tglDrawText(TScale(1.0 / fontScale) * worldToWindowAff * pos,
-              text.toStdWString());
+  tglDrawText(TScale(1.0 / fontScale) * worldToWindowAff * pos, text);
 
   // Bottom-left fixed text version
 

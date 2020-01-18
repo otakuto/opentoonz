@@ -8,6 +8,12 @@
 #include "timage_io.h"
 #include "tcurves.h"
 
+#include <QApplication>
+#include <QDesktopWidget>
+#include <QGLWidget>
+#include <QPainter>
+#include <QPen>
+
 #ifndef __sgi
 #ifdef _WIN32
 #include <cstdlib>
@@ -73,43 +79,42 @@ double tglGetPixelSize2() {
 
 //-----------------------------------------------------------------------------
 
-double tglGetTextWidth(const std::string &s, void *font) {
-  double factor = 0.07;
-  double w      = 0;
-  for (int i = 0; i < (int)s.length(); i++) w += glutStrokeWidth(font, s[i]);
-  return w * factor;
+void tglDrawText(const TPointD &p, const std::string &s) {
+  tglDrawText(p, QString::fromStdString(s));
 }
 
 //-----------------------------------------------------------------------------
 
-void tglDrawText(const TPointD &p, const std::string &s, void *character) {
-#ifndef __sgi
-  glPushMatrix();
-  glTranslated(p.x, p.y, 0);
-  double factor = 0.07;
-  glScaled(factor, factor, factor);
-  for (int i = 0; i < (int)s.size(); i++) glutStrokeCharacter(character, s[i]);
-  glPopMatrix();
-#else
-  assert("Not Yet Implemented" && 0);
-  std::cout << s << std::endl;
-#endif
-}
+void tglDrawText(const TPointD &p, const QString &s) {
+  static int devPixRatio = QApplication::desktop()->devicePixelRatio();
+  QFont font("Arial", 18);
+  font.setPixelSize(13 * devPixRatio);
+  QFontMetrics fm(font);
+  QRect textRect = fm.boundingRect(s);
 
-//-----------------------------------------------------------------------------
+  int mrg = 3 * devPixRatio;
 
-void tglDrawText(const TPointD &p, const std::wstring &s, void *character) {
-#ifndef __sgi
-  glPushMatrix();
-  glTranslated(p.x, p.y, 0);
-  double factor = 0.07;
-  glScaled(factor, factor, factor);
-  for (int i = 0; i < (int)s.size(); i++) glutStrokeCharacter(character, s[i]);
-  glPopMatrix();
-#else
-  assert("Not Yet Implemented" && 0);
-  std::cout << s << std::endl;
-#endif
+  textRect.moveTo(10 * devPixRatio + mrg, 2 * devPixRatio + mrg);
+
+  QSize size(textRect.width() + textRect.left() + mrg,
+             textRect.bottom() + mrg + 3 * devPixRatio);
+
+  QImage image(size.width(), size.height(), QImage::Format_ARGB32);
+  image.fill(Qt::transparent);
+
+  QPainter painter(&image);
+  painter.setPen(Qt::black);
+  painter.setFont(font);
+  painter.drawText(textRect, Qt::TextDontClip, s);
+
+  QImage texture = QGLWidget::convertToGLFormat(image);
+
+  glRasterPos2d(p.x, p.y);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glDrawPixels(texture.width(), texture.height(), GL_RGBA, GL_UNSIGNED_BYTE,
+               texture.bits());
+  glDisable(GL_BLEND);
 }
 
 //-----------------------------------------------------------------------------

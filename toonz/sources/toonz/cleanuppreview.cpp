@@ -572,7 +572,7 @@ void CameraTestTool::drawCleanupCamera(double pixelSize) {
   glPushMatrix();
   glTranslated(pos.x, pos.y, 0);
   glScaled(2, 2, 2);
-  tglDrawText(TPointD(), "Cleanup Camera");
+  tglDrawText(TPointD(), QString("Cleanup Camera"));
   glPopMatrix();
 }
 
@@ -609,7 +609,7 @@ void CameraTestTool::drawClosestFieldCamera(double pixelSize) {
   glPushMatrix();
   glTranslated(pos.x, pos.y, 0);
   glScaled(2, 2, 2);
-  tglDrawText(TPointD(), "Closest Field");
+  tglDrawText(TPointD(), QString("Closest Field"));
   glPopMatrix();
 }
 

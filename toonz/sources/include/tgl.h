@@ -107,15 +107,8 @@ DVAPI double tglGetPixelSize2();
 
 //! Draw text in string s at position p.
 
-DVAPI void tglDrawText(const TPointD &p, const std::string &s,
-                       void *font = GLUT_STROKE_ROMAN);
-DVAPI void tglDrawText(const TPointD &p, const std::wstring &s,
-                       void *font = GLUT_STROKE_ROMAN);
-
-//! Returns text width
-
-DVAPI double tglGetTextWidth(const std::string &s,
-                             void *font = GLUT_STROKE_ROMAN);
+DVAPI void tglDrawText(const TPointD &p, const std::string &s);
+DVAPI void tglDrawText(const TPointD &p, const QString &s);
 
 /*!
  Draw circle of radius r with center c.

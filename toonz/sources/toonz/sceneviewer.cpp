@@ -1596,7 +1596,7 @@ void SceneViewer::drawOverlay() {
 
     if (m_freezedStatus != NO_FREEZED) {
       tglColor(TPixel32::Red);
-      tglDrawText(TPointD(0, 0), "FROZEN");
+      tglDrawText(TPointD(0, 0), QString("FROZEN"));
     }
     assert(glGetError() == GL_NO_ERROR);
 
@@ -2958,7 +2958,7 @@ void drawSpline(const TAffine &viewMatrix, const TRect &clipRect, bool camera3d,
   for (int i = 0; i * 4 < cpCount; i++) {
     double t    = stroke->getParameterAtControlPoint(i * 4);
     TPointD pos = stroke->getPoint(t);
-    tglDrawText(pos, QString::number(i).toStdString().c_str());
+    tglDrawText(pos, QString::number(i));
   }
 
   if (pegbar) {

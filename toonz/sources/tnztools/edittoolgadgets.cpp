@@ -627,7 +627,7 @@ void AngleRangeFxGadget::draw(bool picking) {
   glTranslated(r * 1.05, 0, 0.0);
   glScaled(pixelSize * 1.6, pixelSize * 1.6, 1);
   glRotated(-start, 0, 0, 1);
-  tglDrawText(TPointD(0, 0), "Start Angle");
+  tglDrawText(TPointD(0, 0), QString("Start Angle"));
   glPopMatrix();
 
   glPopMatrix();
@@ -648,7 +648,7 @@ void AngleRangeFxGadget::draw(bool picking) {
   glTranslated(r * 1.05, 0, 0.0);
   glScaled(pixelSize * 1.6, pixelSize * 1.6, 1);
   glRotated(-end, 0, 0, 1);
-  tglDrawText(TPointD(0, 0), "End Angle");
+  tglDrawText(TPointD(0, 0), QString("End Angle"));
   glPopMatrix();
 
   glPopMatrix();
