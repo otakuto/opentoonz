@@ -79,11 +79,12 @@ jobs:
         --executable=appdir/usr/bin/tfarmcontroller \
         --executable=appdir/usr/bin/tfarmserver
         mv OpenToonz*.AppImage artifact/OpenToonzPortable/OpenToonz.AppImage
+        tar zcf artifact/OpenToonzPortable.tar.gz artifact/OpenToonzPortable
 
     - uses: actions/upload-artifact@v1
       with:
         name: Opentoonz-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
-        path: toonz/build/artifact
+        path: toonz/build/artifact/OpenToonzPortable.tar.gz
 
   macOS:
     runs-on: macos-latest
