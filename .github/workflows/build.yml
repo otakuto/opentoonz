@@ -140,7 +140,7 @@ jobs:
   Windows:
     runs-on: windows-2019
     env:
-      vcpkg_ref: d989ad416b923a9f895c4bddc446d1ef370a3af8
+      vcpkg_ref: '5c415ff8a0aad831ee90ee4327f26992d5fe3fb3'
       CLCACHE_CL: 'C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Tools/MSVC/14.24.28314/bin/Hostx64/x64/cl_original.exe'
     steps:
     - uses: actions/checkout@v2
@@ -151,13 +151,6 @@ jobs:
         repository: 'mypaint/libmypaint'
         ref: '70f7686db792fa4953dc60f28a322bf2cd388ed7'
         path: 'libmypaint'
-
-    - name: Checkout xiaoyeli/superlu
-      uses: actions/checkout@v2
-      with:
-        repository: 'xiaoyeli/superlu'
-        ref: 'a3d5233770f0caad4bc4578b46d3b26af99e9c19'
-        path: 'superlu'
 
     - name: Install vcpkg
       run: |
@@ -177,7 +170,7 @@ jobs:
     - name: Install libraries
       run: |
         vcpkg install --clean-after-build --triplet x64-windows icu
-        vcpkg install --clean-after-build --triplet x64-windows-static json-c libjpeg-turbo libpng lz4 lzo openblas zlib
+        vcpkg install --clean-after-build --triplet x64-windows-static json-c libjpeg-turbo libpng lz4 lzo openblas zlib superlu
         vcpkg install --clean-after-build --triplet x64-windows freeglut glew
         vcpkg install --clean-after-build --triplet x64-windows qt5-base qt5-multimedia qt5-script qt5-svg qt5-tools
         ls -Recurse C:/vcpkg/installed -Filter *.pdb | rm
@@ -221,15 +214,6 @@ jobs:
         lib /OUT:libmypaint.lib Release/libmypaint.lib json-c.lib
         cp libmypaint.lib Release/libmypaint.lib
 
-    - name: Build xiaoyeli/superlu
-      run: |
-        cd superlu
-        mkdir build | Out-Null
-        cd build
-        $env:CLCACHE_CL = '${{ env.CLCACHE_CL }}'
-        cmake ../ -G 'Visual Studio 16 2019' -Ax64 -DXSDK_ENABLE_Fortran=OFF -Denable_tests=OFF
-        cmake --build . --config Release
-
     - name: Workaround
       run: |
         cd thirdparty
@@ -238,11 +222,11 @@ jobs:
         cp C:/vcpkg/installed/x64-windows-static/lib/lz4.lib Lz4/Lz4_131/lz4_64.lib
         cp C:/vcpkg/installed/x64-windows-static/lib/lzo2.lib lzo/2.03/LZO_lib/lzo2_64.lib
         cp C:/vcpkg/installed/x64-windows-static/lib/openblas.lib openblas/libopenblas_64.lib
+        cp C:/vcpkg/installed/x64-windows-static/lib/superlu.lib superlu/SuperLU_2015_64.lib
         cp C:/vcpkg/installed/x64-windows-static/lib/zlib.lib zlib-1.2.8/lib/zlib-1.2.8_2015_64.lib
         cp C:/vcpkg/installed/x64-windows/lib/freeglut.lib glut/3.7.6/lib/glut64.lib
         cp C:/vcpkg/installed/x64-windows/lib/glew32.lib glew/glew-1.9.0/lib/glew64.lib
         cp D:/a/opentoonz/opentoonz/libmypaint/build/Release/libmypaint.lib libmypaint/dist/64/libmypaint.lib
-        cp D:/a/opentoonz/opentoonz/superlu/build/SRC/Release/superlu.lib superlu/SuperLU_2015_64.lib
         cp D:/a/opentoonz/opentoonz/thirdparty/tiff-4.0.3/prj/LibTIFF/x64/Release/LibTIFF.lib tiff-4.0.3/lib/LibTIFF-4.0.3_2015_64.lib
 
     - name: Copy headers
