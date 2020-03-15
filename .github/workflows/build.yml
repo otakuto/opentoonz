@@ -163,9 +163,9 @@ jobs:
 
     - uses: actions/cache@v1
       with:
-       path: C:/vcpkg/installed
-       key: ${{ runner.os }}-vcpkg-${{ env.vcpkg_ref }}-${{ github.sha }}
-       restore-keys: ${{ runner.os }}-vcpkg-${{ env.vcpkg_ref }}-
+        path: C:/vcpkg/installed
+        key: ${{ runner.os }}-vcpkg-${{ env.vcpkg_ref }}-${{ github.sha }}
+        restore-keys: ${{ runner.os }}-vcpkg-${{ env.vcpkg_ref }}-
 
     - name: Install libraries
       run: |
@@ -175,18 +175,25 @@ jobs:
         vcpkg install --clean-after-build --triplet x64-windows qt5-base qt5-multimedia qt5-script qt5-svg qt5-tools
         ls -Recurse C:/vcpkg/installed -Filter *.pdb | rm
 
-    - name: Install clcache
+    - name: Install tools
       run: |
-        pip install clcache
-        Rename-Item -Path 'C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Tools/MSVC/14.24.28314/bin/Hostx64/x64/cl.exe' -NewName 'cl_original.exe'
-        Rename-Item -Path 'C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Tools/MSVC/14.24.28314/bin/Hostx64/x64/cl.exe.config' -NewName 'cl_original.exe.config'
-        cp 'C:/hostedtoolcache/windows/Python/3.7.6/x64/Scripts/clcache.exe' 'C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Tools/MSVC/14.24.28314/bin/Hostx64/x64/cl.exe'
+        choco install ninja
+        cargo install sccache
 
     - uses: actions/cache@v1
       with:
-       path: C:/Users/runneradmin/clcache
-       key: ${{ runner.os }}-clcache-${{ github.sha }}
-       restore-keys: ${{ runner.os }}-clcache-
+        path: C:/Users/runneradmin/AppData/Local/Mozilla/sccache
+        key: ${{ runner.os }}-sccache-${{ github.sha }}
+        restore-keys: ${{ runner.os }}-sccache-
+
+    - name: Set vcvars
+      run: |
+        cmd.exe /c 'call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat" && set > %temp%\vcvars.txt'
+        Get-Content "$env:temp\vcvars.txt" | Foreach-Object {
+          if ($_ -match "^(.*?)=(.*)$") {
+            echo "::set-env name=$($matches[1] | out-string -NoNewline)::$($matches[2] | out-string -NoNewline)"
+          }
+        }
 
     - name: Build libtiff
       run: |
@@ -194,8 +201,6 @@ jobs:
         cp libtiff/tif_config.vc.h libtiff/tif_config.h
         cp libtiff/tiffconf.vc.h libtiff/tiffconf.h
         cd prj/LibTIFF
-        $env:Path += ';C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/MSBuild/Current/Bin'
-        $env:CLCACHE_CL = '${{ env.CLCACHE_CL }}'
         msbuild LibTIFF.vcxproj /p:PlatformToolset=v142 /p:Platform=x64 /p:Configuration=Release -maxcpucount:3
 
     - name: Build mypaint/libmypaint
@@ -206,13 +211,14 @@ jobs:
         python generate.py mypaint-brush-settings-gen.h brushsettings-gen.h
         mkdir build | Out-Null
         cd build
-        $env:CLCACHE_CL = '${{ env.CLCACHE_CL }}'
-        cmake ../ -G 'Visual Studio 16 2019' -Ax64 -Djson-c_DIR='C:/vcpkg/installed/x64-windows-static/share/json-c/' -DJSON-C_INCLUDE_DIR='C:/vcpkg/installed/x64-windows-static/include/json-c/'
-        cmake --build . --config Release
-        cp C:/vcpkg/installed/x64-windows-static/lib/json-c.lib .
-        $env:Path += ';C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Tools/MSVC/14.24.28314/bin/Hostx64/x64'
-        lib /OUT:libmypaint.lib Release/libmypaint.lib json-c.lib
-        cp libmypaint.lib Release/libmypaint.lib
+        cmake ../ -G Ninja `
+        -DCMAKE_BUILD_TYPE=Release `
+        -Djson-c_DIR='C:/vcpkg/installed/x64-windows-static/share/json-c/' `
+        -DJSON-C_INCLUDE_DIR='C:/vcpkg/installed/x64-windows-static/include/json-c/' `
+        -DCMAKE_C_COMPILER=cl `
+        -DCMAKE_C_COMPILER_LAUNCHER=sccache
+        ninja
+        lib /OUT:libmypaint.lib libmypaint.lib C:/vcpkg/installed/x64-windows-static/lib/json-c.lib
 
     - name: Workaround
       run: |
@@ -226,7 +232,7 @@ jobs:
         cp C:/vcpkg/installed/x64-windows-static/lib/zlib.lib zlib-1.2.8/lib/zlib-1.2.8_2015_64.lib
         cp C:/vcpkg/installed/x64-windows/lib/freeglut.lib glut/3.7.6/lib/glut64.lib
         cp C:/vcpkg/installed/x64-windows/lib/glew32.lib glew/glew-1.9.0/lib/glew64.lib
-        cp D:/a/opentoonz/opentoonz/libmypaint/build/Release/libmypaint.lib libmypaint/dist/64/libmypaint.lib
+        cp D:/a/opentoonz/opentoonz/libmypaint/build/libmypaint.lib libmypaint/dist/64/libmypaint.lib
         cp D:/a/opentoonz/opentoonz/thirdparty/tiff-4.0.3/prj/LibTIFF/x64/Release/LibTIFF.lib tiff-4.0.3/lib/LibTIFF-4.0.3_2015_64.lib
 
     - name: Copy headers
@@ -240,16 +246,25 @@ jobs:
         cd toonz
         mkdir build | Out-Null
         cd build
-        $env:CLCACHE_CL = '${{ env.CLCACHE_CL }}'
-        cmake ../sources -G 'Visual Studio 16 2019' -Ax64 -DQT_PATH='C:/vcpkg/installed/x64-windows/bin' -DQt5_DIR='C:/vcpkg/installed/x64-windows/share/cmake/Qt5' -DBOOST_ROOT="$env:BOOST_ROOT_1_69_0"
-        cmake --build . --config Release
+        cmake ../sources -G Ninja `
+        -DCMAKE_BUILD_TYPE=Release `
+        -DQT_PATH='C:/vcpkg/installed/x64-windows/bin' `
+        -DQt5_DIR='C:/vcpkg/installed/x64-windows/share/cmake/Qt5' `
+        -DBOOST_ROOT="$env:BOOST_ROOT_1_69_0" `
+        -DCMAKE_C_COMPILER=cl `
+        -DCMAKE_CXX_COMPILER=cl `
+        -DCMAKE_C_COMPILER_LAUNCHER=sccache `
+        -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+        ninja -w dupbuild=warn
 
     - name: Create Artifact
       run: |
         mkdir artifact | Out-Null
         cd artifact
         cp -Recurse ../stuff portablestuff
-        cp ../toonz/build/Release/* .
+        ls -R ../toonz/build
+        cp ../toonz/build/*.exe .
+        cp ../toonz/build/*.dll .
         cp C:/vcpkg/installed/x64-windows/bin/freeglut.dll .
         cp C:/vcpkg/installed/x64-windows/bin/glew32.dll .
         cp C:/vcpkg/installed/x64-windows/bin/Qt5Core.dll .
