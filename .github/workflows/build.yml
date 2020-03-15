@@ -211,6 +211,7 @@ jobs:
         python generate.py mypaint-brush-settings-gen.h brushsettings-gen.h
         mkdir build | Out-Null
         cd build
+        sccache --start-server
         cmake ../ -G Ninja `
         -DCMAKE_BUILD_TYPE=Release `
         -Djson-c_DIR='C:/vcpkg/installed/x64-windows-static/share/json-c/' `
