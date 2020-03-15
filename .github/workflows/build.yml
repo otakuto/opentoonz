@@ -178,13 +178,20 @@ jobs:
     - name: Install tools
       run: |
         choco install ninja
-        cargo install sccache
+        choco install clcache
+        #cargo install sccache
+
+        #- uses: actions/cache@v1
+        #  with:
+        #    path: C:/Users/runneradmin/AppData/Local/Mozilla/sccache
+        #    key: ${{ runner.os }}-sccache-${{ github.sha }}
+        #    restore-keys: ${{ runner.os }}-sccache-
 
     - uses: actions/cache@v1
       with:
-        path: C:/Users/runneradmin/AppData/Local/Mozilla/sccache
-        key: ${{ runner.os }}-sccache-${{ github.sha }}
-        restore-keys: ${{ runner.os }}-sccache-
+        path: C:/Users/runneradmin/clcache
+        key: ${{ runner.os }}-clcache-${{ github.sha }}
+        restore-keys: ${{ runner.os }}-clcache-
 
     - name: Set vcvars
       run: |
@@ -211,13 +218,12 @@ jobs:
         python generate.py mypaint-brush-settings-gen.h brushsettings-gen.h
         mkdir build | Out-Null
         cd build
-        sccache --start-server
         cmake ../ -G Ninja `
         -DCMAKE_BUILD_TYPE=Release `
         -Djson-c_DIR='C:/vcpkg/installed/x64-windows-static/share/json-c/' `
         -DJSON-C_INCLUDE_DIR='C:/vcpkg/installed/x64-windows-static/include/json-c/' `
         -DCMAKE_C_COMPILER=cl `
-        -DCMAKE_C_COMPILER_LAUNCHER=sccache
+        -DCMAKE_C_COMPILER_LAUNCHER=clcache
         ninja
         lib /OUT:libmypaint.lib libmypaint.lib C:/vcpkg/installed/x64-windows-static/lib/json-c.lib
 
@@ -254,8 +260,8 @@ jobs:
         -DBOOST_ROOT="$env:BOOST_ROOT_1_69_0" `
         -DCMAKE_C_COMPILER=cl `
         -DCMAKE_CXX_COMPILER=cl `
-        -DCMAKE_C_COMPILER_LAUNCHER=sccache `
-        -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+        -DCMAKE_C_COMPILER_LAUNCHER=clcache `
+        -DCMAKE_CXX_COMPILER_LAUNCHER=clcache
         ninja -w dupbuild=warn
 
     - name: Create Artifact
